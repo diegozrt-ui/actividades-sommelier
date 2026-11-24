@@ -1030,6 +1030,7 @@
             resetStylesExercise(true);
             renderStudyGuide();
             renderStylesReferenceTable('ALL');
+            initVoiceEngine();
             initVoiceIndicator();
         };
 
@@ -1071,7 +1072,7 @@
         }
 
         // =========================================================================
-        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN ADAPTATIVA (GEMINI TTS + WEB SPEECH / LEARNWORLDS IFRAME)
         // =========================================================================
         const apiKey = "";
         let activeVideoStep = null;
@@ -1080,12 +1081,70 @@
         let isVoiceEnabled = true;
         let sceneProgressTimer = null;
         let sceneFallbackTimer = null;
+        let speechKeepAliveTimer = null;
         let sceneStartTime = 0;
         let expectedSceneDurationMs = 7000;
         let currentAudioElement = null;
+        let currentUtterance = null;
         let currentSpeechRequestId = 0;
+        let cachedSpanishVoice = null;
+        let geminiTtsUnavailable = false;
         const ttsAudioCache = {};
         const ttsInFlightRequests = {};
+
+        // Detecta si se ejecuta fuera del entorno de vista previa (ej. GitHub Pages / iframe de LearnWorlds)
+        function isExternalHostedEnvironment() {
+            const host = window.location.hostname || '';
+            const isGitHubOrExternal = host.includes('github.io') || (window.self !== window.top && !host.includes('googleusercontent') && !host.includes('google'));
+            return isGitHubOrExternal && !apiKey;
+        }
+
+        function selectBestSpanishVoice() {
+            if (!('speechSynthesis' in window)) return null;
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices || voices.length === 0) return null;
+
+            const preferredPatterns = [
+                v => v.lang.startsWith('es') && v.name.includes('Natural'),
+                v => v.lang.startsWith('es') && v.name.includes('Google'),
+                v => v.lang.startsWith('es') && v.name.includes('Microsoft'),
+                v => v.lang === 'es-AR' || v.lang === 'es-MX' || v.lang === 'es-ES',
+                v => v.lang.startsWith('es')
+            ];
+
+            for (const matcher of preferredPatterns) {
+                const found = voices.find(matcher);
+                if (found) {
+                    cachedSpanishVoice = found;
+                    return found;
+                }
+            }
+            return null;
+        }
+
+        function initVoiceEngine() {
+            if (isExternalHostedEnvironment()) {
+                geminiTtsUnavailable = true;
+            }
+            if ('speechSynthesis' in window) {
+                selectBestSpanishVoice();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    selectBestSpanishVoice();
+                };
+            }
+            // Desbloquea la síntesis de voz en el primer toque/clic dentro de iframes (LearnWorlds)
+            const unlockSpeechOnGesture = () => {
+                if ('speechSynthesis' in window) {
+                    try {
+                        window.speechSynthesis.resume();
+                    } catch (e) {}
+                }
+                document.removeEventListener('pointerdown', unlockSpeechOnGesture);
+                document.removeEventListener('keydown', unlockSpeechOnGesture);
+            };
+            document.addEventListener('pointerdown', unlockSpeechOnGesture, { once: true });
+            document.addEventListener('keydown', unlockSpeechOnGesture, { once: true });
+        }
 
         function cleanCaptionForSpeech(rawText) {
             return rawText
@@ -1105,6 +1164,9 @@
         }
 
         function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (geminiTtsUnavailable) {
+                return Promise.resolve(null);
+            }
             if (ttsAudioCache[cacheKey]) {
                 return Promise.resolve(ttsAudioCache[cacheKey]);
             }
@@ -1137,7 +1199,7 @@
                 pill.classList.remove('hidden');
                 pill.classList.add('flex');
                 iconEl.className = 'fa-solid fa-volume-high text-amber-400';
-                textEl.textContent = 'Audio narrado listo';
+                textEl.textContent = geminiTtsUnavailable ? 'Voz en español activa' : 'Audio narrado listo';
             }
         }
 
@@ -1152,8 +1214,9 @@
         }
 
         async function preloadStepScenes(step) {
-            if (!step) return;
+            if (!step || geminiTtsUnavailable) return;
             for (let idx = 0; idx < step.videoCaptions.length; idx++) {
+                if (geminiTtsUnavailable) break;
                 const cacheKey = `${step.id}_${idx}`;
                 if (!ttsAudioCache[cacheKey]) {
                     const cleanText = cleanCaptionForSpeech(step.videoCaptions[idx]);
@@ -1223,6 +1286,7 @@
         }
 
         async function fetchGeminiTtsUrl(cleanText) {
+            if (geminiTtsUnavailable) return null;
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{
@@ -1241,14 +1305,19 @@
                 model: "gemini-2.5-flash-preview-tts"
             };
 
-            let delay = 1000;
-            for (let attempt = 0; attempt < 3; attempt++) {
+            let delay = 800;
+            for (let attempt = 0; attempt < 2; attempt++) {
                 try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    if (response.status === 400 || response.status === 401 || response.status === 403) {
+                        // Sin clave API en hosting estático (GitHub Pages / LearnWorlds): pasar directo a voz del navegador
+                        geminiTtsUnavailable = true;
+                        return null;
+                    }
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const result = await response.json();
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -1264,7 +1333,7 @@
                         return URL.createObjectURL(wavBlob);
                     }
                 } catch (err) {
-                    if (attempt < 2) {
+                    if (attempt < 1) {
                         await new Promise(res => setTimeout(res, delay));
                         delay *= 2;
                     }
@@ -1279,35 +1348,83 @@
                 scheduleSilentSceneAdvance(cleanText, onComplete);
                 return;
             }
+            clearInterval(speechKeepAliveTimer);
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'es-ES';
-            utterance.rate = 0.96;
 
-            const voices = window.speechSynthesis.getVoices();
-            const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft')))
-                         || voices.find(v => v.lang.startsWith('es'));
-            if (esVoice) utterance.voice = esVoice;
+            // Pequeño respiro tras cancel() para evitar cortes en Chrome/Safari dentro de iframes
+            setTimeout(() => {
+                if ((reqId && reqId !== currentSpeechRequestId) || !isVideoPlaying || !isVoiceEnabled) return;
 
-            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
-            sceneStartTime = Date.now();
-            utterance.onstart = () => {
-                if (!reqId || reqId === currentSpeechRequestId) {
-                    setVoiceStatus('Narrando (voz local)...', 'speaking');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                currentUtterance = utterance;
+                utterance.lang = 'es-ES';
+                utterance.rate = 0.96;
+                utterance.pitch = 1.0;
+
+                const esVoice = cachedSpanishVoice || selectBestSpanishVoice();
+                if (esVoice) {
+                    utterance.voice = esVoice;
+                    utterance.lang = esVoice.lang || 'es-ES';
                 }
-            };
-            utterance.onend = () => {
-                if (!reqId || reqId === currentSpeechRequestId) {
-                    setVoiceStatus('Audio listo');
-                    if (onComplete) onComplete();
-                }
-            };
-            utterance.onerror = () => {
-                if (!reqId || reqId === currentSpeechRequestId) {
+
+                expectedSceneDurationMs = Math.max(4800, cleanText.length * 74);
+                sceneStartTime = Date.now();
+                let finished = false;
+
+                const finalizeUtterance = (completedNaturally) => {
+                    if (finished) return;
+                    finished = true;
+                    clearInterval(speechKeepAliveTimer);
+                    clearTimeout(sceneFallbackTimer);
+                    currentUtterance = null;
+                    if (!reqId || reqId === currentSpeechRequestId) {
+                        setVoiceStatus('Audio listo');
+                        if (completedNaturally && onComplete) onComplete();
+                    }
+                };
+
+                utterance.onstart = () => {
+                    sceneStartTime = Date.now();
+                    if (!reqId || reqId === currentSpeechRequestId) {
+                        setVoiceStatus('Narrando...', 'speaking');
+                    }
+                };
+
+                utterance.onend = () => finalizeUtterance(true);
+                utterance.onerror = () => {
+                    finalizeUtterance(false);
+                    if (!reqId || reqId === currentSpeechRequestId) {
+                        scheduleSilentSceneAdvance(cleanText, onComplete);
+                    }
+                };
+
+                // Evita que Chrome detenga locuciones largas (>15s) en iframes
+                speechKeepAliveTimer = setInterval(() => {
+                    if (!window.speechSynthesis.speaking) {
+                        clearInterval(speechKeepAliveTimer);
+                        return;
+                    }
+                    try {
+                        window.speechSynthesis.pause();
+                        window.speechSynthesis.resume();
+                    } catch (e) {}
+                }, 10000);
+
+                // Respaldo de seguridad por si el navegador bloquea el evento onend
+                sceneFallbackTimer = setTimeout(() => {
+                    if (!finished && (!reqId || reqId === currentSpeechRequestId) && isVideoPlaying) {
+                        finalizeUtterance(true);
+                    }
+                }, expectedSceneDurationMs + 3500);
+
+                try {
+                    window.speechSynthesis.resume();
+                    window.speechSynthesis.speak(utterance);
+                } catch (e) {
+                    finalizeUtterance(false);
                     scheduleSilentSceneAdvance(cleanText, onComplete);
                 }
-            };
-            window.speechSynthesis.speak(utterance);
+            }, 60);
         }
 
         function scheduleSilentSceneAdvance(cleanText, onComplete) {
@@ -1364,6 +1481,12 @@
                 return;
             }
 
+            // Si estamos en GitHub Pages / LearnWorlds sin API key, iniciar locución inmediata sin esperas de red
+            if (geminiTtsUnavailable) {
+                speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                return;
+            }
+
             try {
                 let audioUrl = ttsAudioCache[cacheKey];
                 if (!audioUrl) {
@@ -1371,7 +1494,7 @@
                     expectedSceneDurationMs = 9000;
                     sceneStartTime = Date.now();
 
-                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 3500));
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 2500));
                     const fetchResult = await Promise.race([
                         getOrFetchTtsAudio(cacheKey, cleanText),
                         timeoutPromise
@@ -1421,6 +1544,8 @@
         function stopVoice(updateBadge = true) {
             currentSpeechRequestId++;
             clearTimeout(sceneFallbackTimer);
+            clearInterval(speechKeepAliveTimer);
+            currentUtterance = null;
             if (currentAudioElement) {
                 currentAudioElement.pause();
                 currentAudioElement.currentTime = 0;
