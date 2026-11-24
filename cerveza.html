@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia de Sommellerie Cervecera | Panel de Evaluación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        malt: {
+                            50: '#fdf8f3',
+                            100: '#faeedf',
+                            200: '#f4d9ba',
+                            300: '#ecbe8d',
+                            400: '#e29b5b',
+                            500: '#d97e38',
+                            600: '#cb652d',
+                            700: '#a84e27',
+                            800: '#873f26',
+                            900: '#6d3522',
+                            950: '#3b190f',
+                        },
+                        stout: {
+                            800: '#231f20',
+                            900: '#181516',
+                            950: '#0f0d0e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Bloqueo de scroll en viewport principal para experiencia de tablero 100dvh */
+        html, body {
+            height: 100dvh;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(35, 31, 32, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(217, 126, 56, 0.25);
+        }
+        .srm-badge {
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.25), 0 3px 8px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-stout-950 text-malt-50 h-[100dvh] w-screen overflow-hidden flex flex-col font-sans selection:bg-malt-500 selection:text-white">
+
+    <!-- Notificación Toast Flotante -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Modal Pop-up de Retroalimentación (Cerrable con ESC o botón) -->
+    <div id="feedback-modal" onclick="if(event.target === this) closeFeedbackModal()" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+        <div id="feedback-modal-card" class="glass-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 border-2 shadow-2xl space-y-5 transform transition-all">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="modal-fb-icon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-extrabold shrink-0">
+                        ✓
+                    </div>
+                    <div>
+                        <span id="modal-fb-subtitle" class="text-xs sm:text-sm font-bold uppercase tracking-wider text-malt-400">Resultado de Cata / Evaluación</span>
+                        <h3 id="modal-fb-title" class="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
+                            ¡Respuesta Correcta!
+                        </h3>
+                    </div>
+                </div>
+                <button onclick="closeFeedbackModal()" title="Cerrar (ESC)" class="px-3 py-1.5 rounded-xl bg-stout-900 hover:bg-stout-800 border border-malt-700/50 text-xs sm:text-sm font-bold text-malt-300 hover:text-white transition-colors shrink-0">
+                    ESC ✕
+                </button>
+            </div>
+
+            <div class="bg-stout-950/90 rounded-2xl p-4 sm:p-5 border border-malt-800/50">
+                <p id="modal-fb-text" class="text-base sm:text-xl text-malt-50 leading-relaxed font-medium">
+                    Explicación técnica...
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <span class="text-xs sm:text-sm text-malt-400 font-medium">
+                    Presiona <kbd class="px-2 py-0.5 rounded bg-stout-900 border border-malt-700/60 text-malt-200 font-bold">ESC</kbd> o haz clic fuera para cerrar
+                </span>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button onclick="closeFeedbackModal()" class="px-4 py-3 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 text-sm sm:text-base font-bold transition-all">
+                        Ver Opciones
+                    </button>
+                    <button id="modal-fb-next-btn" onclick="handleModalNext()" class="px-6 py-3 rounded-xl bg-malt-600 hover:bg-malt-500 text-white text-sm sm:text-base font-bold shadow-lg transition-all">
+                        Continuar &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación Superior Compacta -->
+    <header class="border-b border-malt-800/40 bg-stout-900/95 shrink-0 h-14 sm:h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-malt-400 to-malt-700 flex items-center justify-center shadow-lg shadow-malt-600/20 shrink-0">
+                    <svg class="w-6 h-6 text-stout-950" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 3H7C6.45 3 6 3.45 6 4V8C6 11.31 8.69 14 12 14C15.31 14 18 11.31 18 8V4C18 3.45 17.55 3 17 3ZM16 8C16 10.21 14.21 12 12 12C9.79 12 8 10.21 8 8V5H16V8ZM11 15.9V19H8C7.45 19 7 19.45 7 20C7 20.55 7.45 21 8 21H16C16.55 21 17 20.55 17 20C17 19.45 16.55 19 16 19H13V15.9C12.67 15.96 12.34 16 12 16C11.66 16 11.33 15.96 11 15.9Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl sm:text-2xl font-bold text-malt-100 tracking-wide leading-none">Cicerone & Sommellerie</h1>
+                    <p class="text-xs sm:text-sm text-malt-400 hidden md:block mt-0.5">Panel de Certificación y Clasificación Cervecera</p>
+                </div>
+            </div>
+
+            <!-- Pestañas de Navegación con Tipografía Grande -->
+            <nav class="flex items-center gap-1.5 bg-stout-950 p-1.5 rounded-xl border border-malt-800/50">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all bg-malt-600 text-white shadow">
+                    Panel
+                </button>
+                <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-malt-300 hover:text-white transition-all">
+                    Guía de Estilos
+                </button>
+                <button onclick="switchTab('visual')" id="tab-visual" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-malt-300 hover:text-white transition-all">
+                    Botellas y Latas
+                </button>
+                <button onclick="switchTab('exam')" id="tab-exam" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-malt-300 hover:text-white transition-all flex items-center gap-2">
+                    <span>Evaluación</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal Ajustado al Alto Restante (Sin Scroll ni Recortes) -->
+    <main class="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 py-2 sm:py-2.5 flex flex-col justify-between overflow-hidden">
+
+        <!-- VISTA 1: DASHBOARD DEL ESTUDIANTE -->
+        <section id="view-dashboard" class="h-full min-h-0 flex flex-col justify-between gap-2.5 overflow-hidden">
+            <!-- Banner Superior Compacto -->
+            <div class="glass-panel rounded-2xl p-3.5 sm:p-4 relative overflow-hidden shrink-0 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="space-y-1 max-w-3xl">
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-malt-500/20 text-malt-300 border border-malt-500/30">
+                            Programa de Certificación • Bebidas Fermentadas: Cervezas
+                        </span>
+                        <span id="last-attempt-badge" class="text-xs text-malt-400 hidden sm:inline"></span>
+                    </div>
+                    <h2 class="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight">
+                        Panel de Evaluación de Cervezas
+                    </h2>
+                    <p class="text-malt-200/85 text-sm sm:text-base leading-snug">
+                        Clasificación por familia de fermentación (Lager, Ale, Lambic), procesos de elaboración y marcas históricas.
+                    </p>
+                </div>
+                <div class="flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0">
+                    <button onclick="switchTab('catalog')" class="px-3.5 py-2.5 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 font-semibold text-sm sm:text-base transition-all">
+                        Estudiar Estilos
+                    </button>
+                    <button onclick="switchTab('visual')" class="px-3.5 py-2.5 rounded-xl bg-stout-800 hover:bg-stout-700 text-amber-300 border border-amber-500/40 font-semibold text-sm sm:text-base transition-all">
+                        Cata Visual
+                    </button>
+                    <button onclick="startExam('all')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-malt-500 to-malt-600 hover:from-malt-400 hover:to-malt-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-malt-600/30 transition-all">
+                        Examen Integral
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjetas de Métricas Grandes -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-malt-400">Evaluaciones</span>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5" id="stat-exams">0</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-malt-400">Precisión Global</span>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-0.5" id="stat-accuracy">--%</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-malt-400">Rango Actual</span>
+                    <div class="text-lg sm:text-xl font-extrabold text-malt-200 truncate mt-0.5" id="stat-rank">Aprendiz de Barra</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-malt-400">Estilos Dominados</span>
+                        <button onclick="resetProgress()" class="text-xs text-malt-400 hover:text-rose-400 underline">Reiniciar</button>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5" id="stat-styles">0 / 18</div>
+                </div>
+            </div>
+
+            <!-- Módulos de Evaluación Rápida (Ocupan el espacio restante sin desbordar) -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 overflow-hidden">
+                <!-- Módulo 1 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-malt-500/50 transition-all overflow-hidden">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-bold">Módulo 01</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Materias Primas y Elaboración</h3>
+                        <p class="text-xs sm:text-sm text-malt-200/80 leading-snug line-clamp-2">
+                            Malteado (citasa y diastasa), maceración vs. decocción, lúpulos (Saaz, Goldings, Hallertau) y rangos térmicos Ale/Lager.
+                        </p>
+                    </div>
+                    <button onclick="startExam('fermentation')" class="w-full py-2.5 px-3.5 rounded-xl bg-stout-800 hover:bg-malt-600 text-white text-sm sm:text-base font-bold transition-colors border border-malt-700/50 mt-2 shrink-0">
+                        Evaluar (5 Preguntas)
+                    </button>
+                </div>
+
+                <!-- Módulo 2 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-malt-500/50 transition-all overflow-hidden">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-orange-500/15 text-orange-300 text-xs font-bold">Módulo 02</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Familias y Estilos</h3>
+                        <p class="text-xs sm:text-sm text-malt-200/80 leading-snug line-clamp-2">
+                            Lagers (Pilsner, Munich, Viena, Dortmunder, Bock), Ales (Británicas, Trapenses, Altbier, Kölsch) y Lambics.
+                        </p>
+                    </div>
+                    <button onclick="startExam('styles')" class="w-full py-2.5 px-3.5 rounded-xl bg-stout-800 hover:bg-malt-600 text-white text-sm sm:text-base font-bold transition-colors border border-malt-700/50 mt-2 shrink-0">
+                        Evaluar (6 Preguntas)
+                    </button>
+                </div>
+
+                <!-- Módulo 3 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-malt-500/50 transition-all overflow-hidden">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 text-xs font-bold">Módulo 03</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Marcas y Origen</h3>
+                        <p class="text-xs sm:text-sm text-malt-200/80 leading-snug line-clamp-2">
+                            Asociación exacta entre estilos clásicos, denominaciones de origen y etiquetas históricas de referencia.
+                        </p>
+                    </div>
+                    <button onclick="startExam('brands')" class="w-full py-2.5 px-3.5 rounded-xl bg-stout-800 hover:bg-malt-600 text-white text-sm sm:text-base font-bold transition-colors border border-malt-700/50 mt-2 shrink-0">
+                        Evaluar (6 Preguntas)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 2: GUÍA DE ESTILOS PAGINADA (SIN SCROLL, LETRA GRANDE) -->
+        <section id="view-catalog" class="hidden h-full flex flex-col justify-between gap-3">
+            <!-- Barra Superior de Filtros, Búsqueda y Paginación -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 shrink-0 bg-stout-900/80 p-3 rounded-2xl border border-malt-800/40">
+                <!-- Filtros por Familia -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="filterCatalog('ALL')" class="filter-btn active px-3.5 py-2 rounded-xl text-sm font-bold bg-malt-600 text-white transition-all" data-filter="ALL">Todos (18)</button>
+                    <button onclick="filterCatalog('Lager')" class="filter-btn px-3.5 py-2 rounded-xl text-sm font-bold bg-stout-800 text-malt-300 hover:text-white border border-malt-700/40 transition-all" data-filter="Lager">Lager</button>
+                    <button onclick="filterCatalog('Ale')" class="filter-btn px-3.5 py-2 rounded-xl text-sm font-bold bg-stout-800 text-malt-300 hover:text-white border border-malt-700/40 transition-all" data-filter="Ale">Ale</button>
+                    <button onclick="filterCatalog('Lambic')" class="filter-btn px-3.5 py-2 rounded-xl text-sm font-bold bg-stout-800 text-malt-300 hover:text-white border border-malt-700/40 transition-all" data-filter="Lambic">Lambic (Espontánea)</button>
+                </div>
+
+                <!-- Buscador + Controles de Página -->
+                <div class="flex items-center gap-3 flex-1 lg:max-w-xl justify-end">
+                    <div class="relative flex-1">
+                        <input type="text" id="catalog-search" onkeyup="searchCatalog()" placeholder="Buscar estilo, país o marca..." class="w-full bg-stout-950 border border-malt-700/50 rounded-xl pl-10 pr-3 py-2 text-sm sm:text-base text-white placeholder-malt-400/60 focus:outline-none focus:border-malt-500">
+                        <svg class="w-5 h-5 text-malt-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+
+                    <!-- Paginador -->
+                    <div class="flex items-center gap-2 shrink-0 bg-stout-950 px-2.5 py-1.5 rounded-xl border border-malt-800/50">
+                        <button onclick="changeCatalogPage(-1)" id="btn-prev-page" class="p-1.5 rounded-lg bg-stout-800 hover:bg-malt-600 disabled:opacity-30 text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span id="catalog-page-indicator" class="text-sm sm:text-base font-bold text-malt-200 px-1">1 / 6</span>
+                        <button onclick="changeCatalogPage(1)" id="btn-next-page" class="p-1.5 rounded-lg bg-stout-800 hover:bg-malt-600 disabled:opacity-30 text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla de 3 Estilos por Página (Altura Completa Sin Scroll) -->
+            <div id="catalog-grid" class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Se puebla dinámicamente con JS (3 tarjetas por página) -->
+            </div>
+        </section>
+
+        <!-- VISTA 2.5: RECONOCIMIENTO VISUAL DE BOTELLAS Y LATAS FAMOSAS -->
+        <section id="view-visual" class="hidden h-full max-w-6xl w-full mx-auto flex flex-col justify-between gap-2.5 overflow-hidden">
+            <!-- Barra Superior de Progreso Visual -->
+            <div class="glass-panel rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold">
+                        Reconocimiento de Etiquetas
+                    </span>
+                    <span class="text-sm sm:text-base font-bold text-malt-200">
+                        Ejemplar <span id="vis-current" class="text-white">1</span> de <span id="vis-total">30</span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm sm:text-base font-bold text-emerald-400">
+                        Aciertos: <span id="vis-score">0</span>
+                    </span>
+                    <button onclick="initVisualChallenge()" class="px-3 py-1 rounded-xl bg-stout-800 hover:bg-malt-600 text-malt-100 border border-malt-700/50 text-xs sm:text-sm font-bold transition-all">
+                        Mezclar Envases
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Central Dividido: Izquierda (Foto/Ilustración de Botella o Lata) | Derecha (Identificación) -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden">
+                <!-- Columna Izquierda: Vitrina del Envase -->
+                <div class="lg:col-span-5 glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col items-center justify-between min-h-0 overflow-hidden">
+                    <div class="w-full flex items-center justify-between text-xs sm:text-sm font-bold text-malt-400 uppercase tracking-wider shrink-0">
+                        <span id="vis-container-type">Botella de Vidrio</span>
+                        <span id="vis-volume">330 ml</span>
+                    </div>
+
+                    <!-- Contenedor Gráfico de la Botella/Lata -->
+                    <div id="vis-artwork" class="flex-1 min-h-0 w-full flex items-center justify-center my-1.5 p-2 bg-white/95 rounded-xl border border-malt-800/30 select-none overflow-hidden">
+                        <!-- Fotografía real renderizada dinámicamente -->
+                    </div>
+
+                    <div class="w-full text-center bg-stout-950/90 py-2 px-3 rounded-xl border border-malt-800/50 shrink-0">
+                        <div class="text-[11px] text-malt-400 uppercase font-semibold leading-none mb-0.5">Etiqueta a Identificar</div>
+                        <div id="vis-brand-title" class="font-serif text-lg sm:text-xl font-bold text-white tracking-wide truncate">
+                            Pilsner Urquell
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Formulario / Opciones de Identificación -->
+                <div class="lg:col-span-7 glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
+                    <div class="space-y-0.5 shrink-0">
+                        <span class="text-xs font-bold uppercase tracking-wider text-malt-400">Ficha de Cata e Identificación</span>
+                        <h3 id="vis-prompt" class="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-tight">
+                            Identifica la familia, estilo exacto y origen de este ejemplar:
+                        </h3>
+                    </div>
+
+                    <!-- Opciones Grandes Ajustadas al Alto Disponible -->
+                    <div id="vis-options" class="grid grid-cols-1 gap-2 my-auto min-h-0">
+                        <!-- Opciones generadas dinámicamente -->
+                    </div>
+
+                    <!-- Barra Inferior Compacta -->
+                    <div class="shrink-0 flex items-center justify-between gap-2.5 pt-1">
+                        <button id="btn-vis-reopen" onclick="reopenFeedbackModal()" class="hidden px-4 py-2 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-200 border border-malt-700/50 text-xs sm:text-sm font-bold transition-all">
+                            Ver Explicación
+                        </button>
+                        <button id="btn-vis-next" onclick="nextVisualItem()" class="hidden shrink-0 px-5 py-2.5 rounded-xl bg-malt-600 hover:bg-malt-500 text-white font-bold text-sm sm:text-base transition-all shadow-lg ml-auto">
+                            Siguiente &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: EVALUACIÓN INTERACTIVA (QUIZ DE PANTALLA COMPLETA) -->
+        <section id="view-exam" class="hidden h-full max-w-5xl w-full mx-auto flex flex-col justify-center">
+            <!-- Pantalla de Selección de Examen -->
+            <div id="exam-intro" class="glass-panel rounded-2xl p-6 sm:p-10 text-center space-y-6">
+                <div class="w-16 h-16 rounded-2xl bg-malt-500/20 border border-malt-500/40 flex items-center justify-center mx-auto text-malt-400">
+                    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </div>
+                <div class="space-y-2">
+                    <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">Simulador de Examen de Sommellerie</h2>
+                    <p class="text-base sm:text-lg text-malt-200/85 max-w-2xl mx-auto">
+                        Selecciona la evaluación que deseas rendir. Todas las preguntas cuentan con retroalimentación técnica inmediata.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto pt-2">
+                    <button onclick="startExam('all')" class="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-malt-500 to-malt-600 hover:from-malt-400 hover:to-malt-500 text-white font-bold text-base sm:text-lg shadow-lg transition-all">
+                        Examen Integral (12 Preg.)
+                    </button>
+                    <button onclick="startExam('fermentation')" class="p-4 sm:p-5 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Materias Primas y Procesos (5 Preg.)
+                    </button>
+                    <button onclick="startExam('styles')" class="p-4 sm:p-5 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Familias y Estilos (6 Preg.)
+                    </button>
+                    <button onclick="startExam('brands')" class="p-4 sm:p-5 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Marcas y Origen (6 Preg.)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenedor Activo de Pregunta (Distribución Vertical Ajustada al Viewport) -->
+            <div id="exam-active" class="hidden glass-panel rounded-2xl p-5 sm:p-7 h-full max-h-full flex flex-col justify-between gap-3">
+                <!-- Barra de Progreso -->
+                <div class="space-y-2 shrink-0">
+                    <div class="flex justify-between items-center text-sm sm:text-base font-bold text-malt-300">
+                        <span id="exam-category-badge" class="px-3 py-1 rounded-lg bg-malt-500/20 text-malt-300 border border-malt-500/30">Categoría</span>
+                        <span>Pregunta <span id="q-current" class="text-white">1</span> de <span id="q-total">10</span></span>
+                    </div>
+                    <div class="w-full h-2.5 bg-stout-950 rounded-full overflow-hidden">
+                        <div id="exam-progress-bar" class="h-full bg-gradient-to-r from-malt-500 to-amber-400 transition-all duration-300" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- Enunciado de la Pregunta con Tipografía Máxima -->
+                <div class="space-y-2 shrink-0">
+                    <h3 id="q-text" class="text-xl sm:text-2xl lg:text-[26px] font-bold text-white leading-snug">
+                        Cargando pregunta...
+                    </h3>
+                    <div id="q-context" class="hidden px-4 py-2 rounded-xl bg-stout-950/80 border border-malt-800/50 text-sm sm:text-base text-malt-200 italic">
+                    </div>
+                </div>
+
+                <!-- Opciones de Respuesta en Grilla 2x2 en Pantallas Medianas/Grandes para evitar scroll -->
+                <div id="q-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 my-auto">
+                    <!-- Botones generados dinámicamente -->
+                </div>
+
+                <!-- Zona Inferior: Botón Siguiente y Reapertura de Explicación -->
+                <div class="shrink-0 flex items-center justify-between gap-3 pt-1">
+                    <button id="btn-q-reopen" onclick="reopenFeedbackModal()" class="hidden px-4 py-3 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-200 border border-malt-700/50 text-sm sm:text-base font-bold transition-all">
+                        Ver Explicación
+                    </button>
+
+                    <button id="btn-next-q" onclick="nextQuestion()" class="hidden shrink-0 px-6 py-3.5 rounded-xl bg-malt-600 hover:bg-malt-500 text-white font-bold text-base sm:text-lg transition-all shadow-lg ml-auto">
+                        Siguiente &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pantalla de Resultados Finales -->
+            <div id="exam-results" class="hidden glass-panel rounded-2xl p-6 sm:p-10 text-center space-y-6">
+                <div id="result-icon" class="w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4">
+                    80%
+                </div>
+                <div class="space-y-2">
+                    <span id="result-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider"></span>
+                    <h2 id="result-title" class="font-serif text-3xl sm:text-4xl font-bold text-white">Evaluación Completada</h2>
+                    <p id="result-summary" class="text-base sm:text-lg text-malt-200/85 max-w-2xl mx-auto"></p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto bg-stout-950/80 p-5 rounded-2xl border border-malt-800/40">
+                    <div>
+                        <div class="text-sm text-malt-400 font-semibold">Aciertos</div>
+                        <div id="res-correct" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-malt-400 font-semibold">Errores</div>
+                        <div id="res-wrong" class="text-2xl sm:text-3xl font-extrabold text-rose-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-malt-400 font-semibold">Nota Final</div>
+                        <div id="res-score" class="text-2xl sm:text-3xl font-extrabold text-white">0%</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 pt-2">
+                    <button onclick="switchTab('dashboard')" class="px-6 py-3.5 rounded-xl bg-stout-800 hover:bg-stout-700 text-malt-100 border border-malt-700/50 text-base font-bold transition-all">
+                        Volver al Panel
+                    </button>
+                    <button onclick="resetExamView()" class="px-6 py-3.5 rounded-xl bg-malt-600 hover:bg-malt-500 text-white text-base font-bold shadow-lg transition-all">
+                        Otra Evaluación
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lógica de la Aplicación -->
+    <script>
+        // ==========================================
+        // SECCIÓN DE RECONOCIMIENTO VISUAL DE BOTELLAS Y LATAS (FOTOS REALES VERIFICADAS - VENTA EN ARGENTINA)
+        // ==========================================
+        const visualItems = [
+            {
+                id: 'stella',
+                brand: 'Stella Artois',
+                container: 'Botella Verde (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Stella_Artois_bottle.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Pale Lager • Bélgica (5,0% alc., fermentación baja y lúpulo Saaz)',
+                    'Familia Ale • Estilo Trapense • Bélgica (8,0% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bruselas, Bélgica (5,5% alc.)',
+                    'Familia Ale • Estilo Kölsch • Colonia, Alemania (4,8% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Stella Artois (originaria de Lovaina, Bélgica y ampliamente comercializada en Argentina) es una Lager estilo Pilsener de fermentación baja (5 a 9 °C), rubia, brillante y seca.'
+            },
+            {
+                id: 'quilmes',
+                brand: 'Quilmes Clásica',
+                container: 'Lata 473 ml (Argentina)',
+                volume: '473 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Quilmes_Clasica_Lata.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener Americana / Adjuntos (Cebada + Maíz) • Argentina (4,9% alc.)',
+                    'Familia Ale • Estilo Pale Ale Inglesa • Gran Bretaña (5,0% alc.)',
+                    'Familia Ale • Estilo Weissbier de Trigo • Baviera, Alemania (5,4% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas, Bélgica (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Quilmes Clásica es la Lager emblemática de Argentina: elaborada por fermentación baja con cebada malteada y adjuntos (maíz), lo que aporta cuerpo ligero, color dorado pálido y final seco.'
+            },
+            {
+                id: 'heineken',
+                brand: 'Heineken',
+                container: 'Botella Verde (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Heineken_special_bottle.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Euro Pale Lager • Países Bajos (5,0% alc., fermentación baja)',
+                    'Familia Ale • Estilo Altbier • Düsseldorf, Alemania (4,7% alc.)',
+                    'Familia Ale • Estilo Barley Wine • Gran Bretaña (10,0% alc.)',
+                    'Familia Lambic • Estilo Faro • Bélgica (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Heineken (Países Bajos, de amplia distribución en Argentina) es una Lager rubia de fermentación baja (5 a 9 °C), 100% malta de cebada, transparente, seca y de amargor equilibrado.'
+            },
+            {
+                id: 'corona',
+                brand: 'Corona Extra',
+                container: 'Botella Transparente (Venta en Argentina)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Corona_Extra_bottle.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Lager Ligera con Adjuntos (Maíz/Arroz) • México (4,5% alc.)',
+                    'Familia Ale • Estilo India Pale Ale (IPA) • Gran Bretaña (6,5% alc.)',
+                    'Familia Ale • Estilo Stout • Dublín, Irlanda (4,2% alc.)',
+                    'Familia Ale • Estilo Dubbel Trapense • Bélgica (7,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Las cervezas comerciales ligeras emplean maíz y arroz junto a la cebada para lograr un cuerpo liviano y suave; Corona Extra (México) es su mayor exponente mundial.'
+            },
+            {
+                id: 'guinness',
+                brand: 'Guinness Original / Draught',
+                container: 'Lata Negra (Venta en Argentina)',
+                volume: '440 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/GuinnessBeer.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Stout • Dublín, Irlanda (4,2% alc., negra, tostada y cremosa)',
+                    'Familia Lager • Estilo Munich Oscura • Franconia, Alemania (5,0% alc.)',
+                    'Familia Ale • Estilo Brown Ale • Gran Bretaña (3,5% alc.)',
+                    'Familia Lager • Estilo Bock • Einbeck, Alemania (6,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Guinness (importada en latas en Argentina) es el referente por excelencia del estilo Stout de Dublín: fermentación alta, notas torradas y espuma cremosa.'
+            },
+            {
+                id: 'paulaner',
+                brand: 'Paulaner Oktoberfest Märzen',
+                container: 'Botella Ámbar (Venta en Argentina)',
+                volume: '330 ml / 500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Paulaner_Oktoberfest_Marzen_11.2oz_bottle_and_beer_mug.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Viena / Märzen - Oktoberfest • Munich, Alemania (cuerpo moderado)',
+                    'Familia Ale • Estilo Pale Ale • Inglaterra (4,5% alc.)',
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,2% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bruselas, Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Paulaner (cervecería histórica de Munich presente en Argentina) elabora este clásico estilo Viena / Märzen-Oktoberfest: fermentación baja, elaborada en marzo y madurada hasta otoño.'
+            },
+            {
+                id: 'hoegaarden',
+                brand: 'Hoegaarden Witbier',
+                container: 'Botella de Vidrio (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Hoegaarden_bottle.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Weissbier • Bélgica (mezcla trigo y cebada, aspecto velado)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (7,0% alc.)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Hoegaarden es el gran referente belga de cerveza De Trigo / Weissbier: fermentación alta, aspecto velado y densa espuma.'
+            },
+            {
+                id: 'duvel',
+                brand: 'Duvel',
+                container: 'Botella Belga Robusta (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Duvel_beer_in_beer_glass,_2024.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Ale Dorada Fuerte • Bélgica (8% alc., rubia, frutada, floral y mucha espuma)',
+                    'Familia Lager • Estilo Viena / Märzen • Austria (5,2% alc.)',
+                    'Familia Lambic • Estilo Kriek • Valle del Zenne, Bélgica (5,0% alc.)',
+                    'Familia Ale • Estilo Mild Ale • Inglaterra (3,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Duvel (disponible en tiendas especializadas de Argentina) es el estándar de Ale Dorada Fuerte belga: fermentación alta, seca y con segunda fermentación en botella.'
+            },
+            {
+                id: 'chimay',
+                brand: 'Chimay Bleue',
+                container: 'Botella Trapense (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Chimay_Bleue.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense (con protección legal) • Bélgica (2da fermentación en botella)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Lambic • Estilo Faro • Bruselas, Bélgica (4,5% alc.)',
+                    'Familia Ale • Estilo Bitter • Centro de Inglaterra (4,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Chimay es una de las cervezas Trapenses más reconocidas que llegan a Argentina; cuenta con protección legal, segunda fermentación en botella y perfiles intensos.'
+            },
+            {
+                id: 'leffe',
+                brand: 'Leffe Blonde',
+                container: 'Botella Belga (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Leffe_blonde_verre_et_bouteille.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Abadía • Bélgica (fermentación alta, perfil frutado y especiado)',
+                    'Familia Lager • Estilo Munich • Baviera, Alemania (4,8% alc.)',
+                    'Familia Lambic • Estilo Frambozen • Bruselas, Bélgica (5,0% alc.)',
+                    'Familia Ale • Estilo Oatmeal Stout • Inglaterra (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Leffe es el referente clásico del estilo Abadía belga, inspirada en la tradición monástica y de amplia presencia en el mercado argentino.'
+            },
+            {
+                id: 'pilsner-urquell',
+                brand: 'Pilsner Urquell',
+                container: 'Botella Verde (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pilsner_Urquell,_0,33-Liter-Flasche.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Pilsner • Plzen, República Checa (4,4% alc., primera cerveza dorada)',
+                    'Familia Ale • Estilo Pale Ale • Gran Bretaña (5,0% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bruselas, Bélgica (5,5% alc.)',
+                    'Familia Ale • Estilo Altbier • Düsseldorf, Alemania (4,7% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Pilsner Urquell (Plzen, Bohemia) es la primera cerveza dorada elaborada en la historia y la marca de referencia mundial para el estilo Pilsener.'
+            },
+            {
+                id: 'grolsch',
+                brand: 'Grolsch Premium Pilsner',
+                container: 'Botella Verde Swing-Top (Importada en Argentina)',
+                volume: '450 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Grolsch_premium_lager_bottle_unopened.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Pils • Países Bajos (5,0% alc., fermentación baja, seca y lupulada)',
+                    'Familia Ale • Estilo Trapense • Holanda (7,5% alc.)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (6,8% alc.)',
+                    'Familia Lambic • Estilo Faro • Bélgica (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Grolsch figura junto a Pilsner Urquell como ejemplo emblemático de Pilsener: rubia, transparente, seca y con marcado carácter de malta y lúpulo.'
+            },
+            {
+                id: 'salvator',
+                brand: 'Paulaner Salvator',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Paulaner.Salvator.JPG?width=600',
+                options: [
+                    'Familia Lager • Estilo Doppelbock • Munich, Baviera (7,9% alc., primera Doppelbock de la historia)',
+                    'Familia Ale • Estilo Porter • Gran Bretaña (5,0% alc.)',
+                    'Familia Ale • Estilo Brown Ale • Inglaterra (3,8% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas, Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Paulaner Salvator es la primera Doppelbock elaborada (>6,5% alc., color marrón oscuro), origen del sufijo "-ator".'
+            },
+            {
+                id: 'guinness',
+                brand: 'Guinness Original / Draught',
+                container: 'Lata Negra (Venta en Argentina)',
+                volume: '440 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/GuinnessBeer.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Stout • Dublín, Irlanda (4,2% alc., negra, tostada y cremosa)',
+                    'Familia Lager • Estilo Munich Oscura • Franconia, Alemania (5,0% alc.)',
+                    'Familia Ale • Estilo Brown Ale • Gran Bretaña (3,5% alc.)',
+                    'Familia Lager • Estilo Bock • Einbeck, Alemania (6,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Guinness (importada en latas en Argentina) es el referente del manual CAVE para el estilo Stout de Dublín: fermentación alta, notas torradas y espuma cremosa.'
+            },
+            {
+                id: 'paulaner',
+                brand: 'Paulaner Oktoberfest Märzen',
+                container: 'Botella Ámbar (Venta en Argentina)',
+                volume: '330 ml / 500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Paulaner_Oktoberfest_Marzen_11.2oz_bottle_and_beer_mug.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Viena / Märzen - Oktoberfest • Munich, Alemania (cuerpo moderado)',
+                    'Familia Ale • Estilo Pale Ale • Inglaterra (4,5% alc.)',
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,2% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bruselas, Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Paulaner (cervecería histórica de Munich presente en Argentina) elabora este clásico estilo Viena / Märzen-Oktoberfest: fermentación baja, elaborada en marzo y madurada hasta otoño.'
+            },
+            {
+                id: 'hoegaarden',
+                brand: 'Hoegaarden Witbier',
+                container: 'Botella de Vidrio (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Hoegaarden_bottle.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Weissbier • Bélgica (mezcla trigo y cebada, aspecto velado)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (7,0% alc.)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Hoegaarden es la marca citada textualmente en el manual CAVE como referente de cerveza De Trigo / Weissbier: fermentación alta, aspecto velado y densa espuma.'
+            },
+            {
+                id: 'duvel',
+                brand: 'Duvel',
+                container: 'Botella Belga Robusta (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Duvel_beer_in_beer_glass,_2024.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Ale Dorada Fuerte • Bélgica (8% alc., rubia, frutada, floral y mucha espuma)',
+                    'Familia Lager • Estilo Viena / Märzen • Austria (5,2% alc.)',
+                    'Familia Lambic • Estilo Kriek • Valle del Zenne, Bélgica (5,0% alc.)',
+                    'Familia Ale • Estilo Mild Ale • Inglaterra (3,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Duvel (citada textualmente en el manual CAVE y disponible en tiendas especializadas de Argentina) es el estándar de Ale Dorada Fuerte belga: fermentación alta, seca y con segunda fermentación en botella.'
+            },
+            {
+                id: 'chimay',
+                brand: 'Chimay Bleue',
+                container: 'Botella Trapense (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Chimay_Bleue.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense (con protección legal) • Bélgica (2da fermentación en botella)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Lambic • Estilo Faro • Bruselas, Bélgica (4,5% alc.)',
+                    'Familia Ale • Estilo Bitter • Centro de Inglaterra (4,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Chimay es una de las cervezas Trapenses más reconocidas que llegan a Argentina; cuenta con protección legal, segunda fermentación en botella y perfiles intensos.'
+            },
+            {
+                id: 'leffe',
+                brand: 'Leffe Blonde',
+                container: 'Botella Belga (Venta en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Leffe_blonde_verre_et_bouteille.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Abadía • Bélgica (fermentación alta, perfil frutado y especiado)',
+                    'Familia Lager • Estilo Munich • Baviera, Alemania (4,8% alc.)',
+                    'Familia Lambic • Estilo Frambozen • Bruselas, Bélgica (5,0% alc.)',
+                    'Familia Ale • Estilo Oatmeal Stout • Inglaterra (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Leffe es la marca citada en el manual CAVE como referente del estilo Abadía belga, inspirada en la tradición monástica y de amplia presencia en el mercado argentino.'
+            },
+            {
+                id: 'pilsner-urquell',
+                brand: 'Pilsner Urquell',
+                container: 'Botella Verde (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pilsner_Urquell,_0,33-Liter-Flasche.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Pilsner • Plzen, República Checa (4,4% alc., primera cerveza dorada)',
+                    'Familia Ale • Estilo Pale Ale • Gran Bretaña (5,0% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bruselas, Bélgica (5,5% alc.)',
+                    'Familia Ale • Estilo Altbier • Düsseldorf, Alemania (4,7% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Pilsner Urquell (Plzen, Bohemia) es la primera cerveza dorada elaborada en la historia y la marca de referencia directa del manual CAVE para el estilo Pilsener.'
+            },
+            {
+                id: 'grolsch',
+                brand: 'Grolsch Premium Pilsner',
+                container: 'Botella Verde Swing-Top (Importada en Argentina)',
+                volume: '450 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Grolsch_premium_lager_bottle_unopened.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener / Pils • Países Bajos (5,0% alc., fermentación baja, seca y lupulada)',
+                    'Familia Ale • Estilo Trapense • Holanda (7,5% alc.)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (6,8% alc.)',
+                    'Familia Lambic • Estilo Faro • Bélgica (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Grolsch figura junto a Pilsner Urquell en el manual CAVE como ejemplo emblemático de Pilsener: rubia, transparente, seca y con marcado carácter de malta y lúpulo.'
+            },
+            {
+                id: 'salvator',
+                brand: 'Paulaner Salvator',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Paulaner.Salvator.JPG?width=600',
+                options: [
+                    'Familia Lager • Estilo Doppelbock • Munich, Baviera (7,9% alc., primera Doppelbock de la historia)',
+                    'Familia Ale • Estilo Porter • Gran Bretaña (5,0% alc.)',
+                    'Familia Ale • Estilo Brown Ale • Inglaterra (3,8% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas, Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Paulaner Salvator es citada textualmente en el manual CAVE como la primera Doppelbock elaborada (>6,5% alc., color marrón oscuro), origen del sufijo "-ator".'
+            },
+            {
+                id: 'franziskaner',
+                brand: 'Franziskaner Hefe-Weissbier',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Franziskaner_Weissbier_(Spaten-Franziskaner-Br%C3%A4u).jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Weissbier • Baviera, Alemania (5,0% alc., mezcla de trigo y cebada)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Lager • Estilo Munich Oscura • Franconia, Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Bitter • Inglaterra (4,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Franziskaner (Munich, Baviera) es un exponente clásico de Weissbier alemana de fermentación alta: mezcla trigo y cebada malteados, aspecto velado y densa espuma.'
+            },
+            {
+                id: 'erdinger',
+                brand: 'Erdinger Weissbier',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Erdinger.Weisbier.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Weissbier • Baviera, Alemania (5,3% alc., segunda fermentación en botella)',
+                    'Familia Lager • Estilo Viena / Märzen • Austria (5,4% alc.)',
+                    'Familia Ale • Estilo Kölsch • Colonia, Alemania (4,8% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bélgica (6,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Erdinger Weissbier (Baviera, ampliamente disponible en Argentina) pertenece a la familia Ale de trigo, con maduración posterior en botella y sedimento natural de levadura.'
+            },
+            {
+                id: 'warsteiner',
+                brand: 'Warsteiner Premium Verum',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Warsteiner_Pilsner_(Flasche_und_Glas).jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener Alemana • Alemania (4,8% alc., fermentación baja, rubia y seca)',
+                    'Familia Ale • Estilo Pale Ale • Inglaterra (4,5% alc.)',
+                    'Familia Ale • Estilo Barley Wine • Gran Bretaña (10,5% alc.)',
+                    'Familia Lambic • Estilo Lambic Joven • Bélgica (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Warsteiner (importada regularmente a Argentina) es una German Pilsener de fermentación baja (5 a 9 °C), transparente, brillante y con amargor limpio.'
+            },
+            {
+                id: 'becks',
+                brand: "Beck's Pils",
+                container: 'Botella Verde (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Becks1873Pils.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Pilsener • Bremen, Alemania (4,9% alc., rubia, seca y lupulada)',
+                    'Familia Ale • Estilo Altbier • Düsseldorf, Alemania (4,7% alc.)',
+                    'Familia Ale • Estilo Oatmeal Stout • Inglaterra (4,8% alc.)',
+                    'Familia Lambic • Estilo Frambozen • Bélgica (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: "Beck's (Bremen, norte de Alemania) es una Pilsener de fermentación baja, seca y aromática, muy difundida en el mercado argentino."
+            },
+            {
+                id: 'orval',
+                brand: 'Orval',
+                container: 'Botella de Bolo (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Orval_beer_bottle_(2011).png?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense (con protección legal) • Bélgica (6,2% alc., segunda fermentación en botella)',
+                    'Familia Lager • Estilo Bock • Einbeck, Alemania (6,5% alc.)',
+                    'Familia Lambic • Estilo Faro • Bruselas, Bélgica (4,5% alc.)',
+                    'Familia Ale • Estilo Mild Ale • Inglaterra (3,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Orval es una de las abadías Trapenses con protección legal más icónicas; su botella característica contiene una Ale compleja con refermentación en botella.'
+            },
+            {
+                id: 'rochefort',
+                brand: 'Trappistes Rochefort (6, 8 y 10)',
+                container: 'Botella Belga (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Rochefort-beers.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense (Dubbel / Quadrupel) • Bélgica (7,5% - 11,3% alc., oscuras y frutadas)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Ale • Estilo Kölsch • Colonia, Alemania (4,8% alc.)',
+                    'Familia Lambic • Estilo Lambic Pura • Bruselas (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Rochefort es una de las marcas Trapenses auténticas: cervezas de fermentación alta, oscuras, intensas y con segunda fermentación en botella.'
+            },
+            {
+                id: 'westmalle',
+                brand: 'Westmalle Tripel',
+                container: 'Botella Trapense (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Westmalle_Tripel_Back.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense "Tripel" • Bélgica (9,5% alc., pálida, seca y con 2da fermentación en botella)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,0% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas, Bélgica (5,2% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Westmalle es la creadora histórica del estilo Trapense "Tripel": de color pálido dorado, 8-9,5% alc. y perfil seco pese a su graduación.'
+            },
+            {
+                id: 'rochefort',
+                brand: 'Trappistes Rochefort (6, 8 y 10)',
+                container: 'Botella Belga (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Rochefort-beers.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense (Dubbel / Quadrupel) • Bélgica (7,5% - 11,3% alc., oscuras y frutadas)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Ale • Estilo Kölsch • Colonia, Alemania (4,8% alc.)',
+                    'Familia Lambic • Estilo Lambic Pura • Bruselas (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Rochefort figura en el manual CAVE entre las marcas Trapenses auténticas: cervezas de fermentación alta, oscuras, intensas y con segunda fermentación en botella.'
+            },
+            {
+                id: 'westmalle',
+                brand: 'Westmalle Tripel',
+                container: 'Botella Trapense (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Westmalle_Tripel_Back.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Trapense "Tripel" • Bélgica (9,5% alc., pálida, seca y con 2da fermentación en botella)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,0% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas, Bélgica (5,2% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Westmalle (citada en el manual CAVE) es la creadora histórica del estilo Trapense "Tripel": de color pálido dorado, 8-9,5% alc. y perfil seco pese a su graduación.'
+            },
+            {
+                id: 'delirium',
+                brand: 'Delirium Tremens',
+                container: 'Botella Cerámica Blanca (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Delirium_Tremens.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Ale Dorada Fuerte Belga • Bélgica (8,5% alc., rubia, frutada, especiada y abundante espuma)',
+                    'Familia Lager • Estilo Munich Helles • Baviera, Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Imperial Stout • Gran Bretaña (9,5% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Valle del Zenne, Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Delirium Tremens (importada a Argentina) es un referente mundial de Ale Dorada Fuerte belga: rubia, compleja, con segunda fermentación en botella y gran espuma.'
+            },
+            {
+                id: 'lachouffe',
+                brand: 'La Chouffe Blonde',
+                container: 'Botella Belga (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/La.Chouffe.blonde.2012.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Ale Belga / Rubia Fuerte • Bélgica (8,0% alc., frutada, especiada y refermentada en botella)',
+                    'Familia Lager • Estilo Viena / Märzen • Viena, Austria (5,2% alc.)',
+                    'Familia Ale • Estilo Brown Ale • Gran Bretaña (3,8% alc.)',
+                    'Familia Lambic • Estilo Faro • Bruselas, Bélgica (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'La Chouffe (Brasserie d’Achouffe, Bélgica, importada en Argentina) pertenece a las Ales belgas de fermentación alta, sin filtrar y con segunda fermentación en botella.'
+            },
+            {
+                id: 'cantillon',
+                brand: 'Cantillon Kriek 100% Lambic',
+                container: 'Botella Tipo Champagne (Referente Mundial)',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cantillon_Kriek_Lambic.jpg?width=600',
+                options: [
+                    'Familia Lambic • Estilo Kriek (Fermentación Espontánea con Cerezas) • Bruselas, Bélgica (5,5% alc.)',
+                    'Familia Lager • Estilo Doppelbock • Munich, Alemania (7,5% alc.)',
+                    'Familia Ale • Estilo Pale Ale • Inglaterra (4,5% alc.)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (7,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Cantillon es el productor emblemático de las Lambics de Bruselas: fermentación espontánea, maceración con cerezas ("kriek") y color rojizo.'
+            },
+            {
+                id: 'fullers-porter',
+                brand: "Fuller's London Porter",
+                container: 'Botella Inglesa (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fuller%27s_London_Porter.1.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,4% alc., muy oscura, seca, nutritiva y consistente)',
+                    'Familia Lager • Estilo Munich Oscura • Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Weissbier • Baviera, Alemania (5,2% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: "Fuller's London Porter es la marca de referencia por excelencia del estilo Porter británico: muy oscura, seca y consistente."
+            },
+            {
+                id: 'london-pride',
+                brand: "Fuller's London Pride",
+                container: 'Botella Inglesa (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/London_Pride_bottle_and_glass.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Pale Ale / Bitter • Inglaterra (4,7% alc., cobriza, carácter seco y amargo)',
+                    'Familia Lager • Estilo Pilsener • Bohemia, Rep. Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Stout • Dublín, Irlanda (4,2% alc.)',
+                    'Familia Lambic • Estilo Frambozen • Bélgica (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'London Pride es un referente clásico de Pale Ale / Bitter inglesa: fermentación alta, color cobrizo y perfil seco y amargo.'
+            },
+            {
+                id: 'newcastle',
+                brand: 'Newcastle Brown Ale',
+                container: 'Botella Transparente (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Newcastle_Brown_Ale.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Brown Ale • Gran Bretaña (4,7% alc., oscura y suave por su bajo amargor de lúpulo)',
+                    'Familia Lager • Estilo Bock • Einbeck, Alemania (6,5% alc.)',
+                    'Familia Ale • Estilo India Pale Ale (IPA) • Gran Bretaña (6,8% alc.)',
+                    'Familia Lambic • Estilo Lambic Vieja • Bruselas (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Newcastle es la marca emblemática del estilo Brown Ale británica: fermentación alta, oscura y de bajo amargor.'
+            },
+            {
+                id: 'blue-moon',
+                brand: 'Blue Moon Belgian White',
+                container: 'Lata / Botella (Venta en Argentina)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Blue_moon(beer).jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Witbier Belga • EE.UU. (5,4% alc., trigo y cebada, aspecto velado)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Ale • Estilo Barley Wine • Gran Bretaña (10,0% alc.)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,4% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Blue Moon Belgian White (comercializada en Argentina) sigue la tradición belga de cerveza de trigo (Witbier/Weissbier) de fermentación alta, aspecto velado y notas cítricas.'
+            },
+            {
+                id: 'sierra-nevada',
+                brand: 'Sierra Nevada Pale Ale',
+                container: 'Botella Ámbar (Referente Craft Mundial)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Sierra_Nevada_Pale_Ale_(cropped).jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Pale Ale Americana • EE.UU. (5,6% alc., fermentación alta y lúpulo Cascade)',
+                    'Familia Lager • Estilo Munich Helles • Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Oatmeal Stout • Inglaterra (4,5% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Sierra Nevada Pale Ale popularizó el lúpulo estadounidense Cascade dentro de la familia Ale de fermentación alta.'
+            },
+            {
+                id: 'fullers-porter',
+                brand: "Fuller's London Porter",
+                container: 'Botella Inglesa (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Fuller%27s_London_Porter.1.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Porter • Londres, Gran Bretaña (5,4% alc., muy oscura, seca, nutritiva y consistente)',
+                    'Familia Lager • Estilo Munich Oscura • Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Weissbier • Baviera, Alemania (5,2% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: "Fuller's London Porter es la marca exacta indicada en el manual CAVE como referencia del estilo Porter británico: muy oscura, seca y consistente."
+            },
+            {
+                id: 'london-pride',
+                brand: "Fuller's London Pride",
+                container: 'Botella Inglesa (Importada en Argentina)',
+                volume: '500 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/London_Pride_bottle_and_glass.jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Pale Ale / Bitter • Inglaterra (4,7% alc., cobriza, carácter seco y amargo)',
+                    'Familia Lager • Estilo Pilsener • Bohemia, Rep. Checa (4,5% alc.)',
+                    'Familia Ale • Estilo Stout • Dublín, Irlanda (4,2% alc.)',
+                    'Familia Lambic • Estilo Frambozen • Bélgica (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'London Pride figura textualmente en el manual CAVE como referente de Pale Ale / Bitter inglesa: fermentación alta, color cobrizo y perfil seco y amargo.'
+            },
+            {
+                id: 'newcastle',
+                brand: 'Newcastle Brown Ale',
+                container: 'Botella Transparente (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Newcastle_Brown_Ale.JPG?width=600',
+                options: [
+                    'Familia Ale • Estilo Brown Ale • Gran Bretaña (4,7% alc., oscura y suave por su bajo amargor de lúpulo)',
+                    'Familia Lager • Estilo Bock • Einbeck, Alemania (6,5% alc.)',
+                    'Familia Ale • Estilo India Pale Ale (IPA) • Gran Bretaña (6,8% alc.)',
+                    'Familia Lambic • Estilo Lambic Vieja • Bruselas (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Newcastle es la marca citada textualmente en el manual CAVE para el estilo Brown Ale británica: fermentación alta, oscura y de bajo amargor.'
+            },
+            {
+                id: 'blue-moon',
+                brand: 'Blue Moon Belgian White',
+                container: 'Lata / Botella (Venta en Argentina)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Blue_moon(beer).jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo De Trigo / Witbier Belga • EE.UU. (5,4% alc., trigo y cebada, aspecto velado)',
+                    'Familia Lager • Estilo Dortmunder Export • Alemania (5,5% alc.)',
+                    'Familia Ale • Estilo Barley Wine • Gran Bretaña (10,0% alc.)',
+                    'Familia Lager • Estilo Pilsener • República Checa (4,4% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Blue Moon Belgian White (comercializada en Argentina) sigue la tradición belga de cerveza de trigo (Witbier/Weissbier) de fermentación alta, aspecto velado y notas cítricas.'
+            },
+            {
+                id: 'sierra-nevada',
+                brand: 'Sierra Nevada Pale Ale',
+                container: 'Botella Ámbar (Referente Craft Mundial)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Sierra_Nevada_Pale_Ale_(cropped).jpg?width=600',
+                options: [
+                    'Familia Ale • Estilo Pale Ale Americana • EE.UU. (5,6% alc., fermentación alta y lúpulo Cascade)',
+                    'Familia Lager • Estilo Munich Helles • Alemania (4,8% alc.)',
+                    'Familia Ale • Estilo Oatmeal Stout • Inglaterra (4,5% alc.)',
+                    'Familia Lambic • Estilo Gueuze • Bélgica (5,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Sierra Nevada Pale Ale popularizó el lúpulo estadounidense Cascade (citado en el manual CAVE) dentro de la familia Ale de fermentación alta.'
+            },
+            {
+                id: 'negra-modelo',
+                brand: 'Negra Modelo',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '355 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/NegraModelo.jpg?width=600',
+                options: [
+                    'Familia Lager • Estilo Viena / Munich Oscura • México (5,4% alc., fermentación baja y maltas tostadas)',
+                    'Familia Ale • Estilo Imperial Stout • Gran Bretaña (9,0% alc.)',
+                    'Familia Ale • Estilo Trapense Dubbel • Bélgica (7,0% alc.)',
+                    'Familia Lambic • Estilo Kriek • Bruselas (5,0% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Negra Modelo (importada a Argentina) es una Lager de estilo Viena/Munich oscura elaborada por fermentación baja, con cuerpo moderado y notas suaves a malta tostada.'
+            },
+            {
+                id: 'asahi',
+                brand: 'Asahi Super Dry',
+                container: 'Botella Ámbar (Importada en Argentina)',
+                volume: '330 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Asahi_001.JPG?width=600',
+                options: [
+                    'Familia Lager • Estilo Lager Seca con Arroz y Cebada • Japón (5,0% alc., fermentación baja y final muy seco)',
+                    'Familia Ale • Estilo Scotch Ale • Escocia (7,0% alc.)',
+                    'Familia Ale • Estilo Altbier • Düsseldorf, Alemania (4,7% alc.)',
+                    'Familia Lambic • Estilo Faro • Bélgica (4,5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Siguiendo la tradición asiática del uso de arroz en cervezas ligeras, Asahi Super Dry (importada en Argentina) combina cebada y arroz en una Lager extremadamente seca.'
+            }
+        ];
+
+        // ==========================================
+        // COMPENDIO DE ESTILOS (18 ESTILOS CLÁSICOS)
+        // ==========================================
+        const beerStyles = [
+            { id: 'pilsener', family: 'Lager', name: 'Pilsener / Pilsner / Pils', origin: 'Plzen (Bohemia, Rep. Checa)', colorName: 'Rubia', srmHex: '#f5cb42', abv: '4,5 - 5,5%', temp: '4 - 5 °C', description: 'Transparente en aspecto, seca, acentuado carácter de malta y aroma a lúpulo característico. Estilo más copiado en el mundo; primera cerveza dorada elaborada.', brands: ['Pilsner Urquell', 'Grolsch'] },
+            { id: 'munich', family: 'Lager', name: 'Munich (Dunkel / Helles)', origin: 'Franconia y Sur de Alemania', colorName: 'Oscura / Rubia', srmHex: '#5c2c16', abv: '4 - 6%', temp: '4 - 5 °C', description: 'Típica lager oscura de cuerpo liviano y suave originaria de Baviera, junto con sus versiones doradas.', brands: ['Sagres'] },
+            { id: 'viena', family: 'Lager', name: 'Viena / Märzen - Oktoberfest', origin: 'Viena (Austria) / Munich (Alemania)', colorName: 'Ámbar / Dorada', srmHex: '#c96a24', abv: '4,5 - 6,5%', temp: '4 - 5 °C', description: 'Originaria de Viena, hoy elaborada principalmente en Munich. Se elabora en marzo y madura hasta sept.-oct. para el Oktoberfest. Cuerpo moderado.', brands: ['Ottakringer Wiener Original'] },
+            { id: 'dortmunder', family: 'Lager', name: 'Dortmunder Export', origin: 'Dortmund (Noroeste Alemania)', colorName: 'Dorada', srmHex: '#e6a82e', abv: '4,5 - 6,5%', temp: '4 - 5 °C', description: 'Pálida, semi-seca, con más cuerpo que la Pilsen pero menos amarga.', brands: ['Dortmunder Union'] },
+            { id: 'bock', family: 'Lager', name: 'Bock / Doppelbock', origin: 'Einbeck y Munich (Alemania)', colorName: 'Marrón Oscura', srmHex: '#3d190c', abv: '> 6,5%', temp: '5 - 7 °C', description: '"Bock" = "Macho cabrío". Lager fuerte usualmente oscura. Doppelbock supera 6,5% alc. y suele llevar sufijo "-ator".', brands: ['Salvator', 'Celebrator'] },
+            { id: 'brown-mild', family: 'Ale', name: 'Brown Ale / Mild', origin: 'Gran Bretaña', colorName: 'Oscura', srmHex: '#592914', abv: '3 - 4%', temp: '9 - 12 °C', description: 'Brown Ale (embotellada) y Mild (barril). Suave ("mild") por su bajo amargor proveniente del lúpulo.', brands: ['Newcastle', 'Samuel Smith'] },
+            { id: 'pale-bitter', family: 'Ale', name: 'Pale Ale / Bitter', origin: 'Centro y Norte de Inglaterra', colorName: 'Cobriza', srmHex: '#b85321', abv: '3,5 - 5%', temp: '9 - 12 °C', description: 'Pale Ale (embotellada) y Bitter (barril). Carácter seco y amargo bien definido.', brands: ['London Pride', "Emerson's"] },
+            { id: 'ipa', family: 'Ale', name: 'India Pale Ale (IPA)', origin: 'Gran Bretaña / India', colorName: 'Oscura / Ámbar', srmHex: '#a84719', abv: '4 - 7,5%', temp: '9 - 12 °C', description: 'Más densa y amarga que la Pale Ale tradicional debido a una mayor carga de lúpulo.', brands: ['Samuel Smith'] },
+            { id: 'barley-wine', family: 'Ale', name: 'Barley Wine (Vino de Cebada)', origin: 'Gran Bretaña', colorName: 'Roja Oscura', srmHex: '#6b1d14', abv: '6 - 12%', temp: '10 - 12 °C', description: 'Mucho cuerpo y alta graduación alcohólica. Tradicionalmente envejecían un tiempo en madera.', brands: ['J.W. Lees Harvest Ale'] },
+            { id: 'scotch-ale', family: 'Ale', name: 'Scotch Ale', origin: 'Escocia y Bélgica', colorName: 'Marrón Oscura', srmHex: '#4a1d11', abv: '6 - 8%', temp: '9 - 12 °C', description: 'Menos amarga que las inglesas; dulce y de sabor ahumado por maltas secadas con carbón de turba.', brands: ['Gordon'] },
+            { id: 'porter', family: 'Ale', name: 'Porter', origin: 'Gran Bretaña', colorName: 'Muy Oscura', srmHex: '#26110a', abv: '4,5 - 5,5%', temp: '9 - 12 °C', description: 'Cerveza muy oscura, seca, nutritiva y consistente.', brands: ["Fuller's London Porter"] },
+            { id: 'stout', family: 'Ale', name: 'Stout / Imperial / Oatmeal Stout', origin: 'Irlanda (Dublín/Cork) y Gran Bretaña', colorName: 'Negra', srmHex: '#120a08', abv: '4 - 10%', temp: '9 - 12 °C', description: 'Más cuerpo que Porter, sabor tostado/torrado y consistencia cremosa. Incluye Imperial Stout (más densa) y Oatmeal Stout (con avena).', brands: ['Guinness', 'Samuel Smith', 'Maclay'] },
+            { id: 'belgian-ale', family: 'Ale', name: 'Ale Belgas y Ale Dorada Fuerte', origin: 'Bélgica', colorName: 'Cobriza / Rubia', srmHex: '#d98a2b', abv: '5 - 8%', temp: '9 - 12 °C', description: 'Ales Belgas (5%, cobrizas, suaves, especiadas y frutadas) y Ale Dorada Fuerte (8%, rubia, frutada, floral, seca y mucha espuma).', brands: ['Duvel', 'Palm', 'De Koninck', 'Petrus', 'Maudite'] },
+            { id: 'trappist-abbey', family: 'Ale', name: 'Trapense y Abadía', origin: 'Bélgica y Holanda', colorName: 'Rubias / Oscuras', srmHex: '#7c3416', abv: '5 - 11%', temp: '9 - 12 °C', description: 'Trapense con protección legal (Single 5-6%, Dubbel 6-7% oscura/dulce, Tripel 8-9% pálida/seca) y Abadía con 2da fermentación en botella.', brands: ['Chimay', 'Orval', 'Rochefort', 'Westmalle', 'Leffe'] },
+            { id: 'weissbier', family: 'Ale', name: 'De Trigo / Weissbier', origin: 'Baviera, Berlín y Bélgica', colorName: 'Rubia Velada', srmHex: '#f2d16b', abv: '3 - 5,5%', temp: '6 - 8 °C', description: 'Mezclan trigo y cebada; aspecto velado, carácter refrescante y densa espuma. Muy populares en verano.', brands: ['Hoegaarden'] },
+            { id: 'altbier-kolsch', family: 'Ale', name: 'Altbier y Kölsch', origin: 'Düsseldorf y Colonia (Alemania)', colorName: 'Cobriza / Rubia', srmHex: '#c45d23', abv: '4,5 - 5%', temp: '7 - 10 °C', description: 'Excepciones Ale en Alemania: Altbier ("viejo", cobriza, fuerte amargor) y Kölsch (Colonia, rubia, similar a Pilsner pero más frutada).', brands: ['Uerige', 'Schlösser', 'Früh', 'Dom', 'Garde'] },
+            { id: 'lambic-faro', family: 'Lambic', name: 'Lambic y Faro', origin: 'Valle del Zenne, Bruselas (Bélgica)', colorName: 'Dorada / Ámbar', srmHex: '#d4942a', abv: '4 - 6%', temp: '6 - 8 °C', description: 'Fermentación espontánea con levaduras salvajes, 30-40% trigo crudo, lúpulo viejo y envejecimiento 1-2 años. Faro añade azúcar.', brands: ['Cantillon'] },
+            { id: 'gueuze-kriek', family: 'Lambic', name: 'Gueuze y Kriek / Frambozen', origin: 'Bruselas (Bélgica)', colorName: 'Dorada / Rojiza', srmHex: '#b91c3b', abv: '5 - 7%', temp: '6 - 8 °C', description: 'Gueuze mezcla Lambic vieja y joven con re-fermentación en botella (mucho gas). Kriek (cerezas) y Frambozen (frambuesas) maceran fruta.', brands: ['Cantillon'] }
+        ];
+
+        // ==========================================
+        // BANCO DE PREGUNTAS DE EVALUACIÓN
+        // ==========================================
+        const questionBank = [
+            // Módulo 1: Materias Primas y Procesos
+            {
+                category: 'fermentation',
+                categoryLabel: 'Materias Primas y Procesos',
+                question: '¿Qué dos enzimas segrega el embrión del grano durante la germinación controlada en el proceso de malteado?',
+                options: [
+                    'Citasa (disuelve la membrana del almidón) y Diastasa (transforma el almidón en maltosa)',
+                    'Invertasa y Zimasa para producir etanol directamente en seco',
+                    'Lactasa y Pepsina para clarificar el mosto en frío',
+                    'Amilopectina y Celulosa para detener el secado'
+                ],
+                correct: 0,
+                explanation: 'Durante el malteado, la citasa disuelve la membrana que recubre el almidón y la diastasa transforma ese almidón en maltosa (azúcar fermentable).'
+            },
+            {
+                category: 'fermentation',
+                categoryLabel: 'Materias Primas y Procesos',
+                question: '¿Cuál de las siguientes asociaciones entre variedad de lúpulo y origen geográfico es correcta?',
+                options: [
+                    'Saaz (Bohemia, Rep. Checa), Goldings y Fuggles (Gran Bretaña), Hallertau y Tettnang (Alemania), Cascade (EE.UU.)',
+                    'Saaz (Baviera), Hallertau (Inglaterra), Cascade (Bélgica), Fuggles (Bohemia)',
+                    'Tettnang (Irlanda), Goldings (Rep. Checa), Saaz (Estados Unidos)',
+                    'Cascade (Franconia), Saaz (Escocia), Hallertau (Bruselas)'
+                ],
+                correct: 0,
+                explanation: 'Las variedades clásicas de referencia son: Saaz (Bohemia/Rep. Checa), Goldings y Fuggles (Gran Bretaña), Hallertau y Tettnang (Alemania) y Cascade (EE.UU.).'
+            },
+            {
+                category: 'fermentation',
+                categoryLabel: 'Materias Primas y Procesos',
+                question: '¿Qué diferencia técnica existe entre la maceración y la decocción al elaborar el mosto?',
+                options: [
+                    'La maceración dura 1-2 horas (típica de Ales) y la decocción transfiere la mezcla entre tanques a distintas temperaturas hasta 6 horas (típica de Lagers)',
+                    'La maceración se realiza con lúpulo fresco y la decocción con pellets',
+                    'La decocción es exclusiva de las cervezas Lambic de Bruselas',
+                    'La maceración elimina el bagazo por centrifugación tras la fermentación'
+                ],
+                correct: 0,
+                explanation: 'La maceración dura 1 a 2 horas (método tradicional Ale), mientras que la decocción transfiere la mezcla a diferentes temperaturas durante hasta 6 horas (usada en Lagers).'
+            },
+            {
+                category: 'fermentation',
+                categoryLabel: 'Materias Primas y Procesos',
+                question: '¿Cuál de las siguientes asociaciones entre variedad de lúpulo y origen geográfico es correcta según el manual?',
+                options: [
+                    'Saaz (Bohemia, Rep. Checa), Goldings y Fuggles (Gran Bretaña), Hallertau y Tettnang (Alemania), Cascade (EE.UU.)',
+                    'Saaz (Baviera), Hallertau (Inglaterra), Cascade (Bélgica), Fuggles (Bohemia)',
+                    'Tettnang (Irlanda), Goldings (Rep. Checa), Saaz (Estados Unidos)',
+                    'Cascade (Franconia), Saaz (Escocia), Hallertau (Bruselas)'
+                ],
+                correct: 0,
+                explanation: 'El manual destaca como variedades clásicas: Saaz (Bohemia/Rep. Checa), Goldings y Fuggles (Gran Bretaña), Hallertau y Tettnang (Alemania) y Cascade (EE.UU.).'
+            },
+            {
+                category: 'fermentation',
+                categoryLabel: 'Materias Primas y Procesos',
+                question: '¿Qué función cumple el lúpulo en las cervezas Lambic belgas?',
+                options: [
+                    'Se añade lúpulo fresco recién cosechado para aportar intenso amargor herbal',
+                    'Se utiliza lúpulo viejo que perdió aroma y amargor, conservando sus propiedades antisépticas naturales',
+                    'No se utiliza ningún tipo de lúpulo ni fruta en su elaboración',
+                    'Se añade exclusivamente durante el embotellado para generar espuma'
+                ],
+                correct: 1,
+                explanation: 'En las Lambic se emplea lúpulo viejo que ya perdió su aroma y amargor, pero conserva sus propiedades antisépticas para proteger el mosto durante años.'
+            },
+            // Módulo 2: Familias y Estilos
+            {
+                category: 'styles',
+                categoryLabel: 'Familias y Estilos',
+                question: '¿Qué dos estilos alemanes constituyen excepciones de fermentación alta (Ale) en un país predominante de Lagers?',
+                options: [
+                    'Bock y Doppelbock',
+                    'Altbier (Düsseldorf) y Kölsch (Colonia)',
+                    'Pilsener y Dortmunder Export',
+                    'Munich y Märzen'
+                ],
+                correct: 1,
+                explanation: 'Aunque Alemania es mayoritariamente Lager, Altbier ("método antiguo", cobriza y amarga de Düsseldorf) y Kölsch (rubia y frutada de Colonia) son de fermentación alta (Ale).'
+            },
+            {
+                category: 'styles',
+                categoryLabel: 'Familias y Estilos',
+                question: '¿Qué característica distintiva posee la Scotch Ale?',
+                options: [
+                    'Es más amarga que las inglesas y se elabora con 40% de trigo crudo',
+                    'Es menos amarga que las inglesas, dulce y con sabor ahumado por maltas secadas con carbón de turba',
+                    'Es una cerveza rubia de 3% de alcohol servida exclusivamente en barril',
+                    'Pertenece a la familia de fermentación espontánea'
+                ],
+                correct: 1,
+                explanation: 'La Scotch Ale (6-8% alc., color marrón oscuro) es menos amarga que las inglesas, dulce y presenta sabor ahumado por maltas secadas con carbón de turba.'
+            },
+            {
+                category: 'styles',
+                categoryLabel: 'Familias y Estilos',
+                question: '¿Qué distingue a una Oatmeal Stout de una Stout tradicional?',
+                options: [
+                    'Se le añade harina de avena (oatmeal) y posee entre 4% y 5,6% de alcohol',
+                    'Se fermenta a 5 °C durante seis meses en cuevas heladas',
+                    'Se elabora exclusivamente con cerezas negras de Bélgica',
+                    'Es una cerveza transparente de color dorado pálido'
+                ],
+                correct: 0,
+                explanation: 'La Oatmeal Stout (Inglaterra, 4-5,6% alc.) incorpora harina de avena (oatmeal) en su receta.'
+            },
+            // Módulo 3: Marcas y Origen
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: '¿Qué marca histórica representa la primera Doppelbock elaborada en Munich y originó el sufijo "-ator" en su estilo?',
+                options: [
+                    'Salvator',
+                    'Pilsner Urquell',
+                    'Ottakringer Wiener Original',
+                    'Dortmunder Union'
+                ],
+                correct: 0,
+                explanation: 'Salvator fue la primera Doppelbock elaborada en Munich; en su homenaje muchas etiquetas de este estilo llevan el sufijo "-ator" (como Celebrator).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: '¿Cuál de los siguientes grupos de marcas corresponde íntegramente a cervezas Trapenses auténticas?',
+                options: [
+                    'Chimay, Orval, Rochefort, Westmalle, Achel, Westvleteren y Koningshoeven',
+                    'Leffe, Duvel, Hoegaarden, Palm y De Koninck',
+                    'Uerige, Schlösser, Frankenheim, Dom y Früh',
+                    'London Pride, Newcastle, Guinness y Fuller’s London Porter'
+                ],
+                correct: 0,
+                explanation: 'Las cervecerías Trapenses con protección legal son Chimay, Orval, Rochefort, Westmalle, Achel, Westvleteren y Koningshoeven (mientras que Leffe es de Abadía).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: '¿A qué estilo y origen pertenece la marca "Duvel"?',
+                options: [
+                    'Ale Dorada Fuerte • Bélgica (rubia, 8% alc., frutada, floral, seca y mucha espuma)',
+                    'Pilsener • República Checa (4,5% alc.)',
+                    'Lambic Kriek • Bruselas (cerveza de cerezas)',
+                    'Kölsch • Colonia, Alemania (5% alc.)'
+                ],
+                correct: 0,
+                explanation: 'Duvel (8% alc.) es el referente belga de Ale Dorada Fuerte: rubia, frutada y floral, seca, delgada de cuerpo y con abundante espuma.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: 'Las marcas "Uerige", "Schlösser" y "Frankenheim" son referentes tradicionales de qué estilo alemán?',
+                options: [
+                    'Altbier (Noroeste de Alemania / Düsseldorf)',
+                    'Kölsch (Colonia)',
+                    'Doppelbock (Baviera)',
+                    'Dortmunder Export (Dortmund)'
+                ],
+                correct: 0,
+                explanation: 'Uerige, Schlösser y Frankenheim son las marcas de referencia para el estilo Altbier (cobriza, 4,5-4,7% alc., fuerte amargor).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: '¿Con qué estilo de fermentación espontánea se asocia directamente al productor "Cantillon" de Bruselas?',
+                options: [
+                    'Lambic (Bruselas, Bélgica)',
+                    'Barley Wine (Gran Bretaña)',
+                    'Viena / Märzen (Austria)',
+                    'Scotch Ale (Escocia)'
+                ],
+                correct: 0,
+                explanation: 'Cantillon en Bruselas (Bélgica) es el productor emblemático de las cervezas de fermentación espontánea tipo Lambic.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Marcas y Origen',
+                question: '¿Qué marca inglesa es referencia clásica del estilo "Barley Wine" (Vino de Cebada)?',
+                options: [
+                    'J.W. Lees Harvest Ale (UK)',
+                    "Fuller's London Porter (UK)",
+                    'London Pride',
+                    'Newcastle'
+                ],
+                correct: 0,
+                explanation: 'J.W. Lees Harvest Ale (UK) es el ejemplo representativo de Barley Wine (6-12% alc., roja oscura, envejecida en madera).'
+            }
+        ];
+
+        // ==========================================
+        // ESTADO Y PERSISTENCIA DEL ESTUDIANTE
+        // ==========================================
+        let state = {
+            examsTaken: 0,
+            totalQuestionsAnswered: 0,
+            totalCorrect: 0,
+            masteredStyles: [],
+            lastAttempt: null
+        };
+
+        let currentFilter = 'ALL';
+        let currentSearch = '';
+        let catalogPage = 0;
+        const ITEMS_PER_PAGE = 3;
+
+        let activeQuiz = [];
+        let currentQuestionIndex = 0;
+        let currentQuizScore = 0;
+        let questionAnswered = false;
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('sommelier_cerveza_progress_v1');
+                if (saved) {
+                    state = { ...state, ...JSON.parse(saved) };
+                }
+            } catch (e) {
+                console.warn('No se pudo leer localStorage:', e);
+            }
+            updateDashboardUI();
+            renderCatalog();
+            initVisualChallenge();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('sommelier_cerveza_progress_v1', JSON.stringify(state));
+            } catch (e) {
+                console.warn('No se pudo guardar en localStorage:', e);
+            }
+        }
+
+        function resetProgress() {
+            state = {
+                examsTaken: 0,
+                totalQuestionsAnswered: 0,
+                totalCorrect: 0,
+                masteredStyles: [],
+                lastAttempt: null
+            };
+            saveState();
+            updateDashboardUI();
+            renderCatalog();
+            showToast('Progreso del estudiante reiniciado.', 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = type === 'success'
+                ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
+                : 'bg-stout-900/95 border-malt-500 text-malt-100';
+            toast.className = `px-4 py-3 rounded-xl border shadow-xl text-sm sm:text-base font-semibold backdrop-blur-md transition-all duration-300 ${colors}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // ==========================================
+        // NAVEGACIÓN ENTRE PESTAÑAS
+        // ==========================================
+        function switchTab(tabName) {
+            const views = ['dashboard', 'catalog', 'visual', 'exam'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const btn = document.getElementById(`tab-${v}`);
+                if (el) el.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-malt-600', 'text-white', 'shadow');
+                    btn.classList.add('text-malt-300');
+                }
+            });
+
+            const targetView = document.getElementById(`view-${tabName}`);
+            const targetBtn = document.getElementById(`tab-${tabName}`);
+            if (targetView) targetView.classList.remove('hidden');
+            if (targetBtn) {
+                targetBtn.classList.add('bg-malt-600', 'text-white', 'shadow');
+                targetBtn.classList.remove('text-malt-300');
+            }
+
+            if (tabName === 'dashboard') updateDashboardUI();
+            if (tabName === 'catalog') renderCatalog();
+        }
+
+        // ==========================================
+        // ACTUALIZACIÓN DEL PANEL PRINCIPAL
+        // ==========================================
+        function updateDashboardUI() {
+            document.getElementById('stat-exams').textContent = state.examsTaken;
+            const accuracy = state.totalQuestionsAnswered > 0
+                ? Math.round((state.totalCorrect / state.totalQuestionsAnswered) * 100)
+                : null;
+            document.getElementById('stat-accuracy').textContent = accuracy !== null ? `${accuracy}%` : '--%';
+            document.getElementById('stat-styles').textContent = `${state.masteredStyles.length} / ${beerStyles.length}`;
+
+            let rank = 'Aprendiz de Barra';
+            if (state.examsTaken >= 1 && accuracy >= 50) rank = 'Catador Certificado';
+            if (state.examsTaken >= 2 && accuracy >= 75) rank = 'Sommelier en Formación';
+            if (state.examsTaken >= 3 && accuracy >= 90) rank = 'Maestro Cicerone';
+            document.getElementById('stat-rank').textContent = rank;
+
+            const badge = document.getElementById('last-attempt-badge');
+            if (badge) {
+                badge.textContent = state.lastAttempt ? `Último intento: ${state.lastAttempt}` : '';
+            }
+        }
+
+        // ==========================================
+        // GUÍA DE ESTILOS PAGINADA (SIN SCROLL)
+        // ==========================================
+        function filterCatalog(family) {
+            currentFilter = family;
+            catalogPage = 0;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === family) {
+                    btn.classList.add('active', 'bg-malt-600', 'text-white');
+                    btn.classList.remove('bg-stout-800', 'text-malt-300');
+                } else {
+                    btn.classList.remove('active', 'bg-malt-600', 'text-white');
+                    btn.classList.add('bg-stout-800', 'text-malt-300');
+                }
+            });
+            renderCatalog();
+        }
+
+        function searchCatalog() {
+            currentSearch = document.getElementById('catalog-search').value.toLowerCase().trim();
+            catalogPage = 0;
+            renderCatalog();
+        }
+
+        function changeCatalogPage(delta) {
+            catalogPage += delta;
+            renderCatalog();
+        }
+
+        function toggleMastered(styleId) {
+            const idx = state.masteredStyles.indexOf(styleId);
+            if (idx === -1) {
+                state.masteredStyles.push(styleId);
+                showToast('Estilo marcado como dominado.', 'success');
+            } else {
+                state.masteredStyles.splice(idx, 1);
+            }
+            saveState();
+            updateDashboardUI();
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalog-grid');
+            if (!grid) return;
+
+            const filtered = beerStyles.filter(s => {
+                const matchFamily = currentFilter === 'ALL' || s.family === currentFilter;
+                const matchQuery = !currentSearch ||
+                    s.name.toLowerCase().includes(currentSearch) ||
+                    s.origin.toLowerCase().includes(currentSearch) ||
+                    s.brands.some(b => b.toLowerCase().includes(currentSearch));
+                return matchFamily && matchQuery;
+            });
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+            if (catalogPage >= totalPages) catalogPage = totalPages - 1;
+            if (catalogPage < 0) catalogPage = 0;
+
+            document.getElementById('catalog-page-indicator').textContent = `${catalogPage + 1} / ${totalPages}`;
+            document.getElementById('btn-prev-page').disabled = catalogPage === 0;
+            document.getElementById('btn-next-page').disabled = catalogPage >= totalPages - 1;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 glass-panel rounded-2xl p-8 flex items-center justify-center text-xl text-malt-300">No se encontraron estilos con ese criterio.</div>`;
+                return;
+            }
+
+            const pageItems = filtered.slice(catalogPage * ITEMS_PER_PAGE, (catalogPage + 1) * ITEMS_PER_PAGE);
+            grid.innerHTML = pageItems.map(style => {
+                const isMastered = state.masteredStyles.includes(style.id);
+                return `
+                <article class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between gap-2 border ${isMastered ? 'border-emerald-500/60' : 'border-malt-800/40'} min-h-0">
+                    <div class="space-y-1.5 min-h-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-malt-500/20 text-malt-300 border border-malt-500/30">
+                                ${style.family}
+                            </span>
+                            <button onclick="toggleMastered('${style.id}')" class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${isMastered ? 'bg-emerald-600 text-white' : 'bg-stout-800 text-malt-300 hover:text-white border border-malt-700/50'}">
+                                ${isMastered ? '✓ Dominado' : 'Marcar Dominado'}
+                            </button>
+                        </div>
+                        <h3 class="font-serif text-lg sm:text-xl font-bold text-white leading-tight">${style.name}</h3>
+                        <p class="text-xs sm:text-sm font-semibold text-malt-400 leading-tight">${style.origin}</p>
+                        <p class="text-sm sm:text-[15px] text-malt-100/95 leading-snug">${style.description}</p>
+                    </div>
+
+                    <div class="space-y-2.5 pt-2 border-t border-malt-800/40 shrink-0">
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-stout-950 p-2 rounded-xl border border-malt-600/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[11px] uppercase tracking-wider text-malt-400 font-extrabold">Color</div>
+                                <div class="flex items-center justify-center gap-1.5 mt-1">
+                                    <span class="w-4 h-4 rounded-full srm-badge border border-white/30 shrink-0" style="background:${style.srmHex}"></span>
+                                    <span class="text-sm sm:text-base font-extrabold text-white leading-tight">${style.colorName}</span>
+                                </div>
+                            </div>
+                            <div class="bg-malt-950/60 p-2 rounded-xl border border-malt-500/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[11px] uppercase tracking-wider text-malt-300 font-extrabold">Alcohol</div>
+                                <div class="text-base sm:text-lg font-black text-malt-200 mt-0.5 tracking-tight">${style.abv}</div>
+                            </div>
+                            <div class="bg-amber-950/40 p-2 rounded-xl border border-amber-500/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[11px] uppercase tracking-wider text-amber-300/90 font-extrabold">Servicio</div>
+                                <div class="text-base sm:text-lg font-black text-amber-300 mt-0.5 tracking-tight">${style.temp}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-bold uppercase text-malt-400 mb-1">Marcas de Referencia:</div>
+                            <div class="flex flex-wrap gap-1">
+                                ${style.brands.map(b => `<span class="px-2 py-0.5 rounded-md bg-stout-900 border border-malt-700/50 text-xs font-semibold text-malt-100">${b}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // MOTOR DE EVALUACIÓN (QUIZ)
+        // ==========================================
+        function startExam(category) {
+            switchTab('exam');
+            let pool = category === 'all'
+                ? [...questionBank]
+                : questionBank.filter(q => q.category === category);
+
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            activeQuiz = category === 'all' ? pool.slice(0, 12) : pool;
+            currentQuestionIndex = 0;
+            currentQuizScore = 0;
+
+            document.getElementById('exam-intro').classList.add('hidden');
+            document.getElementById('exam-results').classList.add('hidden');
+            document.getElementById('exam-active').classList.remove('hidden');
+            document.getElementById('q-total').textContent = activeQuiz.length;
+
+            renderQuestion();
+        }
+
+        function resetExamView() {
+            document.getElementById('exam-active').classList.add('hidden');
+            document.getElementById('exam-results').classList.add('hidden');
+            document.getElementById('exam-intro').classList.remove('hidden');
+        }
+
+        function renderQuestion() {
+            questionAnswered = false;
+            const q = activeQuiz[currentQuestionIndex];
+            const total = activeQuiz.length;
+
+            document.getElementById('exam-category-badge').textContent = q.categoryLabel;
+            document.getElementById('q-current').textContent = currentQuestionIndex + 1;
+            document.getElementById('exam-progress-bar').style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
+            document.getElementById('q-text').textContent = q.question;
+
+            const ctxBox = document.getElementById('q-context');
+            if (q.context) {
+                ctxBox.textContent = q.context;
+                ctxBox.classList.remove('hidden');
+            } else {
+                ctxBox.classList.add('hidden');
+            }
+
+            document.getElementById('btn-q-reopen').classList.add('hidden');
+            document.getElementById('btn-next-q').classList.add('hidden');
+
+            const letters = ['A', 'B', 'C', 'D'];
+            document.getElementById('q-options').innerHTML = q.options.map((opt, idx) => `
+                <button onclick="selectOption(${idx})" id="q-opt-${idx}" class="w-full text-left p-4 rounded-xl bg-stout-900/95 hover:bg-stout-800 border border-malt-700/40 text-malt-100 text-base sm:text-lg font-medium leading-snug transition-all flex items-center gap-3.5 group">
+                    <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-stout-950 border border-malt-700/50 flex items-center justify-center text-sm sm:text-base font-extrabold text-malt-400 shrink-0 group-hover:border-malt-500 group-hover:text-white">
+                        ${letters[idx]}
+                    </span>
+                    <span>${opt}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectOption(selectedIndex) {
+            if (questionAnswered) return;
+            questionAnswered = true;
+
+            const q = activeQuiz[currentQuestionIndex];
+            const isCorrect = selectedIndex === q.correct;
+
+            state.totalQuestionsAnswered++;
+            if (isCorrect) {
+                currentQuizScore++;
+                state.totalCorrect++;
+            }
+            saveState();
+
+            q.options.forEach((_, idx) => {
+                const btn = document.getElementById(`q-opt-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-stout-800');
+                if (idx === q.correct) {
+                    btn.classList.remove('bg-stout-900/95', 'border-malt-700/40');
+                    btn.classList.add('bg-emerald-950/90', 'border-emerald-500', 'text-emerald-100');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-stout-900/95', 'border-malt-700/40');
+                    btn.classList.add('bg-rose-950/90', 'border-rose-500', 'text-rose-100');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            const nextLabel = (currentQuestionIndex + 1 === activeQuiz.length) ? 'Ver Resultados →' : 'Siguiente Pregunta →';
+            const nextBtn = document.getElementById('btn-next-q');
+            nextBtn.textContent = nextLabel;
+            nextBtn.classList.remove('hidden');
+            document.getElementById('btn-q-reopen').classList.remove('hidden');
+
+            openFeedbackModal({
+                isCorrect,
+                subtitle: q.categoryLabel,
+                explanation: q.explanation,
+                nextLabel,
+                onNext: () => nextQuestion()
+            });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeQuiz.length) {
+                renderQuestion();
+            } else {
+                finishExam();
+            }
+        }
+
+        function finishExam() {
+            const total = activeQuiz.length;
+            const wrong = total - currentQuizScore;
+            const pct = Math.round((currentQuizScore / total) * 100);
+
+            state.examsTaken++;
+            state.lastAttempt = `${pct}% (${currentQuizScore}/${total})`;
+            saveState();
+
+            document.getElementById('exam-active').classList.add('hidden');
+            document.getElementById('exam-results').classList.remove('hidden');
+
+            document.getElementById('res-correct').textContent = currentQuizScore;
+            document.getElementById('res-wrong').textContent = wrong;
+            document.getElementById('res-score').textContent = `${pct}%`;
+
+            const icon = document.getElementById('result-icon');
+            const badge = document.getElementById('result-badge');
+            const title = document.getElementById('result-title');
+            const summary = document.getElementById('result-summary');
+
+            icon.textContent = `${pct}%`;
+            if (pct >= 80) {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-emerald-500 bg-emerald-950/50 text-emerald-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300';
+                badge.textContent = 'Nivel Sobresaliente';
+                title.textContent = '¡Excelente Dominio Técnico!';
+                summary.textContent = 'Demuestras un conocimiento sólido de las familias de fermentación, estilos clásicos y marcas internacionales.';
+            } else if (pct >= 60) {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-amber-500 bg-amber-950/50 text-amber-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300';
+                badge.textContent = 'Aprobado';
+                title.textContent = 'Buen Desempeño General';
+                summary.textContent = 'Tienes una buena base. Repasa la Guía de Estilos para afianzar rangos alcohólicos y etiquetas específicas.';
+            } else {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-rose-500 bg-rose-950/50 text-rose-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300';
+                badge.textContent = 'Requiere Repaso';
+                title.textContent = 'Continúa Practicando';
+                summary.textContent = 'Te recomendamos revisar las fichas de Lager, Ale y Lambic antes de volver a rendir la evaluación.';
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE RECONOCIMIENTO VISUAL DE BOTELLAS Y LATAS
+        // ==========================================
+        let visualDeck = [];
+        let visualIndex = 0;
+        let visualScore = 0;
+        let visualAnswered = false;
+
+        function initVisualChallenge() {
+            visualDeck = [...visualItems];
+            for (let i = visualDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [visualDeck[i], visualDeck[j]] = [visualDeck[j], visualDeck[i]];
+            }
+            visualIndex = 0;
+            visualScore = 0;
+            document.getElementById('vis-total').textContent = visualDeck.length;
+            document.getElementById('vis-score').textContent = '0';
+            renderVisualItem();
+        }
+
+        function renderVisualItem() {
+            visualAnswered = false;
+            const item = visualDeck[visualIndex];
+            document.getElementById('vis-current').textContent = visualIndex + 1;
+            document.getElementById('vis-container-type').textContent = item.container;
+            document.getElementById('vis-volume').textContent = item.volume;
+            document.getElementById('vis-brand-title').textContent = item.brand;
+            document.getElementById('vis-artwork').innerHTML = `
+                <img 
+                    src="${item.imageUrl}" 
+                    alt="${item.brand}" 
+                    referrerpolicy="no-referrer"
+                    class="max-h-full max-w-full w-auto h-full object-contain rounded-xl transition-transform duration-300 hover:scale-105"
+                />
+            `;
+
+            document.getElementById('btn-vis-reopen').classList.add('hidden');
+            document.getElementById('btn-vis-next').classList.add('hidden');
+
+            const letters = ['A', 'B', 'C', 'D'];
+            document.getElementById('vis-options').innerHTML = item.options.map((opt, idx) => `
+                <button onclick="selectVisualOption(${idx})" id="vis-opt-${idx}" class="w-full text-left px-3.5 py-2.5 sm:py-3 rounded-xl bg-stout-900/95 hover:bg-stout-800 border border-malt-700/40 text-malt-100 text-sm sm:text-base font-medium leading-snug transition-all flex items-center gap-3 group">
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-stout-950 border border-malt-700/50 flex items-center justify-center text-xs sm:text-sm font-extrabold text-malt-400 shrink-0 group-hover:border-malt-500 group-hover:text-white">
+                        ${letters[idx]}
+                    </span>
+                    <span class="line-clamp-2">${opt}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectVisualOption(selectedIndex) {
+            if (visualAnswered) return;
+            visualAnswered = true;
+
+            const item = visualDeck[visualIndex];
+            const isCorrect = selectedIndex === item.correct;
+            if (isCorrect) {
+                visualScore++;
+                document.getElementById('vis-score').textContent = visualScore;
+            }
+
+            item.options.forEach((_, idx) => {
+                const btn = document.getElementById(`vis-opt-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-stout-800');
+                if (idx === item.correct) {
+                    btn.classList.remove('bg-stout-900/95', 'border-malt-700/40');
+                    btn.classList.add('bg-emerald-950/90', 'border-emerald-500', 'text-emerald-100');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-stout-900/95', 'border-malt-700/40');
+                    btn.classList.add('bg-rose-950/90', 'border-rose-500', 'text-rose-100');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            const nextLabel = (visualIndex + 1 === visualDeck.length) ? 'Reiniciar Serie ↻' : 'Siguiente Envase →';
+            const nextBtn = document.getElementById('btn-vis-next');
+            nextBtn.textContent = nextLabel;
+            nextBtn.classList.remove('hidden');
+            document.getElementById('btn-vis-reopen').classList.remove('hidden');
+
+            openFeedbackModal({
+                isCorrect,
+                subtitle: `Etiqueta: ${item.brand}`,
+                explanation: item.explanation,
+                nextLabel,
+                onNext: () => nextVisualItem()
+            });
+        }
+
+        function nextVisualItem() {
+            visualIndex++;
+            if (visualIndex >= visualDeck.length) {
+                showToast(`Serie visual completada: ${visualScore} de ${visualDeck.length} aciertos.`, 'success');
+                initVisualChallenge();
+            } else {
+                renderVisualItem();
+            }
+        }
+
+        // ==========================================
+        // CONTROL DEL MODAL POP-UP DE RETROALIMENTACIÓN Y TECLA ESC
+        // ==========================================
+        let activeModalNextCallback = null;
+
+        function openFeedbackModal({ isCorrect, subtitle, explanation, nextLabel, onNext }) {
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-modal-card');
+            const icon = document.getElementById('modal-fb-icon');
+            const subEl = document.getElementById('modal-fb-subtitle');
+            const titleEl = document.getElementById('modal-fb-title');
+            const textEl = document.getElementById('modal-fb-text');
+            const nextBtn = document.getElementById('modal-fb-next-btn');
+
+            card.classList.remove('border-emerald-500/70', 'border-rose-500/70');
+            icon.className = 'w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-extrabold shrink-0';
+
+            if (isCorrect) {
+                card.classList.add('border-emerald-500/70');
+                icon.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/40');
+                icon.textContent = '✓';
+                titleEl.textContent = '¡Respuesta Correcta!';
+                titleEl.className = 'font-serif text-2xl sm:text-3xl font-bold text-emerald-300 leading-tight';
+            } else {
+                card.classList.add('border-rose-500/70');
+                icon.classList.add('bg-rose-500/20', 'text-rose-400', 'border', 'border-rose-500/40');
+                icon.textContent = '✕';
+                titleEl.textContent = 'Revisión Técnica';
+                titleEl.className = 'font-serif text-2xl sm:text-3xl font-bold text-rose-300 leading-tight';
+            }
+
+            subEl.textContent = subtitle || 'Retroalimentación';
+            textEl.textContent = explanation;
+            nextBtn.textContent = nextLabel || 'Continuar →';
+            activeModalNextCallback = onNext || null;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedback-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function reopenFeedbackModal() {
+            const modal = document.getElementById('feedback-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function handleModalNext() {
+            closeFeedbackModal();
+            if (typeof activeModalNextCallback === 'function') {
+                const fn = activeModalNextCallback;
+                activeModalNextCallback = null;
+                fn();
+            }
+        }
+
+        // Cerrar el pop-up con la tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('feedback-modal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeFeedbackModal();
+                }
+            }
+        });
+
+        // Inicializar al cargar la página
+        window.addEventListener('DOMContentLoaded', loadState);
+    </script>
+</body>
+</html>
