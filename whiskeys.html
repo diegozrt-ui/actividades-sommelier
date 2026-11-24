@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia de Sommellerie de Whisk(e)y | Panel de Evaluación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        oak: {
+                            50: '#fdf9f3',
+                            100: '#faf0e1',
+                            200: '#f3dec0',
+                            300: '#eac392',
+                            400: '#dfa05e',
+                            500: '#d48236',
+                            600: '#c26828',
+                            700: '#a14f22',
+                            800: '#824022',
+                            900: '#69351e',
+                            950: '#38190e',
+                        },
+                        peat: {
+                            800: '#211c1a',
+                            900: '#161311',
+                            950: '#0d0b0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Bloqueo de scroll en viewport principal para experiencia de tablero 100dvh */
+        html, body {
+            height: 100dvh;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(33, 28, 26, 0.90);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 130, 54, 0.28);
+        }
+        .dram-badge {
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.25), 0 3px 8px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-peat-950 text-oak-50 h-[100dvh] w-screen overflow-hidden flex flex-col font-sans selection:bg-oak-500 selection:text-white">
+
+    <!-- Notificación Toast Flotante -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Modal Pop-up de Retroalimentación (Cerrable con ESC o botón) -->
+    <div id="feedback-modal" onclick="if(event.target === this) closeFeedbackModal()" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+        <div id="feedback-modal-card" class="glass-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 border-2 shadow-2xl space-y-5 transform transition-all">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="modal-fb-icon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-extrabold shrink-0">
+                        ✓
+                    </div>
+                    <div>
+                        <span id="modal-fb-subtitle" class="text-xs sm:text-sm font-bold uppercase tracking-wider text-oak-400">Resultado de Cata / Evaluación</span>
+                        <h3 id="modal-fb-title" class="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
+                            ¡Respuesta Correcta!
+                        </h3>
+                    </div>
+                </div>
+                <button onclick="closeFeedbackModal()" title="Cerrar (ESC)" class="px-3 py-1.5 rounded-xl bg-peat-900 hover:bg-peat-800 border border-oak-700/50 text-xs sm:text-sm font-bold text-oak-300 hover:text-white transition-colors shrink-0">
+                    ESC ✕
+                </button>
+            </div>
+
+            <div class="bg-peat-950/90 rounded-2xl p-4 sm:p-5 border border-oak-800/50">
+                <p id="modal-fb-text" class="text-base sm:text-xl text-oak-50 leading-relaxed font-medium">
+                    Explicación técnica...
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                <span class="text-xs sm:text-sm text-oak-400 font-medium">
+                    Presiona <kbd class="px-2 py-0.5 rounded bg-peat-900 border border-oak-700/60 text-oak-200 font-bold">ESC</kbd> o haz clic fuera para cerrar
+                </span>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button onclick="closeFeedbackModal()" class="px-4 py-3 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 text-sm sm:text-base font-bold transition-all">
+                        Ver Opciones
+                    </button>
+                    <button id="modal-fb-next-btn" onclick="handleModalNext()" class="px-6 py-3 rounded-xl bg-oak-600 hover:bg-oak-500 text-white text-sm sm:text-base font-bold shadow-lg transition-all">
+                        Continuar &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pop-up Expandible de Ficha Técnica (Cerrable con ESC, botón o clic fuera) -->
+    <div id="style-modal" onclick="if(event.target === this) closeStyleModal()" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+        <div class="glass-panel max-w-3xl w-full rounded-3xl p-6 sm:p-8 border-2 border-oak-500/50 shadow-2xl space-y-5 transform transition-all">
+            <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="sm-origin" class="px-3 py-1 rounded-lg text-xs sm:text-sm font-extrabold uppercase tracking-wider bg-oak-500/20 text-oak-300 border border-oak-500/30">
+                            Origen
+                        </span>
+                        <span id="sm-region" class="text-sm sm:text-base font-semibold text-oak-300">
+                            Región
+                        </span>
+                    </div>
+                    <h3 id="sm-title" class="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+                        Nombre del Estilo
+                    </h3>
+                </div>
+                <button onclick="closeStyleModal()" title="Cerrar (ESC)" class="px-3.5 py-2 rounded-xl bg-peat-900 hover:bg-peat-800 border border-oak-700/50 text-xs sm:text-sm font-bold text-oak-300 hover:text-white transition-colors shrink-0">
+                    ESC ✕
+                </button>
+            </div>
+
+            <div class="bg-peat-950/90 rounded-2xl p-5 sm:p-6 border border-oak-800/50">
+                <p id="sm-description" class="text-base sm:text-xl text-oak-50 leading-relaxed font-normal">
+                    Descripción completa de la ficha...
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                <div class="bg-peat-950 p-3.5 rounded-2xl border border-oak-600/40 shadow-inner flex flex-col justify-center">
+                    <div class="text-xs uppercase tracking-wider text-oak-400 font-extrabold">Color en Copa</div>
+                    <div class="flex items-center justify-center gap-2 mt-1.5">
+                        <span id="sm-color-dot" class="w-4 h-4 rounded-full dram-badge border border-white/30 shrink-0"></span>
+                        <span id="sm-color-name" class="text-base sm:text-lg font-extrabold text-white">Dorado</span>
+                    </div>
+                </div>
+                <div class="bg-oak-950/60 p-3.5 rounded-2xl border border-oak-500/40 shadow-inner flex flex-col justify-center">
+                    <div class="text-xs uppercase tracking-wider text-oak-300 font-extrabold">Graduación Alcohólica</div>
+                    <div id="sm-abv" class="text-lg sm:text-xl font-black text-oak-200 mt-1">40 - 46%</div>
+                </div>
+                <div class="bg-amber-950/40 p-3.5 rounded-2xl border border-amber-500/40 shadow-inner flex flex-col justify-center">
+                    <div class="text-xs uppercase tracking-wider text-amber-300/90 font-extrabold">Crianza y Madera</div>
+                    <div id="sm-cask" class="text-sm sm:text-base font-bold text-amber-300 mt-1">Ex-Bourbon</div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-oak-400">Destilerías y Marcas de Referencia:</div>
+                <div id="sm-brands" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-oak-800/40">
+                <span class="text-xs sm:text-sm text-oak-400 font-medium">
+                    Presiona <kbd class="px-2 py-0.5 rounded bg-peat-900 border border-oak-700/60 text-oak-200 font-bold">ESC</kbd> o haz clic fuera para cerrar
+                </span>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button id="sm-master-btn" onclick="toggleMasteredFromModal()" class="px-5 py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all">
+                        Marcar Dominado
+                    </button>
+                    <button onclick="closeStyleModal()" class="px-5 py-2.5 rounded-xl bg-oak-600 hover:bg-oak-500 text-white text-sm sm:text-base font-bold shadow-lg transition-all">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación Superior Compacta -->
+    <header class="border-b border-oak-800/40 bg-peat-900/95 shrink-0 h-14 sm:h-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-oak-400 to-oak-700 flex items-center justify-center shadow-lg shadow-oak-600/20 shrink-0">
+                    <!-- Icono Copa Glencairn -->
+                    <svg class="w-6 h-6 text-peat-950" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 3h6l-.8 4.2c1.4 1.2 2.3 2.9 2.3 4.8 0 3.1-2.2 5.6-5 5.9V20h3v2H9v-2h3v-2.1c-2.8-.3-5-2.8-5-5.9 0-1.9.9-3.6 2.3-4.8L9 3zm1.6 2-.4 2.5C9.4 8.4 9 9.7 9 11h6c0-1.3-.4-2.6-1.2-3.5L13.4 5h-2.8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl sm:text-2xl font-bold text-oak-100 tracking-wide leading-none">Master of Whisk(e)y</h1>
+                    <p class="text-xs sm:text-sm text-oak-400 hidden md:block mt-0.5">Panel de Certificación y Destilados de Grano • Manual CAVE</p>
+                </div>
+            </div>
+
+            <!-- Pestañas de Navegación -->
+            <nav class="flex items-center gap-1.5 bg-peat-950 p-1.5 rounded-xl border border-oak-800/50">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all bg-oak-600 text-white shadow">
+                    Panel
+                </button>
+                <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-oak-300 hover:text-white transition-all">
+                    Estilos y Regiones
+                </button>
+                <button onclick="switchTab('visual')" id="tab-visual" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-oak-300 hover:text-white transition-all">
+                    Botellas y Etiquetas
+                </button>
+                <button onclick="switchTab('exam')" id="tab-exam" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-semibold text-oak-300 hover:text-white transition-all flex items-center gap-2">
+                    <span>Evaluación</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal Ajustado al Alto Restante (Sin Scroll ni Recortes) -->
+    <main class="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 py-2 sm:py-2.5 flex flex-col justify-between overflow-hidden">
+
+        <!-- VISTA 1: DASHBOARD DEL ESTUDIANTE -->
+        <section id="view-dashboard" class="h-full min-h-0 flex flex-col justify-between gap-2.5 overflow-hidden">
+            <!-- Banner Superior Compacto -->
+            <div class="glass-panel rounded-2xl p-3.5 sm:p-4 relative overflow-hidden shrink-0 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="space-y-1 max-w-3xl">
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-oak-500/20 text-oak-300 border border-oak-500/30">
+                            Programa CAVE • Bebidas Espirituosas: Whisk(e)y
+                        </span>
+                        <span id="last-attempt-badge" class="text-xs text-oak-400 hidden sm:inline"></span>
+                    </div>
+                    <h2 class="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight">
+                        Panel de Evaluación de Whiskies
+                    </h2>
+                    <p class="text-oak-200/85 text-sm sm:text-base leading-snug">
+                        Escocia, Irlanda, Estados Unidos, Canadá y Japón: granos, destilación en alambique o columna, crianza y destilerías históricas.
+                    </p>
+                </div>
+                <div class="flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0">
+                    <button onclick="switchTab('catalog')" class="px-3.5 py-2.5 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 font-semibold text-sm sm:text-base transition-all">
+                        Estudiar Regiones
+                    </button>
+                    <button onclick="switchTab('visual')" class="px-3.5 py-2.5 rounded-xl bg-peat-800 hover:bg-peat-700 text-amber-300 border border-amber-500/40 font-semibold text-sm sm:text-base transition-all">
+                        Cata Visual
+                    </button>
+                    <button onclick="startExam('all')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-oak-500 to-oak-600 hover:from-oak-400 hover:to-oak-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-oak-600/30 transition-all">
+                        Examen Integral
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjetas de Métricas Grandes -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-oak-400">Evaluaciones</span>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5" id="stat-exams">0</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-oak-400">Precisión Global</span>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-0.5" id="stat-accuracy">--%</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-oak-400">Rango Actual</span>
+                    <div class="text-lg sm:text-xl font-extrabold text-oak-200 truncate mt-0.5" id="stat-rank">Aprendiz de Destilería</div>
+                </div>
+
+                <div class="glass-panel p-3 sm:p-3.5 rounded-2xl flex flex-col justify-center">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-oak-400">Estilos Dominados</span>
+                        <button onclick="resetProgress()" class="text-xs text-oak-400 hover:text-rose-400 underline">Reiniciar</button>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5" id="stat-styles">0 / 18</div>
+                </div>
+            </div>
+
+            <!-- Módulos de Evaluación Rápida -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 overflow-hidden">
+                <!-- Módulo 1 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-oak-500/50 transition-all overflow-y-auto">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 text-xs font-bold">Módulo 01</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Granos, Destilación y Madera</h3>
+                        <p class="text-xs sm:text-sm text-oak-200/85 leading-snug">
+                            Turba y kilns, braceo a 64 °C, doble/triple Pot Still vs. Coffey Still, Sour Mash, Lincoln County y roble Mizunara.
+                        </p>
+                    </div>
+                    <button onclick="startExam('process')" class="w-full py-2.5 px-3.5 rounded-xl bg-peat-800 hover:bg-oak-600 text-white text-sm sm:text-base font-bold transition-colors border border-oak-700/50 mt-2 shrink-0">
+                        Evaluar (15 Preguntas)
+                    </button>
+                </div>
+
+                <!-- Módulo 2 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-oak-500/50 transition-all overflow-y-auto">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-orange-500/15 text-orange-300 text-xs font-bold">Módulo 02</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Regiones y Categorías Legales</h3>
+                        <p class="text-xs sm:text-sm text-oak-200/85 leading-snug">
+                            Las 5 regiones de Escocia e Islas, Irish Single Pot Still, Straight Bourbon, Rye, Canadiense y normativa JLSMA de Japón.
+                        </p>
+                    </div>
+                    <button onclick="startExam('regions')" class="w-full py-2.5 px-3.5 rounded-xl bg-peat-800 hover:bg-oak-600 text-white text-sm sm:text-base font-bold transition-colors border border-oak-700/50 mt-2 shrink-0">
+                        Evaluar (15 Preguntas)
+                    </button>
+                </div>
+
+                <!-- Módulo 3 -->
+                <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-h-0 hover:border-oak-500/50 transition-all overflow-y-auto">
+                    <div class="space-y-1 min-h-0">
+                        <span class="inline-block px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 text-xs font-bold">Módulo 03</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white leading-tight">Destilerías, Etiquetas y Servicio</h3>
+                        <p class="text-xs sm:text-sm text-oak-200/85 leading-snug">
+                            Destilerías emblemáticas (Islay, Speyside, Kentucky, Yamazaki), lectura de etiquetas y rituales Mizuwari, Oyuwari y Haiboru.
+                        </p>
+                    </div>
+                    <button onclick="startExam('brands')" class="w-full py-2.5 px-3.5 rounded-xl bg-peat-800 hover:bg-oak-600 text-white text-sm sm:text-base font-bold transition-colors border border-oak-700/50 mt-2 shrink-0">
+                        Evaluar (15 Preguntas)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 2: GUÍA DE ESTILOS Y REGIONES PAGINADA (SIN SCROLL, EXPANDIBLE) -->
+        <section id="view-catalog" class="hidden h-full flex flex-col justify-between gap-3">
+            <!-- Barra Superior de Filtros, Búsqueda y Paginación -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 shrink-0 bg-peat-900/80 p-3 rounded-2xl border border-oak-800/40">
+                <!-- Filtros por Origen -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="filterCatalog('ALL')" class="filter-btn active px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-oak-600 text-white transition-all" data-filter="ALL">Todos (18)</button>
+                    <button onclick="filterCatalog('Escocés')" class="filter-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-peat-800 text-oak-300 hover:text-white border border-oak-700/40 transition-all" data-filter="Escocés">Escocés</button>
+                    <button onclick="filterCatalog('Irlandés')" class="filter-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-peat-800 text-oak-300 hover:text-white border border-oak-700/40 transition-all" data-filter="Irlandés">Irlandés</button>
+                    <button onclick="filterCatalog('Americano')" class="filter-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-peat-800 text-oak-300 hover:text-white border border-oak-700/40 transition-all" data-filter="Americano">Americano</button>
+                    <button onclick="filterCatalog('Canadiense')" class="filter-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-peat-800 text-oak-300 hover:text-white border border-oak-700/40 transition-all" data-filter="Canadiense">Canadiense</button>
+                    <button onclick="filterCatalog('Japonés')" class="filter-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-peat-800 text-oak-300 hover:text-white border border-oak-700/40 transition-all" data-filter="Japonés">Japonés</button>
+                </div>
+
+                <!-- Buscador + Controles de Página -->
+                <div class="flex items-center gap-3 flex-1 lg:max-w-md justify-end">
+                    <div class="relative flex-1">
+                        <input type="text" id="catalog-search" onkeyup="searchCatalog()" placeholder="Buscar región, grano o destilería..." class="w-full bg-peat-950 border border-oak-700/50 rounded-xl pl-10 pr-3 py-2 text-sm sm:text-base text-white placeholder-oak-400/60 focus:outline-none focus:border-oak-500">
+                        <svg class="w-5 h-5 text-oak-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+
+                    <!-- Paginador -->
+                    <div class="flex items-center gap-2 shrink-0 bg-peat-950 px-2.5 py-1.5 rounded-xl border border-oak-800/50">
+                        <button onclick="changeCatalogPage(-1)" id="btn-prev-page" class="p-1.5 rounded-lg bg-peat-800 hover:bg-oak-600 disabled:opacity-30 text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span id="catalog-page-indicator" class="text-sm sm:text-base font-bold text-oak-200 px-1">1 / 6</span>
+                        <button onclick="changeCatalogPage(1)" id="btn-next-page" class="p-1.5 rounded-lg bg-peat-800 hover:bg-oak-600 disabled:opacity-30 text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla de 3 Estilos por Página (Altura Completa Sin Scroll) -->
+            <div id="catalog-grid" class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Se puebla dinámicamente con JS (3 tarjetas por página) -->
+            </div>
+        </section>
+
+        <!-- VISTA 2.5: RECONOCIMIENTO VISUAL DE BOTELLAS Y ETIQUETAS (CATA A CIEGAS) -->
+        <section id="view-visual" class="hidden h-full max-w-6xl w-full mx-auto flex flex-col justify-between gap-2.5 overflow-hidden">
+            <!-- Barra Superior de Progreso Visual -->
+            <div class="glass-panel rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold">
+                        Cata Visual a Ciegas
+                    </span>
+                    <span class="text-sm sm:text-base font-bold text-oak-200">
+                        Botella <span id="vis-current" class="text-white">1</span> de <span id="vis-total">18</span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm sm:text-base font-bold text-emerald-400">
+                        Aciertos: <span id="vis-score">0</span>
+                    </span>
+                    <button onclick="initVisualChallenge()" class="px-3 py-1 rounded-xl bg-peat-800 hover:bg-oak-600 text-oak-100 border border-oak-700/50 text-xs sm:text-sm font-bold transition-all">
+                        Mezclar Botellas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Central Dividido: Izquierda (Foto Real de Botella) | Derecha (Identificación) -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden">
+                <!-- Columna Izquierda: Vitrina de la Botella -->
+                <div class="lg:col-span-5 glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col items-center justify-between min-h-0 overflow-hidden">
+                    <div class="w-full flex items-center justify-between text-xs sm:text-sm font-bold text-oak-400 uppercase tracking-wider shrink-0">
+                        <span id="vis-container-type">Presentación</span>
+                        <span id="vis-volume">700 / 750 ml</span>
+                    </div>
+
+                    <!-- Contenedor Gráfico de la Botella -->
+                    <div id="vis-artwork" class="flex-1 min-h-0 w-full flex items-center justify-center my-1.5 p-2 bg-white/95 rounded-xl border border-oak-800/30 select-none overflow-hidden">
+                        <!-- Fotografía real renderizada dinámicamente -->
+                    </div>
+
+                    <div class="w-full text-center bg-peat-950/90 py-2 px-3 rounded-xl border border-oak-800/50 shrink-0">
+                        <div class="text-[11px] text-oak-400 uppercase font-semibold leading-none mb-0.5">Identificación Visual</div>
+                        <div id="vis-brand-title" class="font-serif text-lg sm:text-xl font-bold text-oak-300 tracking-wide truncate">
+                            Observa la botella y responde
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Opciones de Identificación -->
+                <div class="lg:col-span-7 glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-2 min-h-0 overflow-hidden">
+                    <div class="space-y-0.5 shrink-0">
+                        <span class="text-xs font-bold uppercase tracking-wider text-oak-400">Ficha de Cata e Identificación</span>
+                        <h3 id="vis-prompt" class="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-tight">
+                            Determina el origen, categoría, materia prima y crianza de esta botella:
+                        </h3>
+                    </div>
+
+                    <!-- Opciones Grandes Ajustadas al Alto Disponible -->
+                    <div id="vis-options" class="grid grid-cols-1 gap-2 my-auto min-h-0">
+                        <!-- Opciones generadas dinámicamente -->
+                    </div>
+
+                    <!-- Barra Inferior Compacta -->
+                    <div class="shrink-0 flex items-center justify-between gap-2.5 pt-1">
+                        <button id="btn-vis-reopen" onclick="reopenFeedbackModal()" class="hidden px-4 py-2 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-200 border border-oak-700/50 text-xs sm:text-sm font-bold transition-all">
+                            Ver Explicación
+                        </button>
+                        <button id="btn-vis-next" onclick="nextVisualItem()" class="hidden shrink-0 px-5 py-2.5 rounded-xl bg-oak-600 hover:bg-oak-500 text-white font-bold text-sm sm:text-base transition-all shadow-lg ml-auto">
+                            Siguiente &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: EVALUACIÓN INTERACTIVA (QUIZ DE PANTALLA COMPLETA) -->
+        <section id="view-exam" class="hidden h-full max-w-5xl w-full mx-auto flex flex-col justify-center">
+            <!-- Pantalla de Selección de Examen -->
+            <div id="exam-intro" class="glass-panel rounded-2xl p-6 sm:p-10 text-center space-y-6">
+                <div class="w-16 h-16 rounded-2xl bg-oak-500/20 border border-oak-500/40 flex items-center justify-center mx-auto text-oak-400">
+                    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </div>
+                <div class="space-y-2">
+                    <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">Simulador de Examen de Whisk(e)y</h2>
+                    <p class="text-base sm:text-lg text-oak-200/85 max-w-2xl mx-auto">
+                        Selecciona el módulo que deseas evaluar (45 preguntas disponibles del manual CAVE sin pistas léxicas).
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto pt-2">
+                    <button onclick="startExam('all')" class="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-oak-500 to-oak-600 hover:from-oak-400 hover:to-oak-500 text-white font-bold text-base sm:text-lg shadow-lg transition-all">
+                        Examen Integral (15 Preg.)
+                    </button>
+                    <button onclick="startExam('process')" class="p-4 sm:p-5 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Granos, Destilación y Madera (15 Preg.)
+                    </button>
+                    <button onclick="startExam('regions')" class="p-4 sm:p-5 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Regiones y Categorías Legales (15 Preg.)
+                    </button>
+                    <button onclick="startExam('brands')" class="p-4 sm:p-5 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 font-semibold text-base sm:text-lg transition-all">
+                        Destilerías, Etiquetas y Servicio (15 Preg.)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenedor Activo de Pregunta (Distribución Vertical Ajustada al Viewport) -->
+            <div id="exam-active" class="hidden glass-panel rounded-2xl p-5 sm:p-7 h-full max-h-full flex flex-col justify-between gap-3">
+                <!-- Barra de Progreso -->
+                <div class="space-y-2 shrink-0">
+                    <div class="flex justify-between items-center text-sm sm:text-base font-bold text-oak-300">
+                        <span id="exam-category-badge" class="px-3 py-1 rounded-lg bg-oak-500/20 text-oak-300 border border-oak-500/30">Categoría</span>
+                        <span>Pregunta <span id="q-current" class="text-white">1</span> de <span id="q-total">15</span></span>
+                    </div>
+                    <div class="w-full h-2.5 bg-peat-950 rounded-full overflow-hidden">
+                        <div id="exam-progress-bar" class="h-full bg-gradient-to-r from-oak-500 to-amber-400 transition-all duration-300" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- Enunciado de la Pregunta -->
+                <div class="space-y-2 shrink-0">
+                    <h3 id="q-text" class="text-xl sm:text-2xl lg:text-[26px] font-bold text-white leading-snug">
+                        Cargando pregunta...
+                    </h3>
+                    <div id="q-context" class="hidden px-4 py-2 rounded-xl bg-peat-950/80 border border-oak-800/50 text-sm sm:text-base text-oak-200 italic">
+                    </div>
+                </div>
+
+                <!-- Opciones de Respuesta en Grilla 2x2 -->
+                <div id="q-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 my-auto">
+                    <!-- Botones generados dinámicamente -->
+                </div>
+
+                <!-- Zona Inferior -->
+                <div class="shrink-0 flex items-center justify-between gap-3 pt-1">
+                    <button id="btn-q-reopen" onclick="reopenFeedbackModal()" class="hidden px-4 py-3 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-200 border border-oak-700/50 text-sm sm:text-base font-bold transition-all">
+                        Ver Explicación
+                    </button>
+
+                    <button id="btn-next-q" onclick="nextQuestion()" class="hidden shrink-0 px-6 py-3.5 rounded-xl bg-oak-600 hover:bg-oak-500 text-white font-bold text-base sm:text-lg transition-all shadow-lg ml-auto">
+                        Siguiente &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pantalla de Resultados Finales -->
+            <div id="exam-results" class="hidden glass-panel rounded-2xl p-6 sm:p-10 text-center space-y-6">
+                <div id="result-icon" class="w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4">
+                    80%
+                </div>
+                <div class="space-y-2">
+                    <span id="result-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider"></span>
+                    <h2 id="result-title" class="font-serif text-3xl sm:text-4xl font-bold text-white">Evaluación Completada</h2>
+                    <p id="result-summary" class="text-base sm:text-lg text-oak-200/85 max-w-2xl mx-auto"></p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto bg-peat-950/80 p-5 rounded-2xl border border-oak-800/40">
+                    <div>
+                        <div class="text-sm text-oak-400 font-semibold">Aciertos</div>
+                        <div id="res-correct" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-oak-400 font-semibold">Errores</div>
+                        <div id="res-wrong" class="text-2xl sm:text-3xl font-extrabold text-rose-400">0</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-oak-400 font-semibold">Nota Final</div>
+                        <div id="res-score" class="text-2xl sm:text-3xl font-extrabold text-white">0%</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 pt-2">
+                    <button onclick="switchTab('dashboard')" class="px-6 py-3.5 rounded-xl bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50 text-base font-bold transition-all">
+                        Volver al Panel
+                    </button>
+                    <button onclick="resetExamView()" class="px-6 py-3.5 rounded-xl bg-oak-600 hover:bg-oak-500 text-white text-base font-bold shadow-lg transition-all">
+                        Otra Evaluación
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Lógica de la Aplicación -->
+    <script>
+        // ==========================================
+        // SECCIÓN DE RECONOCIMIENTO VISUAL DE BOTELLAS REALES (18 REFERENTES MUNDIALES DEL MANUAL CAVE)
+        // ==========================================
+        const visualItems = [
+            {
+                id: 'glenfiddich',
+                brand: 'Glenfiddich Single Malt',
+                container: 'Botella Triangular Verde • Escocia',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Glenfiddich_bottle.JPG?width=600',
+                options: [
+                    'Single Malt Scotch • Speyside • 100% cebada malteada, doble destilación en Pot Still y notas frutales de manzana y pera',
+                    'Single Malt Scotch • Islay • 100% cebada malteada, perfil fuertemente iodado, algas marinas y humo intenso de turba',
+                    'Single Malt Scotch • Lowlands • Triple destilación con secado a carbón mineral por escasez histórica de turba',
+                    'Blended Scotch Whisky • Escocia • Mezcla aproximada de 60% whisky de malta y 40% whisky de grano en columna continua'
+                ],
+                correct: 0,
+                explanation: 'Glenfiddich (Dufftown) es uno de los Single Malts más reconocidos del mundo y referente de Speyside: 100% cebada malteada, doble destilación en Pot Still y notas frutales de manzana y pera.'
+            },
+            {
+                id: 'glenlivet',
+                brand: 'The Glenlivet 15 Years Old',
+                container: 'Botella Escocesa Clásica • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Glenlivet_Single_Malt_Scotch_Whisky_French_Oak_Reserve_15_years_old.jpg?width=600',
+                options: [
+                    'Single Malt Scotch • Valle de Livet (Speyside) • Única destilería autorizada legalmente desde 1880 a usar el artículo "The"',
+                    'Single Malt Scotch • Campbeltown • Península costera con marcado carácter salino por nieblas marinas y doble destilación',
+                    'Single Grain Scotch • Lowlands • Elaborado con cereales no malteados cocidos a vapor y destilado en columna continua',
+                    'Blended Malt Scotch • Escocia • Ensamblaje de maltas puras provenientes de distintas destilerías sin whisky de grano'
+                ],
+                correct: 0,
+                explanation: 'The Glenlivet (Speyside) es la única destilería a la que se le permite legalmente anteponer el artículo "The" desde 1880 debido a su carácter pionero en el valle del río Livet.'
+            },
+            {
+                id: 'macallan',
+                brand: 'The Macallan Fine Oak 15 Years Old',
+                container: 'Botella Escocesa • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Macallan_15.jpg?width=600',
+                options: [
+                    'Single Malt Scotch • Speyside • 100% cebada malteada con crianza emblemática en botas envinadas con Jerez y roble',
+                    'Single Malt Scotch • Isla de Skye • Maduración junto al mar durante 10 años que aporta carácter iodado y oleoso',
+                    'Irish Single Pot Still • Irlanda • Mezcla de cebada malteada (25-50%) y cebada sin maltear con triple destilación',
+                    'Straight Bourbon Whiskey • Kentucky • Mínimo 51% maíz y crianza obligatoria en roble blanco nuevo carbonizado'
+                ],
+                correct: 0,
+                explanation: 'Macallan (Speyside) es un ícono mundial del Single Malt escocés, célebre por su 100% cebada malteada y su crianza en barricas envinadas con vino de Jerez.'
+            },
+            {
+                id: 'balvenie',
+                brand: 'The Balvenie DoubleWood 12',
+                container: 'Botella Escocesa • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Balvenie_DoubleWood_Single_Malt.jpg?width=600',
+                options: [
+                    'Single Malt Scotch • Speyside • 100% cebada malteada con notas melosas y crianza sucesiva en roble ex-Bourbon y ex-Jerez',
+                    'Single Malt Scotch • Islay • Perfil medicinal/iodado con humo denso de turba y algas marinas',
+                    'Single Malt Scotch • Lowlands • Elaborado por triple destilación y secado con carbón mineral sin turba',
+                    'Single Malt Japanese Whisky • Hokkaido • Maduración fría junto al mar con notas salinas y turbadas'
+                ],
+                correct: 0,
+                explanation: 'Balvenie (Dufftown, Speyside) es un estándar mundial del acabado en dos maderas (ex-Bourbon y botas de Jerez), destacando sus notas de miel, vainilla y frutos secos.'
+            },
+            {
+                id: 'lagavulin',
+                brand: 'Lagavulin 16 Years Old',
+                container: 'Botella Robusta Escocesa • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lagavulin_Single_Islay_Malt_16.jpg?width=600',
+                options: [
+                    'Single Malt Scotch • Islay (Hébridas) • Intenso aroma a iodo, algas marinas y humo de turba; 16 años en barrica',
+                    'Single Malt Scotch • Islas Orcadas (Orkney) • Turba de brezo con notas de miel y sutil influencia marítima',
+                    'Single Malt Scotch • Lowlands • Destilación triple y secado con carbón mineral, de cuerpo ligero y delicado',
+                    'Single Malt Scotch • Speyside • Crianza en barricas ex-Jerez con perfil dulce, meloso y libre de turba'
+                ],
+                correct: 0,
+                explanation: 'Lagavulin 16 es el referente mundial de Islay: Single Malt 100% de la isla con marcado carácter a iodo, algas marinas y humo denso de turba.'
+            },
+            {
+                id: 'laphroaig',
+                brand: 'Laphroaig 10 Years Old',
+                container: 'Botella Verde Escocesa • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Laphroaig_-_10_years_old_-_Scotch_Whisky.JPG?width=600',
+                options: [
+                    'Single Malt Scotch • Islay (Hébridas) • Perfil medicinal/iodado, algas y humo denso de turba tras 10 años de guarda',
+                    'Single Malt Scotch • Isla de Jura • Elaborado en una isla vecina pero sin semejanza en estilo a las maltas turbadas',
+                    'Single Malt Scotch • Campbeltown • Estilo costero de una península con solo dos destilerías activas',
+                    'Blended Scotch Whisky • Escocia • Corte comercial de múltiples destilerías de malta y columnas de grano'
+                ],
+                correct: 0,
+                explanation: 'Laphroaig 10 (Islay) es una etiqueta imprescindible en toda carta de sommelier por su inconfundible carácter medicinal, iodado y de humo de turba marina.'
+            },
+            {
+                id: 'ardbeg',
+                brand: 'Ardbeg An Oa / Islay Single Malt',
+                container: 'Botella Verde Oscura • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Ardbeg_An_Oa.jpg?width=600',
+                options: [
+                    'Single Malt Scotch • Islay (Hébridas) • Malta fuertemente turbada, seca y marítima, embotellada sin filtrar en frío',
+                    'Single Malt Scotch • Speyside • Perfil delicado y floral madurado exclusivamente en botas de Jerez Oloroso',
+                    'Irish Whiskey • Irlanda • Triple destilación en alambiques gigantes sin turba y con cebada sin maltear',
+                    'Canadian Whisky • Canadá • Destilación continua de centeno y maíz envejecida en barricas ex-Ron'
+                ],
+                correct: 0,
+                explanation: 'Ardbeg (costa sur de Islay) es mundialmente célebre entre los amantes de los whiskies turbados por su equilibrio entre humo intenso de turba, notas marinas y dulzor cítrico.'
+            },
+            {
+                id: 'talisker',
+                brand: 'Talisker 10 Years Old',
+                container: 'Botella Escocesa Isleña • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Talisker_10_Jahre_alt,_2022er_Edition,_mit_Geschenkverpackung.JPG?width=600',
+                options: [
+                    'Single Malt Scotch • Isla de Skye • Turba presente pero no dominante; barricas apiladas 10 años junto al mar',
+                    'Single Malt Scotch • Islay • Perfil donde el iodo y las algas marinas resultan dominantes sobre la malta',
+                    'Single Malt Scotch • Isla de Mull • Destilería única que alterna producciones sin turba y con turba bajo dos nombres',
+                    'Single Malt Scotch • Highlands Continentales • Agua blanda del río Livet y crianza en bodegas interiores'
+                ],
+                correct: 0,
+                explanation: 'Talisker 10 (única destilería clásica de la Isla de Skye) presenta turba moderada, paladar oleoso y un carácter salino-iodado adquirido al madurar junto al mar por 10 años.'
+            },
+            {
+                id: 'highlandpark',
+                brand: 'Highland Park 12 Years Old',
+                container: 'Botella Escocesa Septentrional • Escocia',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Highland_Park_12_yo_new.png?width=600',
+                options: [
+                    'Single Malt Scotch • Islas Orcadas (Orkney) • Turba procedente del brezo que aporta un peculiar sabor a miel e influencia marina',
+                    'Single Malt Scotch • Campbeltown • Destilería histórica en la antigua capital mundial del whisky en el siglo XIX',
+                    'Single Malt Scotch • Lowlands • Elaborado con mezcla de cereales sin turba y triple destilación tradicional',
+                    'Single Malt Scotch • Speyside • Maduración exclusiva en barricas de roble japonés Mizunara de 200 años'
+                ],
+                correct: 0,
+                explanation: 'Highland Park (en la isla principal de Orkney) es un clásico mundial gracias a su turba compuesta de brezo, que aporta notas de miel junto a la influencia marina.'
+            },
+            {
+                id: 'johnniewalker',
+                brand: 'Johnnie Walker Red / Blended Scotch',
+                container: 'Botella Cuadrada con Etiqueta Inclinada • Escocia',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Johnnie_Walker_Red_Label_Blended_Scotch_Whisky_01.jpg?width=600',
+                options: [
+                    'Blended Scotch Whisky • Escocia • Ensamblaje de maltas de varias regiones (~60%) y whisky de grano (~40%); mínimo 3 años',
+                    'Single Malt Scotch • Speyside • Producido íntegramente en una sola destilería con 100% cebada malteada',
+                    'Blended Grain Scotch • Lowlands • Combinación exclusiva de whiskies de grano de distintas destilerías sin malta',
+                    'Irish Blended Whiskey • Irlanda • Triple destilación en alambiques gigantes con cebada sin maltear'
+                ],
+                correct: 0,
+                explanation: 'Johnnie Walker es el Blended Scotch Whisky de referencia global: combina maltas de diversas regiones de Escocia con whisky de grano madurados un mínimo legal de 3 años.'
+            },
+            {
+                id: 'chivasregal',
+                brand: 'Chivas Regal Blended Scotch',
+                container: 'Botella Escocesa Clásica • Escocia',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Chivas_Regal_scotch_whiskey.jpg?width=600',
+                options: [
+                    'Blended Scotch Whisky • Escocia • Corte emblemático liderado por maltas de Speyside y whisky de grano con crianza prolongada',
+                    'Single Malt Scotch • Islay • 100% cebada malteada fuertemente turbada y destilada en alambiques de cobre',
+                    'Straight Bourbon Whiskey • Kentucky • Mínimo 51% maíz con proceso Sour Mash y barricas nuevas carbonizadas',
+                    'Canadian Whisky • Canadá • Destilado en columna continua y envejecido en barricas usadas de ron y jerez'
+                ],
+                correct: 0,
+                explanation: 'Chivas Regal es uno de los Blended Scotch Whiskies más emblemáticos del mundo, caracterizado por su suavidad, notas melosas de Speyside y crianza prolongada.'
+            },
+            {
+                id: 'jameson',
+                brand: 'Jameson Irish Whiskey',
+                container: 'Botella Verde Clásica • Irlanda',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Jameson_Irish_Whiskey.JPG?width=600',
+                options: [
+                    'Irish Whiskey • Irlanda • Cebada malteada y sin maltear, triple destilación, ausencia de turba y maduración mínima de 3 años',
+                    'Single Malt Scotch • Speyside • 100% cebada malteada, doble destilación en Pot Still y crianza en botas de Jerez',
+                    'Straight Bourbon Whiskey • Kentucky • Mínimo 51% maíz con proceso Sour Mash y barrica de roble nuevo tostado',
+                    'Canadian Whisky • Canadá • Destilación continua en columnas y guarda en barricas usadas de ron y jerez'
+                ],
+                correct: 0,
+                explanation: 'Jameson es el whiskey irlandés más vendido del mundo y referente del grupo Irish Distillers: combinación de cebada malteada y sin maltear, triple destilación y sin turba.'
+            },
+            {
+                id: 'redbreast',
+                brand: 'Redbreast 12 Years Single Pot Still',
+                container: 'Botella Irlandesa Tradicional • Irlanda',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Redbreast_12_ans.JPG?width=600',
+                options: [
+                    'Irish Single Pot Still Whiskey • Irlanda • Mosto de cebada malteada (25-50%) y cebada sin maltear con triple destilación en cobre',
+                    'Irish Peated Single Malt • Cooley, Irlanda • Excepción irlandesa ahumada con turba y doble destilación',
+                    'Single Malt Scotch • Highlands • 100% cebada malteada sometida a doble destilación discontinua',
+                    'Tennessee Whiskey • EE.UU. • Filtrado por carbón de arce antes de ingresar en barricas nuevas tostadas'
+                ],
+                correct: 0,
+                explanation: 'Redbreast 12 es el máximo exponente mundial de la categoría histórica "Single Pot Still" irlandesa: cebada malteada y sin maltear destiladas tres veces en alambiques de cobre.'
+            },
+            {
+                id: 'makersmark',
+                brand: "Maker's Mark Kentucky Straight Bourbon",
+                container: 'Botella con Lacre Rojo • Estados Unidos',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Maker%27s_Mark.jpg?width=600',
+                options: [
+                    'Straight Bourbon Whiskey • Kentucky, EE.UU. • Mínimo 51% maíz (usa trigo rojo en lugar de centeno) y barrica nueva carbonizada',
+                    'Tennessee Whiskey • Tennessee, EE.UU. • Filtrado durante días en columnas de carbón vegetal de arce (maple charcoal)',
+                    'Rye Whiskey • Estados Unidos • Mínimo 51% centeno en su mash bill y destilación continua hasta máximo 80° GL',
+                    'Blended Bourbon Whiskey • EE.UU. • Corte que admite adición de caramelo para ajustar color y un 51% de Straight Bourbon'
+                ],
+                correct: 0,
+                explanation: "Maker's Mark es un referente mundial de Kentucky Straight Bourbon: mínimo 51% maíz, proceso Sour Mash, roble blanco nuevo carbonizado y sin colorantes ni saborizantes."
+            },
+            {
+                id: 'woodford',
+                brand: 'Woodford Reserve Kentucky Straight Bourbon',
+                container: 'Botella Ancha y Plana • Estados Unidos',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Woodford_Reserve_2016.png?width=600',
+                options: [
+                    'Straight Bourbon Whiskey • Kentucky, EE.UU. • Mínimo 51% maíz, proceso Sour Mash y prohibición total de colorantes o saborizantes',
+                    'Canadian Whisky • Canadá • Elaborado en columnas continuas con mezcla secreta de centeno, maíz, trigo y cebada',
+                    'Single Malt Scotch • Highlands • Doble destilación discontinua en alambique de cobre y barricas de segundo uso',
+                    'Irish Single Malt • Irlanda • 100% cebada malteada sometida a triple destilación sin uso de turba'
+                ],
+                correct: 0,
+                explanation: 'Woodford Reserve es un clásico imprescindible de la coctelería y cata de Bourbon: mínimo 51% maíz, embarricado a ≤125 Proof en roble blanco nuevo tostado.'
+            },
+            {
+                id: 'jackdaniels',
+                brand: "Jack Daniel's Old No. 7",
+                container: 'Botella Cuadrada Etiqueta Negra • Estados Unidos',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Jack_Daniel%27s_Old_No._7_1,14l.jpg?width=600',
+                options: [
+                    'Tennessee Whiskey • Tennessee, EE.UU. • 80% maíz y filtrado post-destilación por columnas de carbón de madera de arce',
+                    'Straight Bourbon Whiskey • Kentucky, EE.UU. • Embotellado directo de barrica nueva sin etapa de filtrado en carbón de arce',
+                    'Rye Whiskey • Pennsylvania, EE.UU. • Mínimo 51% centeno y maduración mínima legal de un año en roble nuevo',
+                    'Blended Scotch Whisky • Escocia • Mezcla de maltas turbadas y grano destilado en columnas Coffey'
+                ],
+                correct: 0,
+                explanation: "Jack Daniel's Old No. 7 (80% maíz) es el referente mundial del Tennessee Whiskey: tras destilarse se filtra durante días por columnas de carbón vegetal de arce (maple charcoal)."
+            },
+            {
+                id: 'crownroyal',
+                brand: 'Crown Royal Canadian Whisky',
+                container: 'Botella Facetada Tipo Corona • Canadá',
+                volume: '750 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Crown_Royal_Cask_No._16_whiskey.jpg?width=600',
+                options: [
+                    'Canadian Whisky • Canadá • Mezcla secreta de destilados de grano en columna continua envejecidos en barricas de roble',
+                    'Tennessee Whiskey • EE.UU. • Filtrado por carbón de arce antes de ingresar en barricas nuevas tostadas',
+                    'Blended Malt Scotch • Escocia • Ensamblaje exclusivo de whiskies 100% cebada malteada sin grano',
+                    'Irish Blended Whiskey • Irlanda • Triple destilación en alambiques de cobre de gran tamaño sin turba'
+                ],
+                correct: 0,
+                explanation: 'Crown Royal es uno de los grandes referentes mundiales del Canadian Whisky: destilación continua en columnas, mínimo 3 años en barrica y mezcla secreta de cereales.'
+            },
+            {
+                id: 'yamazaki',
+                brand: 'The Yamazaki Single Malt 12 Years Old',
+                container: 'Botella Japonesa Clásica • Japón',
+                volume: '700 ml',
+                imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/The_Yamazaki_Single_Malt_Whisky_Aged_12_years.JPG?width=600',
+                options: [
+                    'Single Malt Japanese Whisky • Kansai, Japón • Fundada en 1923 por Torii y Taketsuru; crianza en Ex-Bourbon, Jerez y roble Mizunara',
+                    'Single Malt Japanese Whisky • Hokkaido, Japón • Clima frío y costero con perfil robusto, salino y fuertemente turbado',
+                    'Single Malt Japanese Whisky • Chūbu (Alpes Japoneses) • Destilería de gran altitud con perfil herbal, ligero y fresco',
+                    'Single Malt Scotch • Speyside, Escocia • Doble destilación en el valle del río Spey sin uso de maderas asiáticas'
+                ],
+                correct: 0,
+                explanation: 'Yamazaki 12 (primera destilería de Japón, fundada en 1923 en Kansai por Torii y Taketsuru) es un ícono mundial del whisky japonés, célebre por sus notas frutales y el roble Mizunara.'
+            }
+        ];
+
+        // ==========================================
+        // COMPENDIO DE ESTILOS Y REGIONES (18 FICHAS DEL MANUAL CAVE)
+        // ==========================================
+        const whiskyStyles = [
+            { id: 'scotch-speyside', originGroup: 'Escocés', name: 'Single Malt • Speyside', region: 'Ribera del río Spey y Glenlivet (Escocia)', colorName: 'Ámbar Dorado', dramHex: '#d98a2b', abv: '40 - 46%', cask: 'Ex-Jerez y Ex-Bourbon', description: 'Mayor concentración de destilerías de Escocia. Whiskies dulces, claros, sutiles y complejos con marcadas notas de manzana, pera, miel, vainilla y especias.', brands: ['Glenfiddich', 'The Glenlivet', 'Macallan', 'Balvenie', 'Cardhu', 'Cragganmore', 'Glenfarclas'] },
+            { id: 'scotch-highlands', originGroup: 'Escocés', name: 'Single Malt • Highlands', region: 'Tierras Altas (Norte de Escocia)', colorName: 'Dorado Intenso', dramHex: '#c97624', abv: '40 - 46%', cask: 'Ex-Bourbon y Ex-Jerez', description: 'La región más extensa de Escocia. Gran diversidad de estilos por su geografía de litoral, páramo y montaña: desde ricos y texturados hasta fragantes y florales.', brands: ['Glenmorangie', 'Dalmore', 'Oban', 'Royal Brackla'] },
+            { id: 'scotch-islay', originGroup: 'Escocés', name: 'Single Malt • Islay (Hébridas)', region: 'Isla de Islay (Sur de las Hébridas)', colorName: 'Oro Pálido / Ámbar', dramHex: '#dfa045', abv: '40 - 50%', cask: 'Ex-Bourbon y Ex-Jerez', description: 'Isla recubierta de turba frente a Irlanda del Norte. Whiskies secos, de pronunciado carácter y aroma dominante a iodo, algas marinas y humo de turba.', brands: ['Lagavulin', 'Laphroaig', 'Ardbeg', 'Bowmore', 'Caol Ila', 'Bruichladdich', 'Kilchoman'] },
+            { id: 'scotch-islands', originGroup: 'Escocés', name: 'Single Malt • Islands (Skye, Orkney, Mull, Jura)', region: 'Islas Hébridas y Orcadas (Escocia)', colorName: 'Ámbar Cobrizo', dramHex: '#b85d1e', abv: '40 - 46%', cask: 'Barricas costeras', description: '100% malta de cada isla, paladar oleoso y ahumado: Talisker (Skye, iodado por crianza junto al mar), Highland Park y Scapa (Orkney, turba de brezo con sabor a miel).', brands: ['Talisker (Skye)', 'Highland Park (Orkney)', 'Scapa', 'Tobermory / Ledaig (Mull)', 'Jura'] },
+            { id: 'scotch-lowlands', originGroup: 'Escocés', name: 'Single Malt • Lowlands', region: 'Tierras Bajas (Sur de Escocia)', colorName: 'Oro Pálido', dramHex: '#f0c45a', abv: '40 - 43%', cask: 'Ex-Bourbon', description: 'Tierras fértiles con escasez de turba (tradicionalmente secaban la cebada con carbón). Maltas suaves, secas, algo frutadas, delicadas y con triple destilación habitual.', brands: ['Glenkinchie', 'Auchentoshan', 'Bladnoch', 'Rosebank'] },
+            { id: 'scotch-campbeltown', originGroup: 'Escocés', name: 'Single Malt • Campbeltown', region: 'Península de Kintyre (Escocia)', colorName: 'Dorado Ámbar', dramHex: '#cf822b', abv: '40 - 46%', cask: 'Ex-Bourbon y Jerez', description: 'Cuna histórica de la destilación escocesa (siglo VI) y antigua capital del whisky. Hoy solo conserva dos destilerías; aroma fresco con marcados matices salinos del mar.', brands: ['Springbank', 'Glen Scotia'] },
+            { id: 'scotch-grain', originGroup: 'Escocés', name: 'Single Grain y Blended Grain Scotch', region: 'Escocia (concentrado en Lowlands)', colorName: 'Dorado Claro', dramHex: '#e6b143', abv: '40 - 46%', cask: 'Roble (mín. 3 años)', description: 'Cereales no malteados (trigo, maíz, cebada) cocidos a vapor 3,5 h, sacarificados con malta y destilados en columna continua. Más suave y ligero que las maltas.', brands: ['Cameron Brig (Single Grain)', 'Hedonism (Blended Grain)', 'Snow Grouse'] },
+            { id: 'scotch-blended', originGroup: 'Escocés', name: 'Blended Scotch Whisky y Blended Malt', region: 'Toda Escocia', colorName: 'Ámbar Brillante', dramHex: '#c86d23', abv: '40 - 43%', cask: 'Barricas de 2° a 4° uso', description: 'Blended Scotch combina ~60% whiskies de malta de distintas regiones con ~40% whisky de grano (líder mundial en consumo). Blended Malt mezcla solo maltas puras.', brands: ['Johnnie Walker', 'Chivas Regal', 'Ballantine’s', 'Monkey Shoulder'] },
+            { id: 'irish-pot-still', originGroup: 'Irlandés', name: 'Irish Pot Still y Irish Blended Whiskey', region: 'Irlanda (Midleton y Bushmills)', colorName: 'Dorado Cálido', dramHex: '#dda03e', abv: '40 - 46%', cask: 'Ex-Jerez, Bourbon o Ron', description: 'Combina 25-50% de cebada malteada con cebada sin maltear. Triple destilación en grandes alambiques de cobre, sin turba y mínimo 3 años de crianza (ideal 7 años).', brands: ['Redbreast (Single Pot Still)', 'Jameson', 'Tullamore Dew', 'Powers', 'Paddy', 'Bushmills'] },
+            { id: 'irish-malt', originGroup: 'Irlandés', name: 'Irish Single Malt (Sin Turba y Peated)', region: 'Irlanda (Bushmills y Cooley)', colorName: 'Oro Brillante', dramHex: '#e8b54a', abv: '40 - 46%', cask: 'Ex-Bourbon y Jerez', description: '100% cebada malteada. Generalmente de triple destilación sin turba (aromas punzantes y ligeros en boca), con la notable excepción de Connemara (doble destilación y turbado).', brands: ['Bushmills Malt', 'Tyrconnell', 'Kilbeggan', 'Connemara Peated Malt'] },
+            { id: 'usa-bourbon', originGroup: 'Americano', name: 'Straight Bourbon Whiskey', region: 'Kentucky y otros estados (EE.UU.)', colorName: 'Ámbar Cobrizo', dramHex: '#b8531b', abv: '40 - 50% (80-100 Proof)', cask: 'Roble blanco nuevo carbonizado', description: 'Mínimo 51% maíz + centeno/trigo y cebada malteada. Proceso Sour Mash (25-33%), destilado a <160 Proof y envejecido mín. 2 años (4 años "Bottled in Bond") sin aditivos.', brands: ['Maker’s Mark', 'Woodford Reserve', 'Jim Beam', 'Wild Turkey', 'Four Roses', 'Elijah Craig', 'Blanton’s'] },
+            { id: 'usa-tennessee', originGroup: 'Americano', name: 'Tennessee Whiskey', region: 'Estado de Tennessee (EE.UU.)', colorName: 'Ámbar Oscuro', dramHex: '#a84717', abv: '40 - 45%', cask: 'Roble blanco nuevo tostado', description: 'Mínimo 51% de un grano (Jack Daniel’s usa 80% maíz). Se distingue por filtrarse durante días a través de columnas de 3-4 m de carbón de arce (maple charcoal) que suaviza y endulza.', brands: ["Jack Daniel's", 'George Dickel'] },
+            { id: 'usa-rye', originGroup: 'Americano', name: 'Rye Whiskey (Whiskey de Centeno)', region: 'Estados Unidos (Costa Este y Kentucky)', colorName: 'Ámbar Rojizo', dramHex: '#9e3e16', abv: '40 - 50%', cask: 'Roble blanco nuevo tostado', description: 'Elaborado con al menos 51% de centeno, destilado en columna continua a no más de 80° GL (160 Proof) y envejecido en barricas nuevas tostadas (mínimo 1 año).', brands: ['Old Overholt', 'Rittenhouse Rye', 'Sazerac Rye'] },
+            { id: 'canadian', originGroup: 'Canadiense', name: 'Canadian Whisky', region: 'Canadá (Regulación Federal)', colorName: 'Dorado Ámbar', dramHex: '#d4882a', abv: '40%', cask: 'Ex-Bourbon, Scotch, Ron o Jerez', description: 'Elaborado únicamente con cereales (centeno, maíz, trigo, cebada), siempre destilado en columnas continuas y envejecido un mínimo legal de 3 años en barricas de roble.', brands: ['Canadian Club', 'Crown Royal', 'Black Velvet', 'Canadian Mist'] },
+            { id: 'japan-yamazaki', originGroup: 'Japonés', name: 'Whisky Japonés • Kansai y Chūbu', region: 'Honshu: Valle de Yamazaki y Alpes Japoneses', colorName: 'Ámbar Dorado', dramHex: '#cf822b', abv: '43 - 48%', cask: 'Ex-Bourbon, Jerez y Mizunara', description: 'Kansai (Yamazaki, 1923): alta humedad por tres ríos, perfiles complejos y frutales. Chūbu (Hakushu): bosque de gran altitud y agua granítica, perfiles herbales y frescos.', brands: ['Yamazaki (Suntory)', 'Hakushu (Suntory)', 'Chita', 'Fuji Gotemba'] },
+            { id: 'japan-hokkaido', originGroup: 'Japonés', name: 'Whisky Japonés • Hokkaido y Kanto', region: 'Norte de Japón y Área de Tokio', colorName: 'Ámbar Profundo', dramHex: '#b55b1d', abv: '43 - 51%', cask: 'Roble tradicional y Mizunara', description: 'Hokkaido (Yoichi, 1934): clima frío y marítimo con maduración lenta y perfil robusto, salino y turbado. Kanto (Chichibu): destilerías craft con marcados contrastes estacionales.', brands: ['Yoichi (Nikka)', 'Miyagikyo (Nikka)', 'Chichibu (Ichiro Akuto)'] },
+            { id: 'japan-kyushu', originGroup: 'Japonés', name: 'Whisky Japonés • Kyushu y Chūgoku', region: 'Sur de Japón (Clima Cálido y Húmedo)', colorName: 'Caoba Dorado', dramHex: '#9c4318', abv: '43 - 48%', cask: 'Mizunara (Quercus crispula) y Shochu', description: 'En Kyushu (Kanosuke, Tsunuki) el clima cálido acelera la maduración y potencia el uso del roble autóctono Mizunara (notas de sándalo, incienso, coco y especias).', brands: ['Kanosuke', 'Tsunuki (Mars Whisky)', 'Kurayoshi (Matsui Shuzo)'] },
+            { id: 'japan-jlsma', originGroup: 'Japonés', name: 'Normativa JLSMA y Pure Malt Japonés', region: 'Japón (Estándar 2021)', colorName: 'Dorado Cobrizo', dramHex: '#c87324', abv: 'Mín. 40%', cask: 'Madera < 700 L (mín. 3 años)', description: 'La JLSMA exige cebada malteada, agua natural de Japón, fermentación/destilación (<95% ABV), guarda de 3 años en recipientes ≤700 L y embotellado en Japón. Pure Malt = Blended Malt.', brands: ['Nikka Taketsuru Pure Malt', 'Hibiki (Suntory)'] }
+        ];
+
+        // ==========================================
+        // BANCO DE PREGUNTAS DE EVALUACIÓN (45 PREGUNTAS: 15 POR MÓDULO, SIN PISTAS LÉXICAS)
+        // ==========================================
+        const questionBank = [
+            // ==========================================
+            // MÓDULO 1: GRANOS, DESTILACIÓN Y MADERA (15 PREGUNTAS)
+            // ==========================================
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué proporción de agua y harina de malta (grist) se emplea en el braceo del whisky escocés y a qué temperatura se disuelven los azúcares sin detener las enzimas?',
+                options: [
+                    '1 parte de grist por 4 partes de agua a 64 °C durante una hora, refrigerando luego a 20 °C',
+                    '1 parte de grist por 2 partes de agua a 85 °C durante tres horas, enfriando luego a 5 °C',
+                    '2 partes de grist por 3 partes de agua a 45 °C durante cuatro horas, calentando luego a 33 °C',
+                    '1 parte de grist por 6 partes de agua a 95 °C durante treinta minutos, pasando directo al alambique'
+                ],
+                correct: 0,
+                explanation: 'Durante el braceo se mezcla 1 parte de grist con 4 partes de agua caliente a 64 °C por una hora para disolver los azúcares sin inactivar las enzimas, y luego se enfría a 20 °C.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué graduación alcohólica y pH presenta el líquido fermentado (wash) tras dos o tres días a 33 °C antes de ingresar a los alambiques en Escocia?',
+                options: [
+                    'Aproximadamente 8% de alcohol y un pH de 4,5',
+                    'Aproximadamente 15% de alcohol y un pH de 7,2',
+                    'Aproximadamente 3,5% de alcohol y un pH de 2,8',
+                    'Aproximadamente 22% de alcohol y un pH de 6,0'
+                ],
+                correct: 0,
+                explanation: 'Tras dos o tres días de fermentación a 33 °C con agitadores para eliminar CO₂, el líquido fermentado alcanza alrededor de 8% de alcohol y un pH de 4,5.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: 'En Escocia, ¿con qué graduación alcohólica sale el destilado incoloro tras la doble destilación discontinua y a qué grado se rebaja antes de llenar las barricas?',
+                options: [
+                    'Sale a 70° GL y se rebaja con agua pura hasta 65° GL antes de entrar en barrica por al menos 3 años',
+                    'Sale a 90° GL y se rebaja con agua desmineralizada hasta 40° GL antes de entrar en barrica',
+                    'Sale a 80° GL y se embarrica sin dilución previa en toneles nuevos carbonizados',
+                    'Sale a 55° GL y se concentra mediante frío hasta 75° GL antes de la crianza'
+                ],
+                correct: 0,
+                explanation: 'Tras la doble destilación discontinua en Escocia, el destilado nuevo sale incoloro a 70° GL y se rebaja en cuba con agua pura a 65° GL antes de su guarda mínima de 3 años.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué porcentaje aproximado de los aromas presentes en un whisky escocés madurado proviene de la crianza en madera y qué tipo de barricas se emplean hoy mayoritariamente?',
+                options: [
+                    'Entre el 50% y el 60% de los aromas; mayoritariamente barricas usadas previamente para Bourbon o Jerez',
+                    'Entre el 10% y el 15% de los aromas; exclusivamente barricas vírgenes de roble europeo sin tostar',
+                    'Más del 90% de los aromas; únicamente toneles nuevos de acacia y castaño',
+                    'Alrededor del 30% de los aromas; barricas de primer uso que contuvieron tequila o pisco'
+                ],
+                correct: 0,
+                explanation: 'Se estima que entre un 50% y un 60% de los aromas de un whisky provienen de la madera, utilizando hoy principalmente barricas de segundo uso ex-Bourbon o ex-Jerez.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Por qué motivo técnico se incorpora entre un 25% y un 33% de residuos ácidos de una fermentación previa al mosto dulce en Kentucky y Tennessee?',
+                options: [
+                    'Porque sus aguas ricas en calcio son alcalinas y volverían al mosto proclive a infecciones bacterianas si no se baja el pH',
+                    'Porque la ley exige reciclar el bagazo sólido para aportar notas ahumadas de carbón vegetal',
+                    'Porque las levaduras Saccharomyces cerevisiae mueren si el mosto no contiene etanol residual previo',
+                    'Porque acelera la caramelización de los azúcares durante el tostado de las barricas nuevas'
+                ],
+                correct: 0,
+                explanation: 'A diferencia de Escocia (aguas ácidas de pH bajo), las aguas de Kentucky y Tennessee son duras y alcalinas; añadir un 25-33% de sour mash acidifica el sweet mash y evita infecciones bacterianas.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿En qué consiste exactamente la etapa de filtrado exclusiva del estado de Tennessee aplicada antes del envejecimiento?',
+                options: [
+                    'Bombear el destilado recién obtenido durante días a través de columnas de 3 a 4 metros de carbón vegetal de arce',
+                    'Pasar el mosto fermentado por placas de celulosa prensada y arena silícea a -15 °C',
+                    'Filtrar el whiskey tras 4 años de guarda mediante mallas de cobre y piedra caliza',
+                    'Macerar virutas de roble blanco tostado dentro del alambique durante la segunda destilación'
+                ],
+                correct: 0,
+                explanation: 'El whiskey de Tennessee se bombea lentamente (varios días) a través de columnas de 3 a 4 metros llenas de carbón vegetal de arce (maple charcoal), removiendo impurezas y aportando dulzor por los azúcares caramelizados.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué características botánicas y operativas hacen que la madera de Quercus crispula sea tan escasa y costosa en la tonelería japonesa?',
+                options: [
+                    'Crece de forma retorcida tardando ~200 años en alcanzar diámetro útil, posee grano irregular y alta porosidad propensa a fugas',
+                    'Solo crece en islas volcánicas deshabitadas y requiere 50 años de secado bajo nieve antes de ser cortada',
+                    'Es una madera extremadamente densa e impermeable que impide cualquier intercambio de oxígeno con el destilado',
+                    'Está prohibida su exportación desde Escocia y solo puede reutilizarse tras envejecer vino de Jerez'
+                ],
+                correct: 0,
+                explanation: 'El roble autóctono Quercus crispula (Mizunara) tarda unos 200 años en crecer de forma retorcida, está protegido por leyes forestales y su grano poroso lo hace difícil de ensamblar y propenso a filtraciones.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué notas sensoriales características aporta una maduración prolongada o un acabado en madera de roble japonés?',
+                options: [
+                    'Sándalo, incienso japonés (kara), coco, especias orientales y una sutil nota de resina de pino',
+                    'Iodo medicinal, algas marinas, alquitrán y humo denso de brezo costero',
+                    'Cítricos verdes, manzana ácida, hierba recién cortada y pimienta blanca',
+                    'Cuero viejo, tabaco negro, cacao amargo y frutos rojos pasificados'
+                ],
+                correct: 0,
+                explanation: 'Rica en lactonas de roble, la madera de Mizunara aporta sándalo, incienso japonés (kara), coco, especias orientales y una sutil nota de resina de pino.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Cómo se elabora el whisky escocés de grano antes de ingresar en las columnas de destilación continua?',
+                options: [
+                    'Los cereales no malteados se cuecen con vapor a presión ~3,5 horas y luego se mezclan con cebada malteada en agua caliente para que la diastasa transforme el almidón',
+                    'Se germinan todos los granos en pisos de malteado durante 15 días y se secan sobre fuego directo de turba',
+                    'Se prensan los granos crudos en frío para extraer un jugo azucarado sin intervención de enzimas ni calor',
+                    'Se fermentan los granos enteros durante seis meses antes de triturarlos y someterlos a doble Pot Still'
+                ],
+                correct: 0,
+                explanation: 'En el Grain Whisky, los granos sin maltear se someten a vapor a presión por ~3,5 horas y luego se mezclan con cebada malteada para que la enzima diastasa convierta el almidón en maltosa.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué estructura tradicional coronaba las antiguas malterías de las destilerías escocesas donde se secaba la malta verde sobre fuego de turba?',
+                options: [
+                    'Torres con techos en forma de pagoda denominadas kilns, con un suelo de hierro agujereado sobre el fuego',
+                    'Columnas rectificadoras de placas de cobre perforadas inventadas por Aeneas Coffey',
+                    'Hornos horizontales de mampostería revestidos de piedra caliza y albero',
+                    'Cubas abiertas de acero inoxidable equipadas con cestos metálicos de arrastre de vapor'
+                ],
+                correct: 0,
+                explanation: 'Antiguamente el secado de la malta verde se realizaba en torres con techos en forma de pagoda llamadas "kilns", sobre un suelo de hierro agujereado encima del fuego de turba.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Qué exige la tradición escocesa cuando una destilería de malta necesita reemplazar un alambique roto o ampliar su capacidad?',
+                options: [
+                    'Fabricar una réplica exacta del alambique antiguo, incluyendo hasta sus parches o abolladuras, para mantener el perfil del destilado',
+                    'Sustituirlo obligatoriamente por una columna continua de acero inoxidable para aumentar el rendimiento',
+                    'Aumentar el largo del cuello de cisne al doble para eliminar todos los congéneres pesados',
+                    'Añadir un condensador de madera de roble para iniciar la crianza durante la condensación'
+                ],
+                correct: 0,
+                explanation: 'Dado que la forma, edad y condición de los alambiques afectan directamente al carácter del whisky, cada unidad nueva debe replicar exactamente al alambique original, incluidos parches y abolladuras.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Cómo logra una única destilería japonesa producir simultáneamente destilados ligeros y florales junto con otros pesados y aceitosos sin intercambiar maltas con competidores?',
+                options: [
+                    'Combinando fermentadores de acero y madera con múltiples juegos de alambiques de distintas formas y tamaños, además de diversos tipos de barricas',
+                    'Importando aguardientes neutros de caña y encabezándolos con extractos aromáticos de cereales tostados',
+                    'Destilando únicamente en invierno a temperaturas bajo cero y en verano a más de 40 °C',
+                    'Utilizando exclusivamente alambiques continuos de cinco columnas con filtrado posterior en carbón activado'
+                ],
+                correct: 0,
+                explanation: 'Bajo su modelo autosuficiente, una planta como Yamazaki opera fermentadores de acero inoxidable y madera, alambiques de diversas geometrías y 5 o 6 tipos de barricas.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿Cuál es el único aditivo permitido en la elaboración del whisky escocés y japonés para uniformar visualmente las partidas sin alterar el sabor?',
+                options: [
+                    'Pequeñas dosis de colorante de caramelo simple (E150a)',
+                    'Extracto natural de roble tostado macerado en alcohol vínico',
+                    'Hasta 20 g/l de jarabe de azúcar de caña refinada',
+                    'Glicerina vegetal para redondear la textura en boca'
+                ],
+                correct: 0,
+                explanation: 'Tanto en el whisky escocés como bajo la normativa JLSMA japonesa, se permite únicamente pequeñas dosis de colorante de caramelo simple (E150a) para homogenizar el color sin modificar el sabor.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: 'En la elaboración de whiskey en Estados Unidos, ¿por qué el trigo debe someterse a una cocción a temperaturas más bajas que el maíz?',
+                options: [
+                    'Para evitar que pierda sus compuestos aromáticos delicados durante la gelatinización del almidón',
+                    'Porque el trigo contiene taninos amargos que se liberan por encima de los 50 °C',
+                    'Porque el trigo no posee almidón y solo aporta acidez natural al mosto',
+                    'Para impedir que el grano germine dentro de la caldera de cocción'
+                ],
+                correct: 0,
+                explanation: 'En el mash bill americano cada grano recibe una cocción específica; el trigo debe cocerse a temperaturas más bajas para no perder sus aromas.'
+            },
+            {
+                category: 'process',
+                categoryLabel: 'Granos, Destilación y Madera',
+                question: '¿De qué depende principalmente la composición aromática del humo que impregna la malta al quemar turba en Escocia?',
+                options: [
+                    'De la vegetación que dio origen a cada yacimiento de turba, como residuos forestales, algas o brezo',
+                    'De la altitud sobre el nivel del mar a la que se cosechó la cebada Golden Promise',
+                    'De la adición de resinas de pino y cáscaras de cítricos durante el remojado del grano',
+                    'Del número de placas perforadas que posea la columna de rectificación'
+                ],
+                correct: 0,
+                explanation: 'La turba es la descomposición vegetal en espesores de hasta más de 15 metros; según su origen (residuos forestales, algas o brezo en Orkney), su humo propaga aromas particulares.'
+            },
+
+            // ==========================================
+            // MÓDULO 2: REGIONES Y CATEGORÍAS LEGALES (15 PREGUNTAS)
+            // ==========================================
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué región escocesa careció históricamente de yacimientos de turba, recurriendo al carbón mineral para secar el grano, y mantiene la triple destilación como práctica habitual?',
+                options: [
+                    'La región meridional de tierras fértiles dedicada a maltas suaves, secas, delicadas y ligeramente frutadas',
+                    'La isla del archipiélago de las Hébridas recubierta de turba donde operan ocho destilerías de perfil iodado',
+                    'La estrecha península costera que fue considerada la capital mundial del whisky y hoy conserva dos destilerías',
+                    'El valle fluvial del noreste que concentra la mayor densidad de destilerías y barricas ex-Jerez'
+                ],
+                correct: 0,
+                explanation: 'En Lowlands abundaba el carbón mineral a falta de turba, por lo que sus destilerías (como Auchentoshan o Glenkinchie) desarrollaron maltas suaves, secas, delicadas y con triple destilación habitual.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Cuál es la diferencia fundamental en materia prima y destilación entre el estilo tradicional de Irlanda y el Single Malt de Escocia?',
+                options: [
+                    'El estilo tradicional irlandés combina 25-50% de cebada malteada con cebada sin maltear y aplica triple destilación en grandes alambiques de cobre',
+                    'El estilo tradicional irlandés emplea 100% centeno malteado y se destila una sola vez en columnas de madera',
+                    'El estilo tradicional irlandés exige secado con turba marina y maduración mínima de un año en roble nuevo',
+                    'El estilo tradicional irlandés prohíbe el uso de alambiques de cobre y emplea exclusivamente destilación continua'
+                ],
+                correct: 0,
+                explanation: 'La elaboración tradicional irlandesa mezcla cebada malteada (25-50%) con cebada sin maltear y utiliza tres alambiques de cobre de gran tamaño en hilera (triple destilación) sin turba.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué límites máximos legales de graduación alcohólica rigen para un Straight Bourbon tanto al salir de la destilación como al ingresar en la barrica?',
+                options: [
+                    'Salir de la destilación con menos de 160 Proof (80% vol.) y entrar en barrica con no más de 125 Proof (62,5% vol.)',
+                    'Salir de la destilación con menos de 190 Proof (95% vol.) y entrar en barrica con exactamente 140 Proof (70% vol.)',
+                    'Salir de la destilación con un máximo de 120 Proof (60% vol.) y entrar en barrica a 80 Proof (40% vol.)',
+                    'Salir de la destilación con menos de 140 Proof (70% vol.) y entrar en barrica a 130 Proof (65% vol.)'
+                ],
+                correct: 0,
+                explanation: 'La legislación estadounidense exige que el Bourbon salga de la destilación por debajo de 160 Proof (80% alc./vol.) y sea puesto en barrica con no más de 125 Proof (62,5%).'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué requisitos estableció la ley estadounidense de 1897 para que un destilado pueda llevar la mención "Bottled in Bond" y qué beneficio fiscal otorgaba?',
+                options: [
+                    'Almacenar Straight Whiskey en depósitos supervisados por el gobierno por al menos 4 años, eximiéndolo del pago de impuestos durante ese período',
+                    'Envejecer el destilado en barricas de segundo uso ex-Jerez durante 10 años para obtener un subsidio de exportación',
+                    'Embotellar mezclas de distintos estados a 80 Proof sin declarar la edad en la etiqueta',
+                    'Filtrar el destilado dos veces por carbón vegetal de arce para reducir a la mitad el impuesto federal'
+                ],
+                correct: 0,
+                explanation: 'La ley de 1897 permitió guardar Straight Whiskey en depósitos supervisados por el gobierno durante un mínimo de 4 años sin pagar impuestos durante la guarda, convirtiéndose en garantía oficial de calidad.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Cuándo es obligatorio declarar la edad en la etiqueta de un Bourbon según la normativa de Estados Unidos?',
+                options: [
+                    'Siempre que el período de envejecimiento en barrica nueva tostada sea inferior a cuatro años (siendo el mínimo legal dos años)',
+                    'Únicamente cuando el destilado haya permanecido más de doce años en depósitos fiscales',
+                    'Solo en los Blended Bourbons a los que se les haya añadido caramelo para ajustar color',
+                    'Siempre que el porcentaje de maíz en la receta supere el 70% del total de granos'
+                ],
+                correct: 0,
+                explanation: 'El período mínimo legal de envejecimiento de un Bourbon es de 2 años en roble nuevo tostado, pero cuando es menor a 4 años resulta obligatorio declarar su edad en la etiqueta.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué establece la normativa de la JLSMA (2021) respecto al volumen máximo de las barricas, tiempo de guarda y graduación máxima de destilación en Japón?',
+                options: [
+                    'Destilación a menos de 95% ABV, crianza mínima de 3 años en Japón en recipientes de hasta 700 litros y embotellado mínimo a 40% ABV en territorio japonés',
+                    'Destilación a menos de 70% ABV, crianza mínima de 5 años en barricas de 200 litros y embotellado obligatorio a 43% ABV',
+                    'Destilación en alambique simple hasta 80% ABV, guarda mínima de 2 años en roble Mizunara y sin límite de capacidad de tonel',
+                    'Destilación continua a más de 96% ABV, maduración de 1 año en barricas ex-Shochu y embotellado libre fuera de Japón'
+                ],
+                correct: 0,
+                explanation: 'La regulación JLSMA (2021) fija destilación <95% ABV, maduración mínima de 3 años en Japón en recipientes de madera de ≤700 litros, embotellado en Japón y mínimo 40% ABV.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué diferencia existe entre "Blended Malt" y "Blended Scotch Whisky" en la clasificación oficial escocesa?',
+                options: [
+                    'El primero mezcla whiskies 100% de cebada malteada de distintas destilerías, mientras el segundo combina whiskies de malta con whisky de grano',
+                    'El primero proviene de una única destilería de malta y el segundo de una única destilería de grano',
+                    'El primero se envejece en roble americano nuevo y el segundo en botas de Jerez de primer llenado',
+                    'El primero requiere 12 años de crianza mínima y el segundo solo 1 año en depósitos fiscales'
+                ],
+                correct: 0,
+                explanation: 'Blended Malt (denominado Pure Malt en Japón por Nikka) es una mezcla de whiskies 100% de malta de distintas destilerías; Blended Scotch Whisky une malta y whisky de grano.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Cómo se define el término "Blend" dentro de la industria tradicional de Irlanda en comparación con Escocia?',
+                options: [
+                    'A una combinación de varios whiskeys de diferentes edades salidos de una misma destilería y madurados en barricas de distintas procedencias',
+                    'Exclusivamente a la mezcla de whiskey de papa con aguardiente neutro de melaza',
+                    'A un corte obligatorio de 50% whiskey escocés de Islay con 50% whiskey irlandés de triple destilación',
+                    'A cualquier destilado envejecido menos de tres años en toneles de madera blanca de fresno'
+                ],
+                correct: 0,
+                explanation: 'En Irlanda se denomina blend a una combinación de varios whiskeys de diferentes edades procedentes de la misma destilería y madurados en barricas de distintas procedencias.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué características climáticas y sensoriales distinguen a los whiskies producidos en la isla japonesa de Kyushu frente a los de los Alpes Japoneses (Chūbu)?',
+                options: [
+                    'Kyushu posee clima cálido y húmedo que acelera la maduración y extrae notas intensas de madera, mientras Chūbu tiene clima fresco y agua granítica dando perfiles ligeros y herbales',
+                    'Kyushu produce whiskies fuertemente turbados por su clima subártico, mientras Chūbu destaca por su carácter salino costero',
+                    'Ambos producen exclusivamente whisky de grano continuo sin crianza en barrica de roble',
+                    'Kyushu madura sus destilados en cuevas heladas durante 20 años y Chūbu utiliza barricas nuevas carbonizadas por 2 años'
+                ],
+                correct: 0,
+                explanation: 'Kyushu (destilerías Kanosuke y Tsunuki) tiene clima cálido y húmedo que acelera la extracción de madera (especialmente Mizunara), mientras Chūbu (Hakushu) es boscosa y fresca con perfiles herbales y ligeros.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué cuatro exigencias define la legislación federal para el whisky producido en Canadá?',
+                options: [
+                    'Elaborarse solo con cereales de grano, destilarse siempre en columnas continuas, permanecer mínimo 3 años en barrica y mantener la receta de mezcla en secreto',
+                    'Contener al menos 51% de cebada malteada, destilarse en doble Pot Still y envejecerse 2 años en roble nuevo',
+                    'Elaborarse exclusivamente en Nova Scotia con agua de deshielo y madurarse 4 años bajo supervisión gubernamental',
+                    'Prohibir el uso de barricas que hayan contenido ron o jerez y exigir filtrado por carbón de arce'
+                ],
+                correct: 0,
+                explanation: 'La legislación federal canadiense exige: únicamente cereales de grano, destilación siempre en alambiques continuos o columnas, permanencia mínima de 3 años en barrica y secreto de mezcla.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué requisitos legales definen al Rye Whiskey estadounidense en cuanto a grano predominante, graduación máxima de destilación y crianza?',
+                options: [
+                    'Mínimo 51% de centeno, destilado en sistema continuo sin superar 80° GL (160 Proof) y envejecido al menos 1 año en barricas de roble nuevas tostadas',
+                    'Mínimo 51% de maíz, destilado en alambique simple hasta 70° GL y guardado 3 años en barricas ex-Bourbon',
+                    '100% centeno malteado, triple destilación en cobre y maduración mínima de 4 años sin tostar la madera',
+                    'Mínimo 30% de centeno, 30% de maíz y 30% de cebada envejecidos en barricas de más de 700 litros'
+                ],
+                correct: 0,
+                explanation: 'El Rye Whiskey requiere al menos 51% de centeno, destilación continua que no supere los 80° GL y crianza en barricas nuevas tostadas por un período no inferior a 1 año.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Cuál es la distinción geográfica y sensorial entre las maltas de la isla de Skye y las de la isla de Islay en las Hébridas?',
+                options: [
+                    'En Skye la turba y el humo están presentes pero sin resultar dominantes ni tan marcadamente iodados como en Islay, donde el iodo y las algas dominan el perfil',
+                    'En Skye está prohibido el uso de turba desde el siglo XVIII, mientras que en Islay solo se practica triple destilación',
+                    'Skye pertenece a las Tierras Bajas y elabora whiskies de grano, mientras Islay pertenece a Speyside',
+                    'Islay utiliza turba de brezo dulce con notas de miel, mientras Skye emplea carbón mineral sin humo'
+                ],
+                correct: 0,
+                explanation: 'Skye posee terreno turboso pero diferente al de Islay: el humo está presente sin dominar y no muestra el carácter iodado tan marcado distintivo de Islay.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué ocurre con el Bourbon cuando se elabora bajo la categoría "Blended Bourbon Whiskey"?',
+                options: [
+                    'Debe contener un mínimo de 51% de Straight Bourbon Whiskey y es la única categoría americana autorizada a añadir caramelo para ajustar color',
+                    'Debe contener 100% maíz sin otros granos y envejecerse durante al menos 10 años en depósitos fiscales',
+                    'Se destila tres veces en alambiques irlandeses y se filtra con carbón de arce antes de embotellarse',
+                    'Se elabora exclusivamente fuera de Kentucky con un mínimo de 51% de centeno y trigo'
+                ],
+                correct: 0,
+                explanation: 'El Blended Bourbon Whiskey contiene al menos 51% de Straight Bourbon y, a diferencia de los Straight (donde el color viene solo de la madera), es el único autorizado a añadir caramelo.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Qué fenómeno geográfico explica el perfil salino y fresco de los Single Malts elaborados en la península de Campbeltown?',
+                options: [
+                    'Su ubicación en una península estrecha y expuesta al mar cuyo ambiente húmedo y nieblas marinas influyen en las barricas durante la maduración',
+                    'La adición directa de agua de mar filtrada durante el braceo a 64 °C',
+                    'El uso exclusivo de cebada cultivada en marismas saladas y secada con algas pardas',
+                    'La crianza subterránea en minas de sal gema abandonadas del sur de Escocia'
+                ],
+                correct: 0,
+                explanation: 'Campbeltown se sitúa en una península estrecha y expuesta al mar: las nieblas marinas y la humedad salada penetran en las barricas durante la maduración.'
+            },
+            {
+                category: 'regions',
+                categoryLabel: 'Regiones y Categorías Legales',
+                question: '¿Cómo influye el entorno geográfico de las Islas Orcadas (Orkney) en el perfil sensorial de sus dos únicas destilerías activas?',
+                options: [
+                    'Su turba compuesta de brezo aporta un peculiar sabor a miel, complementado por una sutil influencia marina durante la guarda cerca de la orilla',
+                    'Su clima continental seco concentra el alcohol hasta 70° GL eliminando toda nota marítima o floral',
+                    'La ausencia total de turba obliga a madurar los whiskies en barricas nuevas de roble americano carbonizado',
+                    'Sus aguas alcalinas ricas en calcio requieren el uso obligatorio de 33% de sour mash'
+                ],
+                correct: 0,
+                explanation: 'En Orkney (Highland Park y Scapa), la turba procede del brezo (aportando sabor a miel) y los almacenes cercanos a la orilla otorgan una sutil influencia marina.'
+            },
+
+            // ==========================================
+            // MÓDULO 3: DESTILERÍAS, ETIQUETAS Y SERVICIO (15 PREGUNTAS)
+            // ==========================================
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué término en una etiqueta de whisky indica que la bebida fue embotellada directamente desde la barrica con su graduación alcohólica natural sin dilución previa?',
+                options: [
+                    'Cask Strength / Barrel Proof',
+                    'Small Batch / Bottled in Bond',
+                    'Non Chill Filtered / Un-chillfiltered',
+                    'Single Cask / Single Barrel'
+                ],
+                correct: 0,
+                explanation: 'Las menciones "Cask Strength" o "Barrel Proof" indican que el whisky fue embotellado con su grado alcohólico natural directo de barrica, sin rebajar con agua.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué significa encontrar en una etiqueta las menciones "Non Chill Filtered" o "Un-chillfiltered"?',
+                options: [
+                    'Que el whisky no ha sido sometido a filtración en frío antes del embotellado, conservando sus compuestos naturales y textura',
+                    'Que el mosto fermentó a temperatura ambiente superior a 33 °C sin refrigeración artificial',
+                    'Que el destilado no pasó por columnas de carbón vegetal de arce tras salir del alambique',
+                    'Que la bebida debe servirse obligatoriamente a temperatura ambiente sin hielo ni agua fría'
+                ],
+                correct: 0,
+                explanation: '"Non Chill Filtered" o "Un-chillfiltered" señala que el producto se embotelló sin filtrar en frío, preservando ácidos grasos, ésteres y cuerpo original.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué distingue a un whisky etiquetado como "Single Cask / Single Barrel" frente a uno etiquetado como "Small Batch"?',
+                options: [
+                    'El primero proviene íntegramente de una única barrica individual, mientras el segundo resulta del ensamblaje de un pequeño lote o partida seleccionada de barricas',
+                    'El primero tiene menos de tres años de crianza y el segundo supera los dieciocho años en madera',
+                    'El primero es un destilado continuo de grano y el segundo un Single Malt de doble destilación',
+                    'El primero carece de notas de turba y el segundo fue secado con humo intenso de brezo'
+                ],
+                correct: 0,
+                explanation: '"Single Cask / Single Barrel" proviene de una sola barrica, mientras que "Small Batch" corresponde a una mezcla de un pequeño lote o partida reducida de barricas.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Cuál de las siguientes destilerías de Islay NO forma parte de las ocho destilerías citadas para dicha isla en el manual?',
+                options: [
+                    'Springbank (ubicada en la península de Campbeltown)',
+                    'Bruichladdich (ubicada en la isla de Islay)',
+                    'Bunnahabhain (ubicada en la isla de Islay)',
+                    'Kilchoman (ubicada en la isla de Islay)'
+                ],
+                correct: 0,
+                explanation: 'Las 8 destilerías de Islay son Laphroaig, Lagavulin, Caol Ila, Bunnahabhain, Bowmore, Ardbeg, Bruichladdich y Kilchoman; Springbank pertenece a Campbeltown junto con Glen Scotia.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué destilería de la isla de Mull estuvo cerrada por largos períodos y elabora dos expresiones opuestas: una casi sin turba y otra fuertemente turbada bajo otro nombre?',
+                options: [
+                    'Tobermory (casi sin turba) y Ledaig (con turba), ambas producidas en la destilería Tobermory',
+                    'Highland Park (sin turba) y Scapa (con turba), ambas producidas en las Islas Orcadas',
+                    'Glenkinchie (sin turba) y Rosebank (con turba), ambas producidas en las Tierras Bajas',
+                    'Yoichi (sin turba) y Miyagikyo (con turba), ambas producidas en Hokkaido'
+                ],
+                correct: 0,
+                explanation: 'En la isla de Mull, la destilería Tobermory elabora dos maltas distintas: Tobermory (casi sin turba) y Ledaig (con turba).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué destilería irlandesa independiente rompió el monopolio de Irish Distillers en las últimas décadas elaborando tanto whiskeys sin turba como el Single Malt ahumado Connemara?',
+                options: [
+                    'Cooley Distillery (productora también de Tyrconnell y Kilbeggan)',
+                    'Middleton Distillery (planta central del grupo Irish Distillers)',
+                    'Old Bushmills Distillery (incorporada al grupo en 1972)',
+                    'Springbank Distillery (en la península de Kintyre)'
+                ],
+                correct: 0,
+                explanation: 'Mientras Irish Distillers (Jameson, Powers, Tullamore, Bushmills) usa triple destilación sin turba, la destilería independiente Cooley usa turba en marcas como Connemara Peated Malt y realiza destilaciones dobles y triples.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Cómo se denomina en Japón al ritual tradicional de servir whisky mezclado con agua mineral fría y hielo en proporción 1:2 o 1:2,5, y cómo se llama su variante invernal con agua caliente?',
+                options: [
+                    'Mizuwari (con agua fría y hielo) y Oyuwari (con agua caliente en invierno)',
+                    'Haiboru (con agua fría y hielo) y Shochu (con agua caliente en invierno)',
+                    'Koji (con agua fría) y Moromi (con agua caliente)',
+                    'On the Rocks (con agua fría) y Neat (con agua caliente)'
+                ],
+                correct: 0,
+                explanation: 'En Japón, el servicio con agua mineral fría y hielo (1:2 o 1:2,5) se llama Mizuwari, mientras que la mezcla con agua caliente en invierno se denomina Oyuwari.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿En qué consiste el formato de consumo japonés conocido como "Haiboru" y qué diseño de copa técnica recomienda el manual para la cata olfativa de whiskies puros?',
+                options: [
+                    'Haiboru es whisky con agua con gas (soda) y mucho hielo; para cata pura se usa la copa Glencairn o Copita (base ancha y boca estrecha)',
+                    'Haiboru es whisky puro calentado a 50 °C en cuenco de cerámica; para cata pura se usa vaso Collins',
+                    'Haiboru es whisky con vermouth rosso y bitter; para cata pura se usa copa Cocktail cónica',
+                    'Haiboru es whisky licuado con hielo frappé; para cata pura se usa jarro de cobre'
+                ],
+                correct: 0,
+                explanation: 'Haiboru es la adaptación japonesa del Highball (whisky, soda y mucho hielo), mientras que la copa Glencairn o Copita concentra los vapores del alcohol gracias a su base ancha y boca estrecha.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Cuál es el rango de temperatura de servicio recomendado en el manual para degustar whiskies de mayor carácter como digestivos?',
+                options: [
+                    'Entre 16 °C y 18 °C',
+                    'Entre 4 °C y 5 °C',
+                    'Entre 9 °C y 12 °C',
+                    'Entre 24 °C y 28 °C'
+                ],
+                correct: 0,
+                explanation: 'Los whiskies de mayor carácter se prefieren como digestivos servidos a una temperatura de entre 16 °C y 18 °C.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué tres licores tradicionales a base de whisky (dos escoceses con miel y hierbas y uno irlandés con miel de brezo) figuran en el manual CAVE?',
+                options: [
+                    'Drambuie y Lochan Ora (base Scotch Whisky) e Irish Mist (base Irish Whiskey, elaborado por Tullamore Dew)',
+                    'Bénédictine, Chartreuse Verde y Grand Marnier',
+                    'Southern Comfort, Chambord y Mandarine Napoléon',
+                    'Amaretto di Saronno, Frangelico y Galliano'
+                ],
+                correct: 0,
+                explanation: 'Drambuie (40°) y Lochan Ora (35°) tienen base de Scotch Whisky con miel y hierbas, mientras que Irish Mist (40°, Tullamore) se elabora con Irish Whiskey y miel de brezos.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué destilado y modificadores componen el cóctel aperitivo "Rob Roy" y qué base alcohólica emplea su homólogo estadounidense "Manhattan"?',
+                options: [
+                    'Rob Roy usa Blended Scotch Whisky con Vermouth Rosso, Vermouth Seco y Bitter Angostura; Manhattan usa Straight Bourbon o Canadian Whisky con Vermouth Rosso y Bitter Angostura',
+                    'Rob Roy usa Straight Bourbon con azúcar y naranja; Manhattan usa Blended Scotch con Drambuie',
+                    'Rob Roy usa Irish Whiskey con crema de leche y café; Manhattan usa Rye Whiskey con jugo de limón y clara',
+                    'Ambos se preparan exclusivamente con Tennessee Whiskey, Campari y agua tónica en vaso Highball'
+                ],
+                correct: 0,
+                explanation: 'Según el recetario del manual CAVE, el Rob Roy reemplaza el Bourbon/Canadian del Manhattan por Blended Scotch Whisky (junto con Vermouth Rosso, Seco y Bitter Angostura).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué término japonés designa a los whiskies producidos por destilerías locales de pequeña escala cuya comercialización suele limitarse a su región de origen?',
+                options: [
+                    'Ji-Whisky',
+                    'Pure Malt',
+                    'Shochu Cask',
+                    'Oyuwari'
+                ],
+                correct: 0,
+                explanation: 'Ji-Whisky es el término japonés utilizado para designar los whiskies elaborados por destilerías locales de pequeña escala de distribución regional.'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué dos referentes comerciales cita el manual CAVE para ilustrar respectivamente un Single Grain Scotch y un Blended Grain Scotch?',
+                options: [
+                    'Cameron Brig (Single Grain) y Hedonism (Blended Grain)',
+                    'Glenfiddich (Single Grain) y Johnnie Walker (Blended Grain)',
+                    'Redbreast (Single Grain) y Connemara (Blended Grain)',
+                    'Yamazaki (Single Grain) y Yoichi (Blended Grain)'
+                ],
+                correct: 0,
+                explanation: 'El manual CAVE cita a Cameron Brig como ejemplo de Single Grain (de una sola destilería) y a Hedonism como ejemplo de Blended Grain (corte de grano de distintas destilerías).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué trago digestivo (After Dinner) del manual combina Scotch Whisky con el licor escocés Drambuie en vaso Old Fashioned?',
+                options: [
+                    'Rusty Nail',
+                    'Godfather',
+                    'Boulevardier',
+                    'Penicillin'
+                ],
+                correct: 0,
+                explanation: 'El Rusty Nail combina Scotch Whisky + Drambuie en vaso Old Fashioned (mientras que Godfather combina Scotch Whisky + Amaretto).'
+            },
+            {
+                category: 'brands',
+                categoryLabel: 'Destilerías, Etiquetas y Servicio',
+                question: '¿Qué dos marcas representan al estilo Tennessee Whiskey en el manual y cuál de ellas emplea un 80% de maíz en su mezcla de granos?',
+                options: [
+                    "Jack Daniel's (80% maíz) y George Dickel",
+                    "Maker's Mark (80% maíz) y Woodford Reserve",
+                    'Early Times (80% maíz) y Elijah Craig',
+                    'Canadian Club (80% maíz) y Crown Royal'
+                ],
+                correct: 0,
+                explanation: "Las dos marcas de Tennessee Whiskey citadas en el manual son Jack Daniel's (con un 80% de maíz) y George Dickel."
+            }
+        ];
+
+        // ==========================================
+        // ESTADO Y PERSISTENCIA DEL ESTUDIANTE
+        // ==========================================
+        let state = {
+            examsTaken: 0,
+            totalQuestionsAnswered: 0,
+            totalCorrect: 0,
+            masteredStyles: [],
+            lastAttempt: null
+        };
+
+        let currentFilter = 'ALL';
+        let currentSearch = '';
+        let catalogPage = 0;
+        const ITEMS_PER_PAGE = 3;
+
+        let activeQuiz = [];
+        let currentQuestionIndex = 0;
+        let currentQuizScore = 0;
+        let questionAnswered = false;
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('sommelier_whisky_progress_v1');
+                if (saved) {
+                    state = { ...state, ...JSON.parse(saved) };
+                }
+            } catch (e) {
+                console.warn('No se pudo leer localStorage:', e);
+            }
+            updateDashboardUI();
+            renderCatalog();
+            initVisualChallenge();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('sommelier_whisky_progress_v1', JSON.stringify(state));
+            } catch (e) {
+                console.warn('No se pudo guardar en localStorage:', e);
+            }
+        }
+
+        function resetProgress() {
+            state = {
+                examsTaken: 0,
+                totalQuestionsAnswered: 0,
+                totalCorrect: 0,
+                masteredStyles: [],
+                lastAttempt: null
+            };
+            saveState();
+            updateDashboardUI();
+            renderCatalog();
+            showToast('Progreso del estudiante reiniciado.', 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = type === 'success'
+                ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100'
+                : 'bg-peat-900/95 border-oak-500 text-oak-100';
+            toast.className = `px-4 py-3 rounded-xl border shadow-xl text-sm sm:text-base font-semibold backdrop-blur-md transition-all duration-300 ${colors}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // ==========================================
+        // NAVEGACIÓN ENTRE PESTAÑAS
+        // ==========================================
+        function switchTab(tabName) {
+            const views = ['dashboard', 'catalog', 'visual', 'exam'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const btn = document.getElementById(`tab-${v}`);
+                if (el) el.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-oak-600', 'text-white', 'shadow');
+                    btn.classList.add('text-oak-300');
+                }
+            });
+
+            const targetView = document.getElementById(`view-${tabName}`);
+            const targetBtn = document.getElementById(`tab-${tabName}`);
+            if (targetView) targetView.classList.remove('hidden');
+            if (targetBtn) {
+                targetBtn.classList.add('bg-oak-600', 'text-white', 'shadow');
+                targetBtn.classList.remove('text-oak-300');
+            }
+
+            if (tabName === 'dashboard') updateDashboardUI();
+            if (tabName === 'catalog') renderCatalog();
+        }
+
+        // ==========================================
+        // ACTUALIZACIÓN DEL PANEL PRINCIPAL
+        // ==========================================
+        function updateDashboardUI() {
+            document.getElementById('stat-exams').textContent = state.examsTaken;
+            const accuracy = state.totalQuestionsAnswered > 0
+                ? Math.round((state.totalCorrect / state.totalQuestionsAnswered) * 100)
+                : null;
+            document.getElementById('stat-accuracy').textContent = accuracy !== null ? `${accuracy}%` : '--%';
+            document.getElementById('stat-styles').textContent = `${state.masteredStyles.length} / ${whiskyStyles.length}`;
+
+            let rank = 'Aprendiz de Destilería';
+            if (state.examsTaken >= 1 && accuracy >= 50) rank = 'Catador de Barrica';
+            if (state.examsTaken >= 2 && accuracy >= 75) rank = 'Master Blender Jr.';
+            if (state.examsTaken >= 3 && accuracy >= 90) rank = 'Keeper of the Quaich';
+            document.getElementById('stat-rank').textContent = rank;
+
+            const badge = document.getElementById('last-attempt-badge');
+            if (badge) {
+                badge.textContent = state.lastAttempt ? `Último intento: ${state.lastAttempt}` : '';
+            }
+        }
+
+        // ==========================================
+        // GUÍA DE ESTILOS PAGINADA (SIN SCROLL, EXPANDIBLE)
+        // ==========================================
+        function filterCatalog(origin) {
+            currentFilter = origin;
+            catalogPage = 0;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === origin) {
+                    btn.classList.add('active', 'bg-oak-600', 'text-white');
+                    btn.classList.remove('bg-peat-800', 'text-oak-300');
+                } else {
+                    btn.classList.remove('active', 'bg-oak-600', 'text-white');
+                    btn.classList.add('bg-peat-800', 'text-oak-300');
+                }
+            });
+            renderCatalog();
+        }
+
+        function searchCatalog() {
+            currentSearch = document.getElementById('catalog-search').value.toLowerCase().trim();
+            catalogPage = 0;
+            renderCatalog();
+        }
+
+        function changeCatalogPage(delta) {
+            catalogPage += delta;
+            renderCatalog();
+        }
+
+        function toggleMastered(styleId) {
+            const idx = state.masteredStyles.indexOf(styleId);
+            if (idx === -1) {
+                state.masteredStyles.push(styleId);
+                showToast('Estilo marcado como dominado.', 'success');
+            } else {
+                state.masteredStyles.splice(idx, 1);
+            }
+            saveState();
+            updateDashboardUI();
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalog-grid');
+            if (!grid) return;
+
+            const filtered = whiskyStyles.filter(s => {
+                const matchOrigin = currentFilter === 'ALL' || s.originGroup === currentFilter;
+                const matchQuery = !currentSearch ||
+                    s.name.toLowerCase().includes(currentSearch) ||
+                    s.region.toLowerCase().includes(currentSearch) ||
+                    s.description.toLowerCase().includes(currentSearch) ||
+                    s.brands.some(b => b.toLowerCase().includes(currentSearch));
+                return matchOrigin && matchQuery;
+            });
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+            if (catalogPage >= totalPages) catalogPage = totalPages - 1;
+            if (catalogPage < 0) catalogPage = 0;
+
+            document.getElementById('catalog-page-indicator').textContent = `${catalogPage + 1} / ${totalPages}`;
+            document.getElementById('btn-prev-page').disabled = catalogPage === 0;
+            document.getElementById('btn-next-page').disabled = catalogPage >= totalPages - 1;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 glass-panel rounded-2xl p-8 flex items-center justify-center text-xl text-oak-300">No se encontraron regiones o estilos con ese criterio.</div>`;
+                return;
+            }
+
+            const pageItems = filtered.slice(catalogPage * ITEMS_PER_PAGE, (catalogPage + 1) * ITEMS_PER_PAGE);
+            grid.innerHTML = pageItems.map(style => {
+                const isMastered = state.masteredStyles.includes(style.id);
+                return `
+                <article onclick="openStyleModal('${style.id}')" class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between gap-2 border ${isMastered ? 'border-emerald-500/60' : 'border-oak-800/40 hover:border-oak-500/60'} min-h-0 overflow-y-auto cursor-pointer transition-all group">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-oak-500/20 text-oak-300 border border-oak-500/30">
+                                ${style.originGroup}
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="event.stopPropagation(); openStyleModal('${style.id}')" title="Ampliar ficha" class="px-2 py-0.5 rounded-lg text-xs font-bold bg-peat-800 hover:bg-oak-600 text-oak-200 hover:text-white border border-oak-700/50 transition-all">
+                                    ⤢ Ampliar
+                                </button>
+                                <button onclick="event.stopPropagation(); toggleMastered('${style.id}')" class="px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${isMastered ? 'bg-emerald-600 text-white' : 'bg-peat-800 text-oak-300 hover:text-white border border-oak-700/50'}">
+                                    ${isMastered ? '✓ Dominado' : 'Dominar'}
+                                </button>
+                            </div>
+                        </div>
+                        <h3 class="font-serif text-lg sm:text-xl font-bold text-white group-hover:text-oak-200 leading-tight transition-colors">${style.name}</h3>
+                        <p class="text-xs sm:text-sm font-semibold text-oak-400 leading-tight">${style.region}</p>
+                        <p class="text-sm sm:text-[15px] text-oak-100/95 leading-snug">${style.description}</p>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-oak-800/40 shrink-0">
+                        <div class="grid grid-cols-3 gap-1.5 text-center">
+                            <div class="bg-peat-950 p-2 rounded-xl border border-oak-600/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[10px] uppercase tracking-wider text-oak-400 font-extrabold">Color</div>
+                                <div class="flex items-center justify-center gap-1.5 mt-1">
+                                    <span class="w-3.5 h-3.5 rounded-full dram-badge border border-white/30 shrink-0" style="background:${style.dramHex}"></span>
+                                    <span class="text-xs sm:text-sm font-extrabold text-white leading-tight break-words">${style.colorName}</span>
+                                </div>
+                            </div>
+                            <div class="bg-oak-950/60 p-2 rounded-xl border border-oak-500/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[10px] uppercase tracking-wider text-oak-300 font-extrabold">Alcohol</div>
+                                <div class="text-xs sm:text-sm font-black text-oak-200 mt-0.5 leading-tight break-words">${style.abv}</div>
+                            </div>
+                            <div class="bg-amber-950/40 p-2 rounded-xl border border-amber-500/40 shadow-inner flex flex-col justify-center">
+                                <div class="text-[10px] uppercase tracking-wider text-amber-300/90 font-extrabold">Crianza</div>
+                                <div class="text-xs font-bold text-amber-300 mt-0.5 leading-tight break-words">${style.cask}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-bold uppercase text-oak-400 mb-1">Destilerías / Marcas:</div>
+                            <div class="flex flex-wrap gap-1">
+                                ${style.brands.map(b => `<span class="px-2 py-0.5 rounded-md bg-peat-900 border border-oak-700/50 text-xs font-semibold text-oak-100">${b}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // MOTOR DE EVALUACIÓN (QUIZ CON OPCIONES ALEATORIZADAS)
+        // ==========================================
+        let activeShuffledOptions = [];
+        let activeCorrectShuffledIndex = 0;
+
+        function startExam(category) {
+            switchTab('exam');
+            let pool = category === 'all'
+                ? [...questionBank]
+                : questionBank.filter(q => q.category === category);
+
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            activeQuiz = category === 'all' ? pool.slice(0, 15) : pool;
+            currentQuestionIndex = 0;
+            currentQuizScore = 0;
+
+            document.getElementById('exam-intro').classList.add('hidden');
+            document.getElementById('exam-results').classList.add('hidden');
+            document.getElementById('exam-active').classList.remove('hidden');
+            document.getElementById('q-total').textContent = activeQuiz.length;
+
+            renderQuestion();
+        }
+
+        function resetExamView() {
+            document.getElementById('exam-active').classList.add('hidden');
+            document.getElementById('exam-results').classList.add('hidden');
+            document.getElementById('exam-intro').classList.remove('hidden');
+        }
+
+        function renderQuestion() {
+            questionAnswered = false;
+            const q = activeQuiz[currentQuestionIndex];
+            const total = activeQuiz.length;
+
+            document.getElementById('exam-category-badge').textContent = q.categoryLabel;
+            document.getElementById('q-current').textContent = currentQuestionIndex + 1;
+            document.getElementById('exam-progress-bar').style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
+            document.getElementById('q-text').textContent = q.question;
+
+            const ctxBox = document.getElementById('q-context');
+            if (q.context) {
+                ctxBox.textContent = q.context;
+                ctxBox.classList.remove('hidden');
+            } else {
+                ctxBox.classList.add('hidden');
+            }
+
+            document.getElementById('btn-q-reopen').classList.add('hidden');
+            document.getElementById('btn-next-q').classList.add('hidden');
+
+            // Mezclar opciones dinámicamente para evitar sesgo posicional
+            const indexedOptions = q.options.map((text, origIdx) => ({
+                text,
+                isCorrect: origIdx === q.correct
+            }));
+            for (let i = indexedOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indexedOptions[i], indexedOptions[j]] = [indexedOptions[j], indexedOptions[i]];
+            }
+            activeShuffledOptions = indexedOptions;
+            activeCorrectShuffledIndex = indexedOptions.findIndex(o => o.isCorrect);
+
+            const letters = ['A', 'B', 'C', 'D'];
+            document.getElementById('q-options').innerHTML = indexedOptions.map((opt, idx) => `
+                <button onclick="selectOption(${idx})" id="q-opt-${idx}" class="w-full text-left p-4 rounded-xl bg-peat-900/95 hover:bg-peat-800 border border-oak-700/40 text-oak-100 text-base sm:text-lg font-medium leading-snug transition-all flex items-center gap-3.5 group">
+                    <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-peat-950 border border-oak-700/50 flex items-center justify-center text-sm sm:text-base font-extrabold text-oak-400 shrink-0 group-hover:border-oak-500 group-hover:text-white">
+                        ${letters[idx]}
+                    </span>
+                    <span>${opt.text}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectOption(selectedIndex) {
+            if (questionAnswered) return;
+            questionAnswered = true;
+
+            const q = activeQuiz[currentQuestionIndex];
+            const isCorrect = selectedIndex === activeCorrectShuffledIndex;
+
+            state.totalQuestionsAnswered++;
+            if (isCorrect) {
+                currentQuizScore++;
+                state.totalCorrect++;
+            }
+            saveState();
+
+            activeShuffledOptions.forEach((_, idx) => {
+                const btn = document.getElementById(`q-opt-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-peat-800');
+                if (idx === activeCorrectShuffledIndex) {
+                    btn.classList.remove('bg-peat-900/95', 'border-oak-700/40');
+                    btn.classList.add('bg-emerald-950/90', 'border-emerald-500', 'text-emerald-100');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-peat-900/95', 'border-oak-700/40');
+                    btn.classList.add('bg-rose-950/90', 'border-rose-500', 'text-rose-100');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            const nextLabel = (currentQuestionIndex + 1 === activeQuiz.length) ? 'Ver Resultados →' : 'Siguiente Pregunta →';
+            const nextBtn = document.getElementById('btn-next-q');
+            nextBtn.textContent = nextLabel;
+            nextBtn.classList.remove('hidden');
+            document.getElementById('btn-q-reopen').classList.remove('hidden');
+
+            openFeedbackModal({
+                isCorrect,
+                subtitle: q.categoryLabel,
+                explanation: q.explanation,
+                nextLabel,
+                onNext: () => nextQuestion()
+            });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeQuiz.length) {
+                renderQuestion();
+            } else {
+                finishExam();
+            }
+        }
+
+        function finishExam() {
+            const total = activeQuiz.length;
+            const wrong = total - currentQuizScore;
+            const pct = Math.round((currentQuizScore / total) * 100);
+
+            state.examsTaken++;
+            state.lastAttempt = `${pct}% (${currentQuizScore}/${total})`;
+            saveState();
+
+            document.getElementById('exam-active').classList.add('hidden');
+            document.getElementById('exam-results').classList.remove('hidden');
+
+            document.getElementById('res-correct').textContent = currentQuizScore;
+            document.getElementById('res-wrong').textContent = wrong;
+            document.getElementById('res-score').textContent = `${pct}%`;
+
+            const icon = document.getElementById('result-icon');
+            const badge = document.getElementById('result-badge');
+            const title = document.getElementById('result-title');
+            const summary = document.getElementById('result-summary');
+
+            icon.textContent = `${pct}%`;
+            if (pct >= 80) {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-emerald-500 bg-emerald-950/50 text-emerald-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300';
+                badge.textContent = 'Nivel Sobresaliente';
+                title.textContent = '¡Excelente Dominio Técnico!';
+                summary.textContent = 'Demuestras un conocimiento sólido de los procesos de destilación, crianza y regiones históricas del whisk(e)y.';
+            } else if (pct >= 60) {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-amber-500 bg-amber-950/50 text-amber-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300';
+                badge.textContent = 'Aprobado';
+                title.textContent = 'Buen Desempeño General';
+                summary.textContent = 'Tienes una buena base. Repasa la guía de regiones y etiquetas para afianzar legislaciones y destilerías.';
+            } else {
+                icon.className = 'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-3xl sm:text-4xl font-extrabold border-4 border-rose-500 bg-rose-950/50 text-rose-400';
+                badge.className = 'inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300';
+                badge.textContent = 'Requiere Repaso';
+                title.textContent = 'Continúa Practicando';
+                summary.textContent = 'Te recomendamos revisar las fichas de Escocia, Irlanda, EE.UU., Canadá y Japón antes de volver a rendir.';
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE RECONOCIMIENTO VISUAL DE BOTELLAS REALES (CATA A CIEGAS)
+        // ==========================================
+        let visualDeck = [];
+        let visualIndex = 0;
+        let visualScore = 0;
+        let visualAnswered = false;
+        let activeVisualShuffledOptions = [];
+        let activeVisualCorrectIndex = 0;
+
+        function initVisualChallenge() {
+            visualDeck = [...visualItems];
+            for (let i = visualDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [visualDeck[i], visualDeck[j]] = [visualDeck[j], visualDeck[i]];
+            }
+            visualIndex = 0;
+            visualScore = 0;
+            document.getElementById('vis-total').textContent = visualDeck.length;
+            document.getElementById('vis-score').textContent = '0';
+            renderVisualItem();
+        }
+
+        function renderVisualItem() {
+            visualAnswered = false;
+            const item = visualDeck[visualIndex];
+            document.getElementById('vis-current').textContent = visualIndex + 1;
+            document.getElementById('vis-container-type').textContent = item.container;
+            document.getElementById('vis-volume').textContent = item.volume;
+            const titleEl = document.getElementById('vis-brand-title');
+            titleEl.textContent = 'Observa la etiqueta en la botella';
+            titleEl.className = 'font-serif text-base sm:text-lg font-bold text-oak-300 tracking-wide truncate';
+
+            const artworkEl = document.getElementById('vis-artwork');
+            artworkEl.innerHTML = `
+                <img 
+                    id="vis-bottle-img"
+                    src="${item.imageUrl}" 
+                    alt="Ejemplar de cata visual" 
+                    referrerpolicy="no-referrer"
+                    class="max-h-full max-w-full w-auto h-full object-contain rounded-xl transition-transform duration-300 hover:scale-105"
+                />
+            `;
+
+            const imgEl = document.getElementById('vis-bottle-img');
+            if (imgEl) {
+                imgEl.onerror = async function () {
+                    this.onerror = null;
+                    try {
+                        const searchQuery = encodeURIComponent(`${item.brand} bottle`);
+                        const resp = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=filetype:bitmap+${searchQuery}&gsrnamespace=6&gsrlimit=3&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json&origin=*`);
+                        const data = await resp.json();
+                        const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
+                        const foundUrl = pages[0]?.imageinfo?.[0]?.thumburl || pages[0]?.imageinfo?.[0]?.url;
+                        if (foundUrl) {
+                            this.src = foundUrl;
+                            item.imageUrl = foundUrl;
+                            return;
+                        }
+                    } catch (err) {
+                        console.warn('Error consultando Wikimedia API:', err);
+                    }
+                    this.src = 'https://placehold.co/320x460/161311/dfa05e?text=Ejemplar+de+Cata';
+                };
+            }
+
+            document.getElementById('btn-vis-reopen').classList.add('hidden');
+            document.getElementById('btn-vis-next').classList.add('hidden');
+
+            const indexedVisualOpts = item.options.map((text, origIdx) => ({
+                text,
+                isCorrect: origIdx === item.correct
+            }));
+            for (let i = indexedVisualOpts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indexedVisualOpts[i], indexedVisualOpts[j]] = [indexedVisualOpts[j], indexedVisualOpts[i]];
+            }
+
+            activeVisualShuffledOptions = indexedVisualOpts;
+            activeVisualCorrectIndex = indexedVisualOpts.findIndex(o => o.isCorrect);
+
+            const letters = ['A', 'B', 'C', 'D'];
+            document.getElementById('vis-options').innerHTML = indexedVisualOpts.map((opt, idx) => `
+                <button onclick="selectVisualOption(${idx})" id="vis-opt-${idx}" class="w-full text-left px-3.5 py-2.5 sm:py-3 rounded-xl bg-peat-900/95 hover:bg-peat-800 border border-oak-700/40 text-oak-100 text-sm sm:text-base font-medium leading-snug transition-all flex items-center gap-3 group">
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-peat-950 border border-oak-700/50 flex items-center justify-center text-xs sm:text-sm font-extrabold text-oak-400 shrink-0 group-hover:border-oak-500 group-hover:text-white">
+                        ${letters[idx]}
+                    </span>
+                    <span>${opt.text}</span>
+                </button>
+            `).join('');
+        }
+
+        function selectVisualOption(selectedIndex) {
+            if (visualAnswered) return;
+            visualAnswered = true;
+
+            const item = visualDeck[visualIndex];
+            const isCorrect = selectedIndex === activeVisualCorrectIndex;
+            if (isCorrect) {
+                visualScore++;
+                document.getElementById('vis-score').textContent = visualScore;
+            }
+
+            // Revelar el nombre de la etiqueta una vez emitida la respuesta
+            const titleEl = document.getElementById('vis-brand-title');
+            titleEl.textContent = item.brand;
+            titleEl.className = 'font-serif text-lg sm:text-xl font-bold text-white tracking-wide truncate';
+
+            activeVisualShuffledOptions.forEach((_, idx) => {
+                const btn = document.getElementById(`vis-opt-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-peat-800');
+                if (idx === activeVisualCorrectIndex) {
+                    btn.classList.remove('bg-peat-900/95', 'border-oak-700/40');
+                    btn.classList.add('bg-emerald-950/90', 'border-emerald-500', 'text-emerald-100');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-peat-900/95', 'border-oak-700/40');
+                    btn.classList.add('bg-rose-950/90', 'border-rose-500', 'text-rose-100');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            const nextLabel = (visualIndex + 1 === visualDeck.length) ? 'Reiniciar Serie ↻' : 'Siguiente Botella →';
+            const nextBtn = document.getElementById('btn-vis-next');
+            nextBtn.textContent = nextLabel;
+            nextBtn.classList.remove('hidden');
+            document.getElementById('btn-vis-reopen').classList.remove('hidden');
+
+            openFeedbackModal({
+                isCorrect,
+                subtitle: `Etiqueta: ${item.brand}`,
+                explanation: item.explanation,
+                nextLabel,
+                onNext: () => nextVisualItem()
+            });
+        }
+
+        function nextVisualItem() {
+            visualIndex++;
+            if (visualIndex >= visualDeck.length) {
+                showToast(`Serie visual completada: ${visualScore} de ${visualDeck.length} aciertos.`, 'success');
+                initVisualChallenge();
+            } else {
+                renderVisualItem();
+            }
+        }
+
+        // ==========================================
+        // CONTROL DEL MODAL POP-UP DE RETROALIMENTACIÓN Y TECLA ESC
+        // ==========================================
+        let activeModalNextCallback = null;
+
+        function openFeedbackModal({ isCorrect, subtitle, explanation, nextLabel, onNext }) {
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-modal-card');
+            const icon = document.getElementById('modal-fb-icon');
+            const subEl = document.getElementById('modal-fb-subtitle');
+            const titleEl = document.getElementById('modal-fb-title');
+            const textEl = document.getElementById('modal-fb-text');
+            const nextBtn = document.getElementById('modal-fb-next-btn');
+
+            card.classList.remove('border-emerald-500/70', 'border-rose-500/70');
+            icon.className = 'w-12 h-12 rounded-2xl flex items-center justify-center text-2xl font-extrabold shrink-0';
+
+            if (isCorrect) {
+                card.classList.add('border-emerald-500/70');
+                icon.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border', 'border-emerald-500/40');
+                icon.textContent = '✓';
+                titleEl.textContent = '¡Respuesta Correcta!';
+                titleEl.className = 'font-serif text-2xl sm:text-3xl font-bold text-emerald-300 leading-tight';
+            } else {
+                card.classList.add('border-rose-500/70');
+                icon.classList.add('bg-rose-500/20', 'text-rose-400', 'border', 'border-rose-500/40');
+                icon.textContent = '✕';
+                titleEl.textContent = 'Revisión Técnica';
+                titleEl.className = 'font-serif text-2xl sm:text-3xl font-bold text-rose-300 leading-tight';
+            }
+
+            subEl.textContent = subtitle || 'Retroalimentación';
+            textEl.textContent = explanation;
+            nextBtn.textContent = nextLabel || 'Continuar →';
+            activeModalNextCallback = onNext || null;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedback-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function reopenFeedbackModal() {
+            const modal = document.getElementById('feedback-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function handleModalNext() {
+            closeFeedbackModal();
+            if (typeof activeModalNextCallback === 'function') {
+                const fn = activeModalNextCallback;
+                activeModalNextCallback = null;
+                fn();
+            }
+        }
+
+        // ==========================================
+        // CONTROL DEL MODAL EXPANDIBLE DE FICHAS TÉCNICAS
+        // ==========================================
+        let activeStyleModalId = null;
+
+        function openStyleModal(styleId) {
+            const style = whiskyStyles.find(s => s.id === styleId);
+            if (!style) return;
+
+            activeStyleModalId = styleId;
+            document.getElementById('sm-origin').textContent = style.originGroup;
+            document.getElementById('sm-region').textContent = style.region;
+            document.getElementById('sm-title').textContent = style.name;
+            document.getElementById('sm-description').textContent = style.description;
+            document.getElementById('sm-color-dot').style.background = style.dramHex;
+            document.getElementById('sm-color-name').textContent = style.colorName;
+            document.getElementById('sm-abv').textContent = style.abv;
+            document.getElementById('sm-cask').textContent = style.cask;
+            document.getElementById('sm-brands').innerHTML = style.brands
+                .map(b => `<span class="px-3 py-1 rounded-xl bg-peat-900 border border-oak-700/50 text-sm sm:text-base font-semibold text-oak-100">${b}</span>`)
+                .join('');
+
+            updateStyleModalMasterButton();
+            document.getElementById('style-modal').classList.remove('hidden');
+        }
+
+        function updateStyleModalMasterButton() {
+            if (!activeStyleModalId) return;
+            const btn = document.getElementById('sm-master-btn');
+            const isMastered = state.masteredStyles.includes(activeStyleModalId);
+            if (isMastered) {
+                btn.textContent = '✓ Estilo Dominado';
+                btn.className = 'px-5 py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all bg-emerald-600 hover:bg-emerald-500 text-white';
+            } else {
+                btn.textContent = 'Marcar como Dominado';
+                btn.className = 'px-5 py-2.5 rounded-xl text-sm sm:text-base font-bold transition-all bg-peat-800 hover:bg-peat-700 text-oak-100 border border-oak-700/50';
+            }
+        }
+
+        function toggleMasteredFromModal() {
+            if (!activeStyleModalId) return;
+            toggleMastered(activeStyleModalId);
+            updateStyleModalMasterButton();
+        }
+
+        function closeStyleModal() {
+            const modal = document.getElementById('style-modal');
+            if (modal) modal.classList.add('hidden');
+            activeStyleModalId = null;
+        }
+
+        // Cerrar cualquier pop-up activo con la tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const styleModal = document.getElementById('style-modal');
+                if (styleModal && !styleModal.classList.contains('hidden')) {
+                    closeStyleModal();
+                    return;
+                }
+                const feedbackModal = document.getElementById('feedback-modal');
+                if (feedbackModal && !feedbackModal.classList.contains('hidden')) {
+                    closeFeedbackModal();
+                }
+            }
+        });
+
+        // Inicializar al cargar la página
+        window.addEventListener('DOMContentLoaded', loadState);
+    </script>
+</body>
+</html>

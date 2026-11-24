@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proceso de Elaboración de la Cerveza - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #d97706 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes bubbleRise {
+            0% { transform: translateY(0) scale(0.8); opacity: 0.2; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-48px) scale(1.15); opacity: 0; }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.4; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatYeasts {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .anim-bubble-1 { animation: bubbleRise 2.2s infinite ease-in; }
+        .anim-bubble-2 { animation: bubbleRise 2.8s infinite ease-in 0.7s; }
+        .anim-bubble-3 { animation: bubbleRise 2.5s infinite ease-in 1.4s; }
+        .anim-spin { transform-origin: 160px 68px; animation: spinSlow 4s linear infinite; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-yeast { animation: floatYeasts 2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-inner shrink-0">
+                    <i class="fa-solid fa-beer-mug-empty text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Bebidas Fermentadas</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración de la Cerveza</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva vs. Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de precarga de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-spinner fa-spin text-amber-400"></i>
+                    <span id="audio-preload-text">Preparando audios HD (0/24)...</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-600 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-beer-mug-empty"></i>
+                        <span>Estilos y Marcas</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        Actividad de Sommellerie
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración</strong>: comienza por el tronco común, identifica las <strong>3 rutas de fermentación</strong> (Ale, Lager y Lambic) y finaliza con la guarda. Pulsa <i class="fa-solid fa-circle-info text-amber-600"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-700 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Obtención y Preparación del Mosto</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-700"></i>
+                        <span>Bifurcación según Levadura y Temperatura de Fermentación</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Las 3 Rutas de Fermentación (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-700 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Rutas de Fermentación Alcohólica</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5 (Alta), 6 (Baja), 7 (Espontánea) -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Afinamiento Posterior y Acondicionamiento</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa, temperaturas críticas, tiempos y perfiles sensoriales. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE ESTILOS Y MARCAS (ALE / LAGER / LAMBIC) -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            Taxonomía Cervecera
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 estilos clasificados</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>estilo y sus marcas emblemáticas</strong> dentro de su familia de fermentación correspondiente: <strong>Ale</strong> (fermentación alta), <strong>Lager</strong> (fermentación baja) o <strong>Lambic</strong> (fermentación espontánea).
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Estilos</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Estilos y Marcas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Estilos y Marcas Disponibles (Arrastra o toca una ficha y luego toca su familia)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-700 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca la columna Ale, Lager o Lambic
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas de estilos/marcas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: ALE, LAGER, LAMBIC -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna ALE -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'ALE')"
+                    onclick="handleStyleColumnClick('ALE')"
+                    id="col-family-ALE"
+                    class="rounded-2xl border-2 border-dashed border-amber-300 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-700 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-arrow-up-from-water-pump text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-lg font-bold text-stone-900">Familia ALE</h3>
+                                <span class="text-xs text-stone-500 font-medium">Fermentación Alta (15°C – 25°C)</span>
+                            </div>
+                        </div>
+                        <span id="count-family-ALE" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-ALE" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna LAGER -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'LAGER')"
+                    onclick="handleStyleColumnClick('LAGER')"
+                    id="col-family-LAGER"
+                    class="rounded-2xl border-2 border-dashed border-sky-300 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-sky-700 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-arrow-down-short-wide text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-lg font-bold text-stone-900">Familia LAGER</h3>
+                                <span class="text-xs text-stone-500 font-medium">Fermentación Baja (5°C – 9°C)</span>
+                            </div>
+                        </div>
+                        <span id="count-family-LAGER" class="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-900">0</span>
+                    </div>
+                    <div id="items-family-LAGER" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna LAMBIC -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'LAMBIC')"
+                    onclick="handleStyleColumnClick('LAMBIC')"
+                    id="col-family-LAMBIC"
+                    class="rounded-2xl border-2 border-dashed border-purple-300 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-wind text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-lg font-bold text-stone-900">Familia LAMBIC</h3>
+                                <span class="text-xs text-stone-500 font-medium">Fermentación Espontánea (Bélgica)</span>
+                            </div>
+                        </div>
+                        <span id="count-family-LAMBIC" class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-900">0</span>
+                    </div>
+                    <div id="items-family-LAMBIC" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa de Estilos y Marcas (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo de Estilos y Marcas</h3>
+                        <p class="text-xs text-stone-500">Clasificación completa por familia, origen, graduación alcohólica, perfil sensorial y marcas de referencia.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('ALE')" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Ale</button>
+                        <button onclick="filterReferenceTable('LAGER')" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-sky-100">Lager</button>
+                        <button onclick="filterReferenceTable('LAMBIC')" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-purple-100">Lambic</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Familia</th>
+                                <th class="p-3">Estilo</th>
+                                <th class="p-3">Origen</th>
+                                <th class="p-3">Color / Alcohol</th>
+                                <th class="p-3">Características</th>
+                                <th class="p-3 rounded-tr-xl">Marcas Ejemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-600 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-wheat-awn"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Bebidas Espirituosas y Fermentadas</span> • Sommellerie
+    </footer>
+
+    <script>
+        // Base de datos estructurada sobre las etapas de elaboración de la cerveza
+        const STEPS_DATA = [
+            {
+                id: 'malteado',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Malteado',
+                shortSubtitle: 'Germinación controlada y secado del cereal',
+                icon: 'fa-wheat-awn',
+                colorClass: 'bg-amber-600',
+                metrics: [
+                    { label: 'Enzimas Activas', value: 'Citasa y Diastasa' },
+                    { label: 'Transformación', value: 'Almidón → Maltosa' },
+                    { label: 'Cereal Principal', value: 'Cebada (también trigo)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Remojo: Se hidrata la cebada con el objetivo de hinchar el grano y despertar el embrión latente.',
+                    '2/3 • Germinación: El embrión segrega citasa (para disolver las membranas del almidón) y diastasa (con el objetivo de convertir el almidón en maltosa fermentable).',
+                    '3/3 • Secado y Tostado: Se aplica aire caliente para detener el brote antes de que consuma el azúcar generado y definir el color y aroma de la malta.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Grano 1: Remojo -->
+                        <g transform="translate(55, 70)">
+                            <ellipse cx="0" cy="0" rx="22" ry="13" fill="#d97706" stroke="#fbbf24" stroke-width="2"/>
+                            <path d="M-12,0 Q0,-6 12,0" stroke="#fef3c7" stroke-width="1.5" fill="none"/>
+                            <circle cx="-18" cy="-16" r="3" fill="#38bdf8" class="anim-bubble-1"/>
+                            <circle cx="16" cy="-18" r="2.5" fill="#38bdf8" class="anim-bubble-2"/>
+                            <text x="0" y="32" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="bold">1. Remojo</text>
+                        </g>
+                        <!-- Flecha 1 -->
+                        <path d="M90,70 L118,70" stroke="#78716c" stroke-width="2"/>
+                        <!-- Grano 2: Germinación y Enzimas -->
+                        <g transform="translate(160, 70)">
+                            <ellipse cx="0" cy="0" rx="24" ry="14" fill="#b45309" stroke="#f59e0b" stroke-width="2"/>
+                            <path d="M22,-2 Q34,-12 38,-6" stroke="#84cc16" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M22,4 Q32,14 36,10" stroke="#bef264" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <text x="0" y="-22" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="bold">Citasa + Diastasa</text>
+                            <text x="0" y="32" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="bold">2. Germinación</text>
+                        </g>
+                        <!-- Flecha 2 -->
+                        <path d="M202,70 L228,70" stroke="#78716c" stroke-width="2"/>
+                        <!-- Grano 3: Horno Secado -->
+                        <g transform="translate(265, 70)">
+                            <ellipse cx="0" cy="0" rx="22" ry="13" fill="#78350f" stroke="#f97316" stroke-width="2"/>
+                            <path d="M-12,18 L-6,12 L0,18 L6,12 L12,18" stroke="#ef4444" stroke-width="2.5" fill="none" class="anim-flame"/>
+                            <text x="0" y="32" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="bold">3. Secado/Tostado</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Proceso complejo que desorganiza la estructura interna del grano de cereal mediante una germinación controlada y posterior secado. Su objetivo es activar enzimas para descomponer almidones complejos y transformarlos en azúcares fermentables (maltosa).',
+                bullets: [
+                    'Remojo: el cereal (principalmente cebada) se humedece hasta que los granos se hinchan y despierta el embrión.',
+                    'Germinación: el embrión segrega dos enzimas clave: la citasa (disuelve la membrana que recubre el almidón) y la diastasa/amilasas (transforma el almidón en maltosa).',
+                    'Secado y tostado: al aparecer el brote y raicilla ("malta verde"), se aplica aire caliente y seco para detener la germinación.',
+                    'Maltas resultantes: a baja temperatura se obtienen maltas pálidas (Pilsen, Pale Ale); a mayor temperatura, maltas doradas, cobrizas u oscuras (Viena, Munich, Chocolate, Tostada).'
+                ],
+                sensory: 'Determina directamente el color final de la cerveza, además de aportar notas de pan, galleta, caramelo, café o cacao según el grado de secado y tostado en maltería.'
+            },
+            {
+                id: 'maceracion',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Maceración',
+                shortSubtitle: 'Maceración / Decocción y filtrado de bagazo',
+                icon: 'fa-temperature-half',
+                colorClass: 'bg-orange-600',
+                metrics: [
+                    { label: 'Maceración (Ale)', value: '1 a 2 horas (1 temp.)' },
+                    { label: 'Decocción (Lager)', value: 'Hasta 6 horas' },
+                    { label: 'Subproducto', value: 'Bagazo (fibra/proteína)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Empaste: Se mezcla la malta triturada con agua caliente con el objetivo de solubilizar y extraer todos sus azúcares naturales.',
+                    '2/3 • Conversión: Se realiza maceración simple (1-2h, Ales) o decocción escalonada (hasta 6h, Lagers) para completar la acción enzimática y definir el cuerpo.',
+                    '3/3 • Filtrado del Mosto: Se separa el líquido azucarado de los restos sólidos (bagazo) con el objetivo de obtener un mosto limpio listo para hervir.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Cuba de Maceración -->
+                        <rect x="75" y="25" width="90" height="80" rx="8" fill="#44403c" stroke="#a8a29e" stroke-width="2"/>
+                        <rect x="79" y="45" width="82" height="56" rx="4" fill="#d97706" opacity="0.85"/>
+                        <!-- Rejilla de filtrado / Bagazo -->
+                        <line x1="79" y1="86" x2="161" y2="86" stroke="#fef3c7" stroke-width="2" stroke-dasharray="4 3"/>
+                        <rect x="79" y="88" width="82" height="13" fill="#78350f"/>
+                        <text x="120" y="98" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="bold">BAGAZO (Sólidos)</text>
+                        <text x="120" y="68" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">MOSTO AZUCARADO</text>
+                        <!-- Tubería de salida hacia Caldera -->
+                        <path d="M165,72 L215,72 L215,92" stroke="#f59e0b" stroke-width="5" fill="none" stroke-linecap="round"/>
+                        <circle cx="215" cy="102" r="4" fill="#fbbf24" class="anim-bubble-1"/>
+                        <text x="242" y="66" text-anchor="start" fill="#fcd34d" font-size="10" font-weight="bold">Mosto Limpio</text>
+                        <text x="242" y="80" text-anchor="start" fill="#a8a29e" font-size="9">Define cuerpo</text>
+                        <text x="242" y="92" text-anchor="start" fill="#a8a29e" font-size="9">y alcohol final</text>
+                    </svg>
+                `,
+                description: 'Una vez triturada la malta hasta formar una harina, se mezcla con agua caliente en la cervecería para extraer sus azúcares naturales y obtener un caldo azucarado llamado mosto.',
+                bullets: [
+                    'Maceración simple: infusión a una única temperatura durante 1 a 2 horas; método tradicional en las cervezas tipo Ale.',
+                    'Decocción: proceso escalonado más lento (hasta 6 horas) transfiriendo la mezcla a diferentes temperaturas; utilizado tradicionalmente en cervezas tipo Lager.',
+                    'Filtrado del mosto: antes de pasar a cocción, se filtra el líquido para retirar los restos sólidos insolubles del grano, denominados bagazo (rico en fibra y proteínas).',
+                    'Densidad inicial: la proporción de malta respecto al agua define la densidad del mosto y los azúcares disponibles.'
+                ],
+                sensory: 'Define el cuerpo (estructura en boca) y el futuro grado alcohólico: un mosto más denso generará una cerveza con mayor cuerpo y alcohol (relación: 17-18 g de azúcar por cada 1° alcohólico).'
+            },
+            {
+                id: 'ebullicion',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Ebullición',
+                shortSubtitle: 'Cocción y lupulización del mosto',
+                icon: 'fa-fire-burner',
+                colorClass: 'bg-red-600',
+                metrics: [
+                    { label: 'Duración', value: '1 a 1,5 horas' },
+                    { label: 'Insumo Clave', value: 'Conos o pellets de lúpulo' },
+                    { label: 'Función', value: 'Amargor, aroma y asepsia' }
+                ],
+                videoCaptions: [
+                    '1/3 • Hervor Vigoroso: El mosto se hierve en caldera de 60 a 90 minutos con el objetivo de esterilizarlo, concentrar azúcares y coagular proteínas.',
+                    '2/3 • Lupulización Escalonada: Se añaden lúpulos al inicio para aportar amargor equilibrante y al final con el objetivo de conservar sus aceites aromáticos.',
+                    '3/3 • Acción Antiséptica: Las resinas del lúpulo protegen el mosto impidiendo bacterias nocivas, permitiendo elaborar cervezas livianas sin alto alcohol.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Caldera -->
+                        <rect x="105" y="34" width="110" height="72" rx="12" fill="#292524" stroke="#ef4444" stroke-width="2"/>
+                        <rect x="109" y="50" width="102" height="52" rx="8" fill="#ea580c" opacity="0.9"/>
+                        <!-- Burbujas de ebullición -->
+                        <circle cx="135" cy="92" r="4" fill="#fed7aa" class="anim-bubble-1"/>
+                        <circle cx="160" cy="95" r="5" fill="#fed7aa" class="anim-bubble-2"/>
+                        <circle cx="185" cy="90" r="3.5" fill="#fed7aa" class="anim-bubble-3"/>
+                        <!-- Conos de Lúpulo cayendo -->
+                        <g transform="translate(145, 22)" class="anim-yeast">
+                            <ellipse cx="0" cy="0" rx="7" ry="10" fill="#65a30d" stroke="#bef264" stroke-width="1.5"/>
+                            <text x="14" y="4" fill="#bef264" font-size="10" font-weight="bold">+ Lúpulo</text>
+                        </g>
+                        <!-- Fuego inferior -->
+                        <path d="M120,118 Q130,106 140,118 Q150,104 160,118 Q170,104 180,118 Q190,106 200,118" stroke="#f97316" stroke-width="3" fill="none" class="anim-flame"/>
+                        <text x="160" y="132" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="bold">Cocción 1 a 1,5 hs • Amargor + Aroma</text>
+                    </svg>
+                `,
+                description: 'El mosto limpio se traslada a una caldera donde se hierve junto con las flores femeninas del lúpulo (en cono o pellets) durante 60 a 90 minutos.',
+                bullets: [
+                    'Adición escalonada de lúpulo: no se incorpora todo al principio; se añaden distintas variedades en diferentes momentos del hervor según se busque extraer amargor o preservar aceites aromáticos.',
+                    'Variedades clásicas: Saaz (Bohemia/Rep. Checa), Goldings y Fuggles (Gran Bretaña), Hallertau y Tettnang (Alemania) y Cascade (EE.UU.).',
+                    'Propiedades antisépticas y conservantes: el lúpulo impide el desarrollo de microorganismos nocivos, permitiendo elaborar cervezas livianas sin necesidad de alto grado alcohólico.',
+                    'Duración estándar del hervor: entre 1 hora y 1 hora y media.'
+                ],
+                sensory: 'Equilibra el dulzor residual de la malta mediante el amargor característico y aporta notas herbales, florales, especiadas o cítricas según el origen del lúpulo.'
+            },
+            {
+                id: 'clarificacion',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Clarificación y Enfriamiento',
+                shortSubtitle: 'Remolino centrífugo y refrigerado',
+                icon: 'fa-snowflake',
+                colorClass: 'bg-cyan-600',
+                metrics: [
+                    { label: 'Clarificación', value: 'Movimiento centrífugo' },
+                    { label: 'Límite crítico levadura', value: '>32°C se debilita / >60°C muere' },
+                    { label: 'Objetivo', value: 'Adecuar temp. de inóculo' }
+                ],
+                videoCaptions: [
+                    '1/3 • Clarificación (Whirlpool): Se genera un remolino centrífugo con el objetivo de arrastrar las partículas coaguladas al centro y fondo del tanque.',
+                    '2/3 • Prevención Térmica: Es indispensable bajar la temperatura porque por encima de 32°C la levadura se debilita y a más de 60°C muere.',
+                    '3/3 • Refrigerado Dirigido: Se enfría el mosto rápidamente a 15°C (Ale) o 5–9°C (Lager) con el objetivo de preparar el medio óptimo para inocular levaduras.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(85, 70)">
+                            <circle cx="0" cy="0" r="42" fill="#0e7490" opacity="0.35" stroke="#22d3ee" stroke-width="2"/>
+                            <path d="M-24,0 A24,24 0 1,1 24,0 A14,14 0 1,1 -14,0" stroke="#67e8f9" stroke-width="2.5" fill="none" class="anim-spin" style="transform-origin: 0px 0px;"/>
+                            <circle cx="0" cy="0" r="7" fill="#a16207"/>
+                            <text x="0" y="55" text-anchor="middle" fill="#a5f3fc" font-size="9" font-weight="bold">Whirlpool (Sólidos)</text>
+                        </g>
+                        <path d="M138,70 L178,70" stroke="#22d3ee" stroke-width="2.5"/>
+                        <g transform="translate(235, 70)">
+                            <rect x="-42" y="-34" width="84" height="68" rx="10" fill="#164e63" stroke="#06b6d4" stroke-width="2"/>
+                            <text x="0" y="-8" text-anchor="middle" fill="#f87171" font-size="11" font-weight="bold">98°C Hervor</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#38bdf8" font-size="10">↓ Enfriado rápido</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#a7f3d0" font-size="11" font-weight="bold">5°C – 15°C</text>
+                            <text x="0" y="55" text-anchor="middle" fill="#a5f3fc" font-size="9" font-weight="bold">Listo para Levadura</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Tras el hervor se separan las partículas coaguladas mediante clarificación y se refrigera rápidamente el mosto hasta la temperatura óptima para inocular las levaduras sin dañarlas.',
+                bullets: [
+                    'Clarificación (Whirlpool): movimiento centrífugo dentro del tanque que genera un remolino, arrastrando las partículas sólidas hacia el centro y el fondo.',
+                    'Sensibilidad térmica de las levaduras: a partir de 32°C comienzan a debilitarse y dejan de reproducirse; con más de 40°C se inhiben y por encima de 60°C mueren.',
+                    'Enfriamiento dirigido: se lleva el mosto a ~15°C para fermentación Ale o a 5–9°C para fermentación Lager antes de inocular.'
+                ],
+                sensory: 'Evita sabores astringentes de proteínas y lúpulos coagulados en suspensión y garantiza una fermentación limpia libre de estrés térmico.'
+            },
+            {
+                id: 'ruta-ale',
+                correctSlot: 5,
+                orderLabel: '5. Ruta Fermentación Alta',
+                title: 'Ruta Ale',
+                shortSubtitle: 'Levaduras en superficie (15°C a 25°C)',
+                icon: 'fa-arrow-up-from-water-pump',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Temperatura', value: '15°C a 25°C' },
+                    { label: 'Duración', value: '5 a 7 días (rápida)' },
+                    { label: 'Temperatura Servicio', value: '9°C a 12°C' }
+                ],
+                videoCaptions: [
+                    '1/3 • Fermentación Alta: Se inoculan levaduras que trabajan en la superficie con el objetivo de transformar los azúcares en alcohol y gas carbónico.',
+                    '2/3 • Ritmo Templado y Rápido: Actúan entre 15°C y 25°C durante 5 a 7 días para generar abundantes ésteres frutales y aromáticos.',
+                    '3/3 • Azúcar Residual: Al no consumir la totalidad del azúcar, el objetivo de esta ruta es lograr cervezas con más cuerpo, notas frutadas y leve dulzor.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="115" y="22" width="90" height="92" rx="10" fill="#292524" stroke="#f59e0b" stroke-width="2"/>
+                        <rect x="119" y="42" width="82" height="68" rx="6" fill="#b45309" opacity="0.85"/>
+                        <rect x="119" y="34" width="82" height="14" rx="4" fill="#fef3c7" class="anim-yeast"/>
+                        <text x="160" y="44" text-anchor="middle" fill="#78350f" font-size="8" font-weight="bold">LEVADURAS ARRIBA</text>
+                        <circle cx="140" cy="85" r="3" fill="#fde68a" class="anim-bubble-1"/>
+                        <circle cx="165" cy="95" r="3.5" fill="#fde68a" class="anim-bubble-2"/>
+                        <text x="160" y="130" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="bold">15°C – 25°C • 5 a 7 días • Frutadas</text>
+                    </svg>
+                `,
+                description: 'Fermentación rápida realizada por cepas de Saccharomyces cerevisiae que actúan a temperaturas templadas-altas y flotan acumulándose en la superficie del mosto.',
+                bullets: [
+                    'Rango térmico y tiempo: inicia alrededor de 15°C y alcanza los 25°C por el calor propio de la fermentación. Dura entre 5 y 7 días.',
+                    'Finalización: al terminar de actuar, la levadura cae al fondo del tanque; luego se clarifica o filtra y puede recibir segunda fermentación en botella o dry-hopping.',
+                    'Estilos representativos: Pale Ale, IPA, Porter, Stout, Imperial Stout, Barley Wine, Scotch Ale, Weissbier (trigo), Trapenses y Abadía belgas.'
+                ],
+                sensory: 'Más frutadas (ésteres) y ligeramente más dulces que las Lagers, ya que las levaduras no transforman la totalidad del azúcar. Servicio ideal entre 9°C y 12°C.'
+            },
+            {
+                id: 'ruta-lager',
+                correctSlot: 6,
+                orderLabel: '6. Ruta Fermentación Baja',
+                title: 'Ruta Lager',
+                shortSubtitle: 'Levaduras en el fondo en frío (5°C a 9°C)',
+                icon: 'fa-arrow-down-short-wide',
+                colorClass: 'bg-sky-700',
+                metrics: [
+                    { label: 'Temperatura', value: '5°C a 9°C' },
+                    { label: 'Duración', value: 'Hasta 2 semanas' },
+                    { label: 'Temperatura Servicio', value: '4°C a 5°C' }
+                ],
+                videoCaptions: [
+                    '1/3 • Fermentación Baja: Se añaden levaduras que decantan al fondo del tanque con el objetivo de fermentar lentamente en ambiente frío.',
+                    '2/3 • Control en Frío: Trabajan entre 5°C y 9°C hasta dos semanas para evitar la formación de ésteres frutados y mantener un perfil limpio.',
+                    '3/3 • Atenuación Completa: Consumen casi todo el azúcar disponible con el objetivo de obtener cervezas secas, refrescantes y de sabor suave.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="115" y="22" width="90" height="92" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                        <rect x="119" y="34" width="82" height="76" rx="6" fill="#eab308" opacity="0.85"/>
+                        <rect x="119" y="96" width="82" height="14" rx="4" fill="#fef08a"/>
+                        <text x="160" y="106" text-anchor="middle" fill="#1e3a8a" font-size="8" font-weight="bold">LEVADURAS EN FONDO</text>
+                        <circle cx="145" cy="82" r="2.5" fill="#fef9c3" class="anim-bubble-1"/>
+                        <circle cx="175" cy="75" r="2.5" fill="#fef9c3" class="anim-bubble-2"/>
+                        <text x="160" y="130" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">5°C – 9°C • Hasta 2 semanas • Secas</text>
+                    </svg>
+                `,
+                description: 'Método surgido en Centroeuropa (Baviera y Bohemia) y consolidado en el siglo XIX con la refrigeración artificial y los estudios de Pasteur. Las levaduras trabajan en la parte baja del tanque.',
+                bullets: [
+                    'Acción lenta en frío: fermenta entre 5°C y 9°C durante hasta dos semanas; requiere mayor control técnico que las Ales.',
+                    'Eficiencia fermentativa: transforman el azúcar en alcohol más despacio pero de forma más completa.',
+                    'Estilos representativos: Pilsener/Pils, Munich, Viena (Märzen/Oktoberfest), Dortmunder Export, Bock y Doppelbock.'
+                ],
+                sensory: 'Cervezas más secas (ínfimo azúcar residual), limpias y menos frutadas que las Ales. Se sirven bien frías, entre 4°C y 5°C.'
+            },
+            {
+                id: 'ruta-lambic',
+                correctSlot: 7,
+                orderLabel: '7. Ruta Fermentación Espontánea',
+                title: 'Ruta Lambic',
+                shortSubtitle: 'Levaduras salvajes del Valle del Zenne',
+                icon: 'fa-wind',
+                colorClass: 'bg-purple-700',
+                metrics: [
+                    { label: 'Inóculo', value: 'Levaduras salvajes del aire' },
+                    { label: 'Cereal Base', value: '30-40% trigo crudo + cebada' },
+                    { label: 'Origen Exclusivo', value: 'Bruselas / Valle del Zenne' }
+                ],
+                videoCaptions: [
+                    '1/3 • Exposición al Ambiente: El mosto con trigo crudo y lúpulo viejo se enfría al aire libre con el objetivo de captar levaduras salvajes sin inoculación artificial.',
+                    '2/3 • Fermentación Espontánea: La microflora autóctona del Valle del Zenne actúa lentamente para desarrollar acidez marcada y complejidad vinosa.',
+                    '3/3 • Guarda y Mezcla: Se envejece de 1 a 2 años en madera con el objetivo de servir de base para ensamblar Gueuze, Faro o macerar frutas en Kriek.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <path d="M55,32 Q110,20 160,32 T265,30" stroke="#c084fc" stroke-width="2" fill="none" stroke-dasharray="5 4"/>
+                        <circle cx="110" cy="36" r="3" fill="#e879f9" class="anim-yeast"/>
+                        <circle cx="160" cy="42" r="3.5" fill="#f0abfc" class="anim-yeast"/>
+                        <circle cx="210" cy="34" r="3" fill="#e879f9" class="anim-yeast"/>
+                        <rect x="95" y="54" width="130" height="52" rx="6" fill="#3b0764" stroke="#a855f7" stroke-width="2"/>
+                        <rect x="99" y="64" width="122" height="38" fill="#d97706" opacity="0.8"/>
+                        <text x="160" y="86" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">FERMENTACIÓN ESPONTÁNEA</text>
+                        <text x="160" y="128" text-anchor="middle" fill="#e9d5ff" font-size="10" font-weight="bold">Valle del Zenne (Bélgica) • 30-40% Trigo Crudo</text>
+                    </svg>
+                `,
+                description: 'Estilo ancestral elaborado casi exclusivamente en Bélgica (Valle del Zenne, alrededores de Bruselas). No se añaden levaduras cultivadas, sino que se deja actuar a la microflora salvaje del ambiente.',
+                bullets: [
+                    'Molienda y lúpulo viejo: emplea 30 a 40% de trigo crudo y el resto de cebada ligeramente malteada. Se usa lúpulo envejecido que perdió amargor/aroma pero conserva su poder antiséptico.',
+                    'Tiempo de guarda: la Lambic base envejece en madera de 1 a 2 años ("joven" <6 meses, "vieja" >6 meses).',
+                    'Derivados tradicionales: Gueuze (corte de lambic vieja y joven con re-fermentación en botella), Faro (con azúcar añadido) y Kriek / Frambozen (maceradas con cerezas o frambuesas).'
+                ],
+                sensory: 'Perfil complejo, seco, vinoso, con acidez marcada y notas oxidativas; muy baja carbonatación en Lambic pura y efervescencia tipo champagne en Gueuze y Kriek.'
+            },
+            {
+                id: 'maduracion',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Maduración y Envasado',
+                shortSubtitle: 'Acondicionamiento en frío, filtración y guarda',
+                icon: 'fa-wine-bottle',
+                colorClass: 'bg-emerald-700',
+                metrics: [
+                    { label: 'Lager ("Almacén")', value: '0°C durante 2 a 6 meses' },
+                    { label: 'Mínimo Lager', value: '3 a 4 semanas' },
+                    { label: 'Envases', value: 'Botella, barril o lata' }
+                ],
+                videoCaptions: [
+                    '1/3 • Guarda en Frío (Lager): Se almacena la cerveza cerca de 0°C de 2 a 6 meses con el objetivo de decantar impurezas y redondear su sabor suave.',
+                    '2/3 • Acondicionamiento Ale y Lambic: Se traspasa a barricas o botellas con azúcar y levadura para lograr una segunda fermentación y carbonatación natural.',
+                    '3/3 • Filtrado y Envasado: Se filtra parcial o totalmente y se envasa en botella, barril o lata con el objetivo de estabilizar su espuma y frescura hasta el servicio.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="55" y="34" width="110" height="68" rx="34" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                        <text x="110" y="65" text-anchor="middle" fill="#a7f3d0" font-size="10" font-weight="bold">TANQUE GUARDA</text>
+                        <text x="110" y="80" text-anchor="middle" fill="#6ee7b7" font-size="9">Lager: ~0°C (2-6 m)</text>
+                        <path d="M172,68 L206,68" stroke="#34d399" stroke-width="2.5"/>
+                        <g transform="translate(238, 68)">
+                            <rect x="-14" y="-26" width="28" height="58" rx="5" fill="#78350f" stroke="#fbbf24" stroke-width="1.5"/>
+                            <rect x="-7" y="-42" width="14" height="18" fill="#78350f" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="0" y="48" text-anchor="middle" fill="#a7f3d0" font-size="9" font-weight="bold">Botella / Barril</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Una vez concluida la fermentación principal, la cerveza pasa a tanques de acondicionamiento, barricas o botellas para redondear su perfil sensorial antes de su comercialización.',
+                bullets: [
+                    'Maduración Lager (a ~0°C): del alemán "lagern" (almacenar). Dura de 2 a 6 meses (mínimo 3-4 semanas) cerca del punto de congelación para lograr suavidad y redondez.',
+                    'Acondicionamiento Ale: tras decantar la levadura, se clarifica y pasa a maduración o recibe azúcar y levadura para segunda fermentación en botella (generando sedimento natural).',
+                    'Filtración y envasado final: antes de embotellar, embarrilar o enlatar, puede filtrarse parcial o totalmente para eliminar sólidos residuales.'
+                ],
+                sensory: 'Redondea aromas y sabores, estabiliza la espuma y el gas carbónico. En cervezas con segunda fermentación en botella (ej. Trapenses o trigo), el sedimento del fondo exige un servicio cuidadoso.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Fermentación Alta', hint: 'Ubicar ruta' },
+            { slotId: 6, phase: 2, title: 'Fermentación Baja', hint: 'Ubicar ruta' },
+            { slotId: 7, phase: 2, title: 'Fermentación Espontánea', hint: 'Ubicar ruta' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // Base de datos completa de Estilos y Marcas (Ale, Lager y Lambic)
+        const BEER_STYLES_DATA = [
+            // FAMILIA LAGER
+            {
+                id: 'pilsner',
+                family: 'LAGER',
+                style: 'Pilsener / Pilsner / Pils',
+                brandsWorld: 'Pilsner Urquell, Grolsch',
+                brandsArgentina: 'Quilmes Clásica, Stella Artois, Heineken, Corona, Brahma, Budweiser, Warsteiner',
+                origin: 'Plzeň (Bohemia, Rep. Checa) / Argentina e Internacional',
+                color: 'Rubia dorada',
+                abv: '4,5 – 5,5%',
+                notes: 'Primera cerveza dorada elaborada. Transparente, seca, acentuado carácter de malta y aroma a lúpulo característico. En versiones industriales masivas (como Quilmes, Brahma o Corona) suelen emplearse adjuntos como maíz o arroz que aportan mayor ligereza.'
+            },
+            {
+                id: 'munich',
+                family: 'LAGER',
+                style: 'Munich (Dunkel)',
+                brandsWorld: 'Sagres',
+                brandsArgentina: 'Quilmes Bock / Stout (línea oscura), Warsteiner Dunkel',
+                origin: 'Franconia / Sur de Alemania / Argentina',
+                color: 'Oscura',
+                abv: '4,5 – 5,5%',
+                notes: 'Típica lager oscura de cuerpo liviano y suave, con protagonismo de maltas tostadas.'
+            },
+            {
+                id: 'vienna',
+                family: 'LAGER',
+                style: 'Viena (Märzen / Oktoberfest)',
+                brandsWorld: 'Ottakringer, Wiener Original (Austria)',
+                brandsArgentina: 'Patagonia Amber Lager, Andes Origen Roja',
+                origin: 'Viena / Munich / Patagonia (Argentina)',
+                color: 'Rubia / Ámbar',
+                abv: '4 – 6%',
+                notes: 'Cerveza tradicional de la fiesta de Octubre. Se elabora en marzo y madura en frío hasta septiembre-octubre; cuerpo moderado y notas de malta caramelo.'
+            },
+            {
+                id: 'dortmunder',
+                family: 'LAGER',
+                style: 'Dortmunder Export',
+                brandsWorld: 'Dortmunder Union, DAB',
+                brandsArgentina: '',
+                origin: 'Dortmund (Noroeste Alemania)',
+                color: 'Dorada',
+                abv: '4,5 – 6,5%',
+                notes: 'Pálida, semi-seca, con mayor cuerpo que una Pilsen pero menos amarga.'
+            },
+            {
+                id: 'bock',
+                family: 'LAGER',
+                style: 'Bock / Doppelbock',
+                brandsWorld: 'Salvator, Celebrator',
+                brandsArgentina: 'Quilmes Bock, Peñón del Águila Bock',
+                origin: 'Einbeck / Munich (Alemania) / Argentina',
+                color: 'Marrón oscura',
+                abv: '6 – >6,5%',
+                notes: '"Bock" (macho cabrío): lager fuerte y maltosa. Las Doppelbock superan 6,5% vol. y llevan el sufijo "-ator" en homenaje a Salvator.'
+            },
+            {
+                id: 'bohemian-keller-arg',
+                family: 'LAGER',
+                style: 'Bohemian Pilsener / Lager Artesanal',
+                brandsWorld: 'Budweiser Budvar (Czechvar)',
+                brandsArgentina: 'Patagonia Bohemian Pilsener, Peñón del Águila, Bierhaus',
+                origin: 'Bohemia / Bariloche / Córdoba / Buenos Aires',
+                color: 'Dorada brillante',
+                abv: '4,8 – 5,5%',
+                notes: 'Lagers lupuladas de perfil centroeuropeo elaboradas con maltas Pilsen y lúpulos aromáticos nobles o patagónicos.'
+            },
+            // FAMILIA ALE
+            {
+                id: 'brown-ale',
+                family: 'ALE',
+                style: 'Brown Ale (embotellada) / Mild (barril)',
+                brandsWorld: 'Newcastle Brown Ale',
+                brandsArgentina: 'Berlina Brown Ale, Antares Brown',
+                origin: 'Gran Bretaña / Argentina',
+                color: 'Oscura',
+                abv: '3 – 4,5%',
+                notes: 'Suave ("mild") por su bajo amargor proveniente del lúpulo y perfil maltoso acaramelado.'
+            },
+            {
+                id: 'pale-ale',
+                family: 'ALE',
+                style: 'Pale Ale (embotellada) / Bitter (barril)',
+                brandsWorld: 'Samuel Smith, London Pride',
+                brandsArgentina: 'Imperial Golden / APA, Otro Mundo Golden Ale',
+                origin: 'Centro y Norte de Inglaterra / Argentina',
+                color: 'Cobriza / Dorada',
+                abv: '3,5 – 5%',
+                notes: 'Carácter seco y amargor marcado de lúpulos británicos (Goldings, Fuggles) o cítricos en las versiones American Pale Ale.'
+            },
+            {
+                id: 'ipa',
+                family: 'ALE',
+                style: 'India Pale Ale (IPA)',
+                brandsWorld: "Emerson's, Samuel Smith India Ale",
+                brandsArgentina: 'Patagonia 24.7, Andes Origen IPA, Antares IPA, Temple Wolf IPA',
+                origin: 'Gran Bretaña / India / Argentina',
+                color: 'Cobriza / Dorada intensa',
+                abv: '4 – 7,5%',
+                notes: 'Más densa y amarga que la Pale Ale debido a su elevada carga de lúpulo aromático y de amargor.'
+            },
+            {
+                id: 'barley-wine',
+                family: 'ALE',
+                style: 'Barley Wine (Vino de Cebada)',
+                brandsWorld: 'J.W. Lees Harvest Ale (UK)',
+                brandsArgentina: 'Antares Barley Wine, Juguetes Perdidos',
+                origin: 'Gran Bretaña / Argentina',
+                color: 'Roja, oscura',
+                abv: '6 – 12%',
+                notes: 'Mucho cuerpo y alta graduación alcohólica; tradicionalmente envejecía un tiempo en madera.'
+            },
+            {
+                id: 'scotch-ale',
+                family: 'ALE',
+                style: 'Scotch Ale',
+                brandsWorld: 'Gordon Finest Scotch',
+                brandsArgentina: 'Antares Scotch, Beagle Roja',
+                origin: 'Escocia, Bélgica y Argentina',
+                color: 'Marrón oscura / Rubí',
+                abv: '6 – 8%',
+                notes: 'Menos amarga que las inglesas; dulce y con notas ahumadas o de caramelo tostado.'
+            },
+            {
+                id: 'porter',
+                family: 'ALE',
+                style: 'Porter',
+                brandsWorld: "Fuller's London Porter (UK)",
+                brandsArgentina: 'Antares Porter, Juguetes Perdidos Porter',
+                origin: 'Gran Bretaña / Argentina',
+                color: 'Muy oscura',
+                abv: '4,5 – 5,5%',
+                notes: 'Seca, nutritiva y consistente, precursora histórica de las Stout.'
+            },
+            {
+                id: 'stout',
+                family: 'ALE',
+                style: 'Stout / Imperial Stout / Oatmeal Stout',
+                brandsWorld: 'Samuel Smith Russian Imperial, Maclay',
+                brandsArgentina: 'Guinness (importada), Imperial Cream Stout, Antares Imperial Stout',
+                origin: 'Irlanda (Dublín/Cork), Gran Bretaña y Argentina',
+                color: 'Muy oscura / Negra',
+                abv: '4 – 10%',
+                notes: 'Más cuerpo que Porter, sabor tostado y torrado, espuma cremosa. Oatmeal añade avena y azúcar láctea.'
+            },
+            {
+                id: 'belgian-ale',
+                family: 'ALE',
+                style: 'Ale Belgas / Ale Dorada Fuerte',
+                brandsWorld: 'Maudite, Palm, Petrus, De Koninck',
+                brandsArgentina: 'Duvel, Stella Artois Blonde / Abbey (importadas en vinotecas)',
+                origin: 'Bélgica',
+                color: 'Rubia / Cobriza',
+                abv: '5 – 8%',
+                notes: 'Muy suaves, especiadas y frutadas. La Ale Dorada Fuerte (Duvel) es seca, floral y de espuma abundante.'
+            },
+            {
+                id: 'trapense-abadia',
+                family: 'ALE',
+                style: 'Trapense y Abadía (Single, Dubbel, Tripel)',
+                brandsWorld: 'Orval, Rochefort, Westmalle, Achel, Westvleteren',
+                brandsArgentina: 'Chimay, Leffe Blonde / Brune (importadas)',
+                origin: 'Bélgica y Holanda',
+                color: 'Rubias a Oscuras',
+                abv: '5 – 11%',
+                notes: 'Segunda fermentación en botella (sedimento natural). Single (5-6%), Dubbel (oscura/dulce, 6-7%), Tripel (pálida/seca, 8-9%).'
+            },
+            {
+                id: 'weissbier',
+                family: 'ALE',
+                style: 'De Trigo / Weissbier / Witbier',
+                brandsWorld: 'Weihenstephaner, Schneider Weisse',
+                brandsArgentina: 'Hoegaarden, Paulaner, Erdinger, Franziskaner, Patagonia Weisse',
+                origin: 'Berlín, Sur de Alemania, Bélgica y Argentina',
+                color: 'Rubia de aspecto velado',
+                abv: '3 – 5,5%',
+                notes: 'Mezcla trigo y cebada; carácter refrescante, levemente ácido, notas a banana/clavo de olor (alemanas) o cáscara de naranja/coriandro (belgas).'
+            },
+            {
+                id: 'altbier-kolsch',
+                family: 'ALE',
+                style: 'Altbier y Kölsch',
+                brandsWorld: 'Uerige, Frankenheim (Altbier) / Früh, Döm (Kölsch)',
+                brandsArgentina: 'Antares Kölsch (versión local)',
+                origin: 'Düsseldorf y Colonia (Alemania) / Argentina',
+                color: 'Cobriza (Alt) / Rubia (Kölsch)',
+                abv: '4,5 – 5%',
+                notes: 'Excepciones alemanas de fermentación alta: Altbier ("viejo") es amarga y madura en frío; Kölsch es frutada y sutil.'
+            },
+            // FAMILIA LAMBIC
+            {
+                id: 'lambic-pura',
+                family: 'LAMBIC',
+                style: 'Lambic (Joven y Vieja)',
+                brandsWorld: 'Cantillon, Boon, 3 Fonteinen',
+                brandsArgentina: '',
+                origin: 'Valle del Zenne / Bruselas (Bélgica)',
+                color: 'Dorada / Ámbar velada',
+                abv: '4 – 6%',
+                notes: 'Fermentación espontánea con 30-40% trigo crudo + cebada y lúpulo viejo. Crianza de 1 a 2 años; seca, ácida y poco gas.'
+            },
+            {
+                id: 'gueuze',
+                family: 'LAMBIC',
+                style: 'Gueuze',
+                brandsWorld: 'Cantillon Gueuze, Boon Oude Geuze',
+                brandsArgentina: '',
+                origin: 'Bruselas (Bélgica)',
+                color: 'Dorada brillante',
+                abv: '5 – 6%',
+                notes: 'Corte de Lambic envejecida + Lambic joven con azúcar residual; re-fermenta en botella logrando efervescencia tipo champagne.'
+            },
+            {
+                id: 'faro',
+                family: 'LAMBIC',
+                style: 'Faro',
+                brandsWorld: 'Cantillon Faro, Lindemans Faro',
+                brandsArgentina: '',
+                origin: 'Bruselas (Bélgica)',
+                color: 'Ámbar',
+                abv: '4,5 – 5,5%',
+                notes: 'Lambic base a la que se añade azúcar; re-fermenta parcialmente dando una cerveza agridulce y burbujeante.'
+            },
+            {
+                id: 'kriek-frambozen',
+                family: 'LAMBIC',
+                style: 'Kriek y Frambozen (Cervezas de Frutas)',
+                brandsWorld: 'Cantillon Kriek / Framboise',
+                brandsArgentina: 'Lindemans Kriek / Framboise (importada en vinotecas)',
+                origin: 'Bruselas (Bélgica)',
+                color: 'Rosada a Rojiza',
+                abv: '5 – 7%',
+                notes: 'Maceración de cerezas (Kriek) o frambuesas (Frambozen) en barricas de Lambic; conocida como el "champagne rosado" cervecero.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Estilos y Marcas
+        let activeStyleCards = []; // Subconjunto de 12 estilos activos en la ronda
+        let stylePlacements = {}; // { styleId: 'ALE' | 'LAGER' | 'LAMBIC' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            preloadAllTtsAudios();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-600 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // Estado y motor del reproductor de mini-video con locución neuronal (Gemini TTS)
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {}; // Caché de audio WAV generado por escena
+        const ttsInFlightRequests = {}; // Promesas activas para evitar llamadas duplicadas
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        // Precarga en segundo plano de las 24 escenas (8 etapas x 3 escenas) con concurrencia controlada
+        async function preloadAllTtsAudios() {
+            const queue = [];
+            for (const step of STEPS_DATA) {
+                step.videoCaptions.forEach((rawText, idx) => {
+                    queue.push({
+                        cacheKey: `${step.id}_${idx}`,
+                        cleanText: cleanCaptionForSpeech(rawText)
+                    });
+                });
+            }
+
+            const total = queue.length;
+            let completed = 0;
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+            }
+
+            const updatePreloadUI = () => {
+                if (!textEl || !iconEl) return;
+                if (completed < total) {
+                    textEl.textContent = `Preparando audios HD (${completed}/${total})...`;
+                } else {
+                    const readyCount = Object.keys(ttsAudioCache).length;
+                    if (readyCount > 0) {
+                        iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                        textEl.textContent = `Audios HD listos (${readyCount}/${total})`;
+                    } else {
+                        iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                        textEl.textContent = 'Voz local lista';
+                    }
+                }
+            };
+
+            updatePreloadUI();
+
+            // Procesar en lotes de 3 solicitudes simultáneas para evitar saturación de red
+            const CONCURRENCY = 3;
+            let cursor = 0;
+
+            async function worker() {
+                while (cursor < queue.length) {
+                    const item = queue[cursor++];
+                    await getOrFetchTtsAudio(item.cacheKey, item.cleanText);
+                    completed++;
+                    updatePreloadUI();
+                }
+            }
+
+            const workers = Array.from({ length: CONCURRENCY }, () => worker());
+            await Promise.all(workers);
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        // Conversión de Base64 PCM16 a archivo WAV reproducible
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => setVoiceStatus('Narrando (local)...', 'speaking');
+            utterance.onend = () => {
+                setVoiceStatus('Voz activa');
+                if (onComplete) onComplete();
+            };
+            utterance.onerror = () => {
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            // Actualizar subtítulo y cabecera inmediatamente
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450); // Breve pausa natural entre escenas
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Cargando voz HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+                    audioUrl = await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-800 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-600 ring-2 ring-amber-400/50 bg-amber-50' : 'border-stone-200 hover:border-amber-400'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-700 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-400';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-500 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-700 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia 100% correcta',
+                    'Dominas el flujo de elaboración de la cerveza: Malteado → Maceración → Ebullición → Clarificación y enfriamiento → Fermentación (Ale, Lager o Lambic) → Maduración y envasado.'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el orden del tronco común y las temperaturas de fermentación.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-400 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE ESTILOS Y MARCAS (ALE / LAGER / LAMBIC)
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const ales = BEER_STYLES_DATA.filter(s => s.family === 'ALE').sort(() => Math.random() - 0.5).slice(0, 5);
+                const lagers = BEER_STYLES_DATA.filter(s => s.family === 'LAGER').sort(() => Math.random() - 0.5).slice(0, 4);
+                const lambics = BEER_STYLES_DATA.filter(s => s.family === 'LAMBIC').sort(() => Math.random() - 0.5).slice(0, 3);
+                activeStyleCards = [...ales, ...lagers, ...lambics].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} estilos clasificados`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-800 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras! Pulsa <strong>"Verificar Estilos"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-600 ring-2 ring-amber-400/50 bg-amber-50' : 'border-stone-200 hover:border-amber-400'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Mundial:</span> ${item.brandsWorld}
+                            </p>
+                            ${item.brandsArgentina ? `
+                                <p class="text-xs text-amber-900 leading-snug mt-0.5">
+                                    <span class="font-semibold text-amber-800">Vendida en Argentina:</span> ${item.brandsArgentina}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span>${item.origin}</span>
+                            <span class="font-semibold text-stone-500">${item.abv}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = ['ALE', 'LAGER', 'LAMBIC'];
+            families.forEach(fam => {
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar estilos de familia <strong>${fam}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${item.family}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Mundial:</strong> ${item.brandsWorld}
+                                </p>
+                                ${item.brandsArgentina ? `
+                                    <p class="text-[11px] text-amber-900 leading-snug mt-0.5">
+                                        <strong class="text-amber-800">Vendida en Argentina:</strong> ${item.brandsArgentina}
+                                    </p>
+                                ` : ''}
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan estilos por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Ale, Lager o Lambic antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos',
+                    'Has identificado correctamente todos los estilos y marcas emblemáticas según su familia de fermentación (Ale, Lager y Lambic).'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} estilos`,
+                    'Revisa las fichas marcadas en rojo donde se indica su familia correcta. Puedes pulsar "Ver Tabla Completa" para repasar cada estilo y marca.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.textContent.trim().toUpperCase();
+                const isMatch = (family === 'ALL' && btnFam === 'TODOS') || (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? BEER_STYLES_DATA
+                : BEER_STYLES_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                ALE: 'bg-amber-100 text-amber-900 border-amber-200',
+                LAGER: 'bg-sky-100 text-sky-900 border-sky-200',
+                LAMBIC: 'bg-purple-100 text-purple-900 border-purple-200'
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family]}">${item.family}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700">
+                        <span class="block font-medium">${item.color}</span>
+                        <span class="text-xs text-stone-500">${item.abv}</span>
+                    </td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Mundial:</strong> ${item.brandsWorld}</div>
+                        ${item.brandsArgentina ? `<div class="text-amber-900"><strong class="text-amber-800">Vendida en Argentina:</strong> ${item.brandsArgentina}</div>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

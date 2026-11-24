@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elaboración y Clasificación del Whisky Japonés - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.25; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(-44px) scale(1.15); opacity: 0; }
+        }
+        @keyframes dripDrop {
+            0% { transform: translateY(0); opacity: 0.9; }
+            80% { opacity: 1; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatAngels {
+            0%, 100% { transform: translateY(0px); opacity: 0.75; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+        .anim-vapor-1 { animation: vaporRise 2.2s infinite ease-in; }
+        .anim-vapor-2 { animation: vaporRise 2.8s infinite ease-in 0.7s; }
+        .anim-vapor-3 { animation: vaporRise 2.5s infinite ease-in 1.3s; }
+        .anim-drip { animation: dripDrop 1.8s infinite ease-in; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-angel { animation: floatAngels 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-800 via-amber-700 to-stone-900 flex items-center justify-center text-amber-100 shadow-inner shrink-0 border border-amber-500/30">
+                    <i class="fa-solid fa-whiskey-glass text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Destilados de Cereales • Japón</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración y Clasificación del Whisky Japonés</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva, Regiones/Normativa/Marcas, Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de estado de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="audio-preload-text">Audio narrado listo</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-torii-gate"></i>
+                        <span>Regiones, JSLMA y Destilerías</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                        Actividad Destilados • Japanese Whisky
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración del Whisky Japonés</strong> distribuyéndolas en las tres fases del diagrama. Arrastra o selecciona cada tarjeta y ubícala en su casillero correspondiente; pulsa <i class="fa-solid fa-circle-info text-amber-700"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Agua Japonesa, Modelo Autosuficiente, Destilación y Roble Mizunara</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-800"></i>
+                        <span>Diversidad Geográfica y Climática del Archipiélago Nipón</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Ejes Regionales del Whisky Japonés (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-800 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Perfiles Regionales del Archipiélago (Norte, Centro y Sur)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5, 6, 7 -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Regulación JSLMA (2021), Blending y Rituales de Servicio</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración del Whisky Japonés</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa: fundación pionera de Shinjiro Torii y Masataka Taketsuru (Yamazaki 1923 y Yoichi 1934), fuentes naturales de agua japonesa y cereales malteados, modelo de producción autosuficiente (fermentadores de acero y madera, múltiples juegos de alambiques de distintas formas y tamaños, destilado &lt;95% ABV), guarda mínima de 3 años en recipientes de ≤700 litros con uso estratégico del roble Mizunara (<em>Quercus crispula</em>, 200 años) y barricas <em>Shochu</em>, regiones productoras (Hokkaido, Kanto, Kansai, Chūbu, Chūgoku y Kyushu), norma JSLMA de 2021 (≥40% ABV, caramelo simple E150a) y rituales tradicionales de servicio (<em>Mizuwari</em>, <em>Oyuwari</em> y <em>Haiboru</em>). Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE REGIONES, NORMATIVA JSLMA Y DESTILERÍAS -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                            Taxonomía del Japanese Whisky
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 fichas clasificadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>región productora, norma/técnica japonesa o destilería histórica</strong> dentro de su eje correspondiente: <strong>Regiones y Terruños (Hokkaido a Kyushu)</strong>, <strong>Normativa JSLMA y Técnicas (Mizunara, Autosuficiencia, Rituales)</strong> o <strong>Pioneros y Destilerías (Suntory, Nikka, Chichibu, Mars)</strong>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Clasificación</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Fichas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Fichas de Whisky Japonés Disponibles (Arrastra o toca una ficha y luego toca su columna)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca Regiones y Terruños, Normativa y Técnicas o Pioneros y Destilerías
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: REGIONES, NORMATIVA, DESTILERIAS -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna REGIONES Y TERRUÑOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'REGIONES')"
+                    onclick="handleStyleColumnClick('REGIONES')"
+                    id="col-family-REGIONES"
+                    class="rounded-2xl border-2 border-dashed border-amber-500 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-mountain-sun text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Regiones y Terruños</h3>
+                                <span class="text-xs text-stone-500 font-medium">Hokkaido, Kanto, Kansai, Chūbu, Kyushu</span>
+                            </div>
+                        </div>
+                        <span id="count-family-REGIONES" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-REGIONES" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna NORMATIVA JSLMA Y TÉCNICAS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'NORMATIVA')"
+                    onclick="handleStyleColumnClick('NORMATIVA')"
+                    id="col-family-NORMATIVA"
+                    class="rounded-2xl border-2 border-dashed border-rose-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-rose-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-scale-balanced text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Normativa y Técnicas</h3>
+                                <span class="text-xs text-stone-500 font-medium">JSLMA 2021, Mizunara, Pure Malt y Rituales</span>
+                            </div>
+                        </div>
+                        <span id="count-family-NORMATIVA" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-900">0</span>
+                    </div>
+                    <div id="items-family-NORMATIVA" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna PIONEROS Y DESTILERÍAS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'DESTILERIAS')"
+                    onclick="handleStyleColumnClick('DESTILERIAS')"
+                    id="col-family-DESTILERIAS"
+                    class="rounded-2xl border-2 border-dashed border-stone-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-stone-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-torii-gate text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Pioneros y Destilerías</h3>
+                                <span class="text-xs text-stone-500 font-medium">Suntory, Nikka, Chichibu, Mars, Kirin...</span>
+                            </div>
+                        </div>
+                        <span id="count-family-DESTILERIAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-200 text-stone-900">0</span>
+                    </div>
+                    <div id="items-family-DESTILERIAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa del Whisky Japonés (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo Completo del Whisky Japonés</h3>
+                        <p class="text-xs text-stone-500">Regiones climáticas del archipiélago, regulación JSLMA (2021), maderas autóctonas (Mizunara), destilerías y glosario tradicional.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" data-filter="ALL" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('REGIONES')" data-filter="REGIONES" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Regiones</button>
+                        <button onclick="filterReferenceTable('NORMATIVA')" data-filter="NORMATIVA" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-rose-100">Normativa y Técnicas</button>
+                        <button onclick="filterReferenceTable('DESTILERIAS')" data-filter="DESTILERIAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200">Pioneros y Destilerías</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Eje</th>
+                                <th class="p-3">Región / Norma / Destilería</th>
+                                <th class="p-3">Ubicación / Contexto</th>
+                                <th class="p-3">Agua / Madera / Parámetros</th>
+                                <th class="p-3">Características Técnicas</th>
+                                <th class="p-3 rounded-tr-xl">Referencias / Destilerías</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-700 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-whiskey-glass"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-700 hover:bg-amber-600 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Whisky Japonés (JSLMA • Mizunara • Terruños) • Bebidas Espirituosas</span> • Sommellerie
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS TÉCNICA: 8 ETAPAS DE ELABORACIÓN DEL WHISKY JAPONÉS
+        // =========================================================================
+        const STEPS_DATA = [
+            {
+                id: 'agua-japonesa-cereales-malteados',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Fuentes de Agua Natural Japonesa y Cereales Malteados',
+                shortSubtitle: 'Manantiales locales (obligatorio en Japón) + cebada malteada',
+                icon: 'fa-droplet',
+                colorClass: 'bg-sky-800',
+                metrics: [
+                    { label: 'Agua Obligatoria', value: 'Fuentes naturales en Japón' },
+                    { label: 'Cereales Base', value: 'Siempre cebada malteada (+ otros)' },
+                    { label: 'Fundación Pionera', value: 'Yamazaki (1923) y Yoichi (1934)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Pioneros de la Industria: Masataka Taketsuru (formado en Glasgow) y Shinjiro Torii fundaron Yamazaki en 1923 (Suntory) y Yoichi en 1934 (Nikka), adaptando la técnica escocesa a Japón.',
+                    '2/3 • Agua de Fuentes Naturales de Japón: La ubicación de cada destilería depende de manantiales con perfiles minerales específicos (como las aguas blandas filtradas por granito en Hakushu o ríos de Yamazaki).',
+                    '3/3 • Cereales Malteados Obligatorios: La norma JSLMA exige emplear siempre cereales malteados (cebada), pudiendo incluirse otros granos, con sacarificación realizada íntegramente en Japón.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(65, 66)">
+                            <rect x="-48" y="-34" width="96" height="68" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#bae6fd" font-size="8.5" font-weight="bold">AGUA JAPÓN</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">Manantial Propio</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#7dd3fc" font-size="8">Perfil mineral clave</text>
+                        </g>
+                        <text x="122" y="70" text-anchor="middle" fill="#fbbf24" font-size="14" font-weight="bold">+</text>
+                        <g transform="translate(178, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#78350f" stroke="#fbbf24" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold">MATERIA PRIMA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">Cebada Malteada</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">+ Otros granos</text>
+                        </g>
+                        <g transform="translate(268, 66)">
+                            <rect x="-34" y="-34" width="68" height="68" rx="10" fill="#1c1917" stroke="#f59e0b" stroke-width="2"/>
+                            <text x="0" y="-8" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-weight="bold">ORIGEN</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">1923 / 1934</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="7.5">Torii &amp; Taketsuru</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">Sacarificación, fermentación y destilación 100% en territorio japonés</text>
+                    </svg>
+                `,
+                description: 'Impulsada por Shinjiro Torii y Masataka Taketsuru (Yamazaki en 1923 y Yoichi en 1934), la elaboración del whisky japonés comienza con cereales malteados (siempre cebada, sola o con otros granos) y agua extraída obligatoriamente de fuentes naturales en Japón.',
+                bullets: [
+                    '¿Por qué el agua define la ubicación de cada destilería? Porque el perfil mineral (aguas muy blandas filtradas por granito en Hakushu o ríos convergentes en Yamazaki) condiciona la fermentación y la limpieza sensorial del destilado.',
+                    'Sacarificación en territorio japonés: la conversión de almidones en azúcares fermentables debe efectuarse íntegramente en destilerías ubicadas en Japón.'
+                ],
+                sensory: 'Las aguas blandas y puras de montaña aportan una textura sedosa, ligereza cristalina y gran nitidez aromática.'
+            },
+            {
+                id: 'modelo-autosuficiente-fermentacion-alambiques',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Modelo Autosuficiente: Fermentación y Alambiques Múltiples',
+                shortSubtitle: 'Tanques de acero y madera + alambiques de diversas formas (<95% ABV)',
+                icon: 'fa-fire-flame-curved',
+                colorClass: 'bg-orange-700',
+                metrics: [
+                    { label: 'Fermentadores', value: 'Acero inoxidable + Madera (washbacks)' },
+                    { label: 'Alambiques', value: 'Múltiples formas y tamaños por planta' },
+                    { label: 'Tope Destilación', value: 'Menos del 95% ABV (norma JSLMA)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Modelo de Producción Autosuficiente: A diferencia de Escocia (donde las destilerías intercambian maltas para sus blends), cada planta japonesa produce una amplia gama de destilados distintos internamente.',
+                    '2/3 • Fermentación en Acero y Madera: Combinan fermentadores de acero inoxidable (perfiles limpios y frutales) con tinas de madera que albergan microflora propia para dar complejidad láctica y especiada.',
+                    '3/3 • Juego Diverso de Alambiques (<95% ABV): Una misma destilería (como Yamazaki) opera alambiques de cuellos largos, cortos, anchos o con distintos condensadores para obtener desde maltas ligeras hasta destilados pesados.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(74, 66)">
+                            <rect x="-50" y="-34" width="100" height="68" rx="10" fill="#292524" stroke="#38bdf8" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#7dd3fc" font-size="8.5" font-weight="bold">FERMENTACIÓN</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Acero + Madera</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#bae6fd" font-size="8">Limpio vs. microflora</text>
+                        </g>
+                        <path d="M130,66 L154,66" stroke="#fbbf24" stroke-width="2.5"/>
+                        <g transform="translate(226, 66)">
+                            <rect x="-66" y="-34" width="132" height="68" rx="10" fill="#7c2d12" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold">ALAMBIQUES MÚLTIPLES</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Cuellos Largos y Cortos</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Destilado &lt; 95% ABV</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">Autosuficiencia interna: maltas ligeras, florales, pesadas y aceitosas en una planta</text>
+                    </svg>
+                `,
+                description: 'A diferencia del modelo escocés basado en el intercambio entre destilerías, Japón desarrolló un modelo autosuficiente: una misma planta combina fermentadores de acero y madera junto a múltiples alambiques de diversas formas y tamaños, destilando siempre a menos del 95% ABV.',
+                bullets: [
+                    '¿Por qué las destilerías japonesas tienen alambiques tan diferentes entre sí? Porque en Japón las compañías no suelen intercambiar barriles entre competidores; variar el largo y ancho de los cuellos de cisne permite crear estilos ligeros o robustos bajo un mismo techo.',
+                    'Fermentación dual: los tanques de acero inoxidable generan perfiles limpios y frutales, mientras los fermentadores de madera aportan microflora autóctona que enriquece la complejidad.'
+                ],
+                sensory: 'Permite diseñar un abanico completo de perfiles aromáticos: desde destilados florales y delicados hasta maltas densas, oleosas o turbadas.'
+            },
+            {
+                id: 'guarda-minima-roble-mizunara-shochu',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Maduración en Japón (≥3 años) y Roble Mizunara',
+                shortSubtitle: 'Recipientes ≤700 L • Barricas ex-Bourbon, Jerez, Shochu y Mizunara',
+                icon: 'fa-tree',
+                colorClass: 'bg-amber-900',
+                metrics: [
+                    { label: 'Norma JSLMA', value: 'Mín. 3 años en Japón (≤700 litros)' },
+                    { label: 'Roble Mizunara', value: 'Quercus crispula (200 años • poroso)' },
+                    { label: 'Otras Barricas', value: 'Ex-Bourbon, Jerez y Shochu Cask' }
+                ],
+                videoCaptions: [
+                    '1/3 • Regla de Maduración (JSLMA): El aguardiente debe envejecer en Japón durante un mínimo de 3 años en recipientes de madera de no más de 700 litros de capacidad.',
+                    '2/3 • Desafío del Roble Mizunara (Quercus crispula): Este roble autóctono tarda 200 años en crecer, tiene tronco retorcido y alta porosidad propensa a fugas, exigiendo reparaciones constantes de tonelería.',
+                    '3/3 • Perfil Único (Sándalo, Incienso y Coco) y Shochu Casks: El Mizunara aporta sándalo, incienso japonés (kara), coco y especias (ideal en guardas >12–15 años o finish), junto a barricas ex-Bourbon, Jerez y ex-Shochu.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(86, 66)">
+                            <rect x="-58" y="-34" width="116" height="68" rx="10" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="9" font-weight="bold">ROBLE MIZUNARA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Quercus crispula (200a)</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Sándalo, incienso y coco</text>
+                        </g>
+                        <g transform="translate(234, 66)">
+                            <rect x="-58" y="-34" width="116" height="68" rx="10" fill="#1c1917" stroke="#fb923c" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">GUARDA EN JAPÓN</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">Mín. 3 años (≤700 L)</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fed7aa" font-size="8">Ex-Bourbon, Jerez, Shochu</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Alta porosidad del Mizunara: ideal en guardas largas (&gt;12–15 años) o finishing</text>
+                    </svg>
+                `,
+                description: 'La maduración debe realizarse íntegramente en Japón durante al menos 3 años en recipientes de madera de máximo 700 litros, combinando barricas ex-Bourbon, ex-Jerez, barricas que contuvieron Shochu y el exclusivo roble japonés Mizunara (Quercus crispula).',
+                bullets: [
+                    '¿Por qué el roble Mizunara es tan escaso y costoso? Porque el árbol tarda ~200 años en alcanzar el diámetro útil, crece de forma retorcida, su tala está protegida por leyes forestales y su estructura porosa y húmeda lo hace propenso a filtraciones.',
+                    'Uso en bodega: al ser tánico en los primeros años, se prefiere para maduraciones largas (>12–15 años) o como acabado final ("finishing") de pocos meses.',
+                    'Shochu Cask: barricas que previamente contuvieron shochu (destilado japonés de arroz, cebada o batata), vinculando la destilación ancestral nipona con el whisky moderno.'
+                ],
+                sensory: 'El roble Mizunara rico en lactonas transfiere notas inconfundibles de sándalo, incienso japonés (kara), coco, miel, flores y especias orientales.'
+            },
+            {
+                id: 'variaciones-climaticas-archipielago',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Influencia Climática y Altitudinal del Archipiélago',
+                shortSubtitle: 'De la maduración lenta y fría en Hokkaido al calor húmedo de Kyushu',
+                icon: 'fa-temperature-half',
+                colorClass: 'bg-red-800',
+                metrics: [
+                    { label: 'Norte Frío (Hokkaido)', value: 'Maduración lenta, marina y turbada' },
+                    { label: 'Altitud / Valles', value: 'Hakushu (Alpes) y Yamazaki (3 ríos)' },
+                    { label: 'Sur Cálido (Kyushu)', value: 'Aceleración térmica con Mizunara' }
+                ],
+                videoCaptions: [
+                    '1/3 • Latitudes Extremas de Japón: El archipiélago abarca climas subárticos en el norte (Hokkaido) hasta subtropicales cálidos en el sur (Kyushu), modificando drásticamente la velocidad de maduración.',
+                    '2/3 • Microclimas de Valle y Montaña: En Kansai (Yamazaki) convergen tres ríos generando humedad constante; en Chūbu (Hakushu) la altitud de los Alpes Japoneses aporta frescura herbal.',
+                    '3/3 • Amplitud Térmica y Aceleración: En Kanto (Chichibu) las fuertes oscilaciones estacionales y en Kyushu el calor húmedo intensifican la extracción de la madera en menor tiempo.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(65, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#1e3a8a" stroke="#60a5fa" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#93c5fd" font-size="8.5" font-weight="bold">HOKKAIDO (NORTE)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Frío y Marino</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#bfdbfe" font-size="8">Maduración lenta</text>
+                        </g>
+                        <g transform="translate(165, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#6ee7b7" font-size="8.5" font-weight="bold">HONSHU (CENTRO)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Valles y Alpes</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a7f3d0" font-size="8">Humedad / Altitud</text>
+                        </g>
+                        <g transform="translate(263, 66)">
+                            <rect x="-44" y="-34" width="88" height="68" rx="10" fill="#7c2d12" stroke="#fb923c" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="8.5" font-weight="bold">KYUSHU (SUR)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Cálido y Húmedo</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fed7aa" font-size="8">Maduración rápida</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">Cada microclima japonés moldea la evaporación y la extracción de la barrica</text>
+                    </svg>
+                `,
+                description: 'Las marcadas variaciones climáticas y geográficas entre las islas japonesas determinan la tasa de evaporación y la interacción entre el destilado y la madera, generando estilos claramente diferenciados.',
+                bullets: [
+                    'Norte frío (Hokkaido): maduración lenta con influencia marina y uso tradicional de turba.',
+                    'Centro de Honshu (Kansai, Chūbu y Kanto): humedad elevada en el valle de Yamazaki, clima fresco de altitud en Hakushu y fuertes variaciones estacionales en Chichibu.',
+                    'Sur cálido y húmedo (Kyushu): alta tasa de maduración térmica que acelera la transferencia de notas de sándalo e incienso del roble Mizunara.'
+                ],
+                sensory: 'Permite a los maestros mezcladores japoneses ensamblar destilados de climas opuestos para alcanzar un equilibrio armónico.'
+            },
+            {
+                id: 'region-hokkaido-norte',
+                correctSlot: 5,
+                orderLabel: '5. Eje Regional I',
+                title: 'Hokkaido (Norte Frío • Yoichi y Akkeshi)',
+                shortSubtitle: 'Maduración lenta, notas robustas, salinas y ahumadas con turba',
+                icon: 'fa-snowflake',
+                colorClass: 'bg-sky-800',
+                metrics: [
+                    { label: 'Destilerías Clave', value: 'Yoichi (Nikka) y Akkeshi' },
+                    { label: 'Clima', value: 'Septentrional frío y costero' },
+                    { label: 'Perfil Sensorial', value: 'Robusto, salino y ahumado (turba)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Región Más Septentrional de Japón (Hokkaido): Masataka Taketsuru eligió Yoichi en 1934 porque su clima frío y costero recordaba a Escocia, propiciando una maduración lenta.',
+                    '2/3 • Proximidad al Mar y Uso de Turba: Las bodegas cercanas a la costa y el empleo tradicional de turba (en Yoichi y Akkeshi) imprimen carácter marino y humo elegante.',
+                    '3/3 • Destilación Tradicional: Yoichi conserva incluso alambiques calentados directamente con carbón fino, generando maltas con cuerpo y profundidad.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#7dd3fc" font-size="12.5" font-weight="bold">HOKKAIDO • YOICHI Y AKKESHI</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">Norte frío • Maduración lenta • Proximidad al mar</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#bae6fd" font-size="8.5">Notas robustas, salinas y ahumadas con turba</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Al ser la región más septentrional y fría de Japón, Hokkaido presenta una maduración pausada marcada por la cercanía al océano y el uso tradicional de turba, con Yoichi (fundada por Nikka en 1934) y Akkeshi como referentes.',
+                bullets: [
+                    'Destilería de referencia: Yoichi (Nikka), junto a la destilería artesanal Akkeshi.',
+                    'Perfil típico: notas robustas, salinas y ahumadas producto del clima frío, la brisa marina y la turba.'
+                ],
+                sensory: 'Cuerpo pleno, carácter marítimo salino, humo de turba bien integrado y fruta oscura madura.'
+            },
+            {
+                id: 'regiones-honshu-kansai-chubu-kanto',
+                correctSlot: 6,
+                orderLabel: '6. Eje Regional II',
+                title: 'Honshu Central: Kansai (Yamazaki), Chūbu (Hakushu) y Kanto (Chichibu)',
+                shortSubtitle: 'Valles húmedos frutales, Alpes herbales y destilerías craft',
+                icon: 'fa-mountain-sun',
+                colorClass: 'bg-emerald-800',
+                metrics: [
+                    { label: 'Kansai (Yamazaki)', value: 'Valle de 3 ríos • Complejo y frutal' },
+                    { label: 'Chūbu (Hakushu)', value: 'Alpes Japoneses • Ligero y herbal' },
+                    { label: 'Kanto (Chichibu)', value: 'Craft • Variación térmica estacional' }
+                ],
+                videoCaptions: [
+                    '1/3 • Kansai (Yamazaki - Suntory, 1923): Ubicada en el valle donde convergen los ríos Katsura, Uji y Kizu, su humedad elevada constante produce whiskies complejos y frutales.',
+                    '2/3 • Chūbu (Hakushu - Suntory): Situada en una zona boscosa de gran altitud en los Alpes Japoneses, su clima fresco y agua filtrada por granito dan perfiles ligeros, herbales y frescos.',
+                    '3/3 • Kanto (Chichibu - Ichiro Akuto): Destaca por su producción artesanal (craft), experimentación con maderas y marcadas variaciones térmicas estacionales en Saitama.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-116" y="-38" width="232" height="76" rx="12" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#6ee7b7" font-size="11.5" font-weight="bold">HONSHU: KANSAI • CHŪBU • KANTO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Yamazaki (Frutal) • Hakushu (Herbal) • Chichibu (Craft)</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#a7f3d0" font-size="8.5">Convergencia de ríos, bosques de altitud y precisión artesanal</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'La isla principal de Honshu concentra el corazón histórico y artesanal del whisky japonés: Kansai (Yamazaki, valle húmedo de tres ríos), Chūbu (Hakushu en los Alpes Japoneses, Shinshu Mars y Fuji Gotemba) y Kanto (Chichibu).',
+                bullets: [
+                    'Kansai (Yamazaki - Suntory): región pionera (1923); humedad constante por la confluencia de los ríos Katsura, Uji y Kizu, generando maltas complejas y frutales.',
+                    'Chūbu (Hakushu - Suntory): altitud boscosa en los Alpes Japoneses y agua granítica que producen whiskies ligeros, herbales y refrescantes.',
+                    'Kanto (Chichibu): referencia mundial del movimiento craft japonés con fuerte amplitud térmica estacional.'
+                ],
+                sensory: 'Abarca desde notas melosas y de fruta madura (Yamazaki) hasta frescura de bosque, menta y manzana verde (Hakushu).'
+            },
+            {
+                id: 'regiones-kyushu-chugoku-sur',
+                correctSlot: 7,
+                orderLabel: '7. Eje Regional III',
+                title: 'Kyushu (Tsunuki / Kanosuke) y Chūgoku (Kurayoshi)',
+                shortSubtitle: 'Clima cálido húmedo, maduración acelerada y acabados locales',
+                icon: 'fa-sun',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Kyushu (Sur)', value: 'Tsunuki (Mars Whisky) y Kanosuke' },
+                    { label: 'Dinámica Térmica', value: 'Alta tasa de maduración (Mizunara)' },
+                    { label: 'Chūgoku', value: 'Matsui Shuzo (Kurayoshi • Mte. Daisen)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Kyushu (Tsunuki y Kanosuke): Situada en el sur cálido y húmedo de Japón, presenta una de las tasas de maduración más altas del país, intensificando el intercambio con la madera.',
+                    '2/3 • Aceleración con Roble Mizunara en Kyushu: Las temperaturas cálidas aceleran la transferencia de notas de sándalo, incienso y coco desde el roble Mizunara al destilado.',
+                    '3/3 • Chūgoku (Matsui Shuzo / Kurayoshi): Destaca por el uso de aguas puras provenientes del Monte Daisen y la experimentación con acabados en maderas locales.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fde047" font-size="12" font-weight="bold">KYUSHU Y CHŪGOKU (SUR/OESTE)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">Tsunuki • Kanosuke • Matsui (Monte Daisen)</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fde68a" font-size="8.5">Clima cálido húmedo • Aceleración térmica en Mizunara</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'En el sur y oeste del archipiélago destacan Kyushu (destilerías Tsunuki de Mars Whisky y Kanosuke) y Chūgoku (Matsui Shuzo en Kurayoshi), caracterizadas por maduraciones térmicas intensas y acabados en maderas locales.',
+                bullets: [
+                    'Kyushu: su clima cálido y húmedo acelera la interacción entre el aguardiente y el roble Mizunara, alcanzando perfiles complejos en menor tiempo.',
+                    'Chūgoku: emplea aguas del Monte Daisen y experimenta con barricas de diferentes procedencias y maderas autóctonas.'
+                ],
+                sensory: 'Perfiles ricos, especiados y envolventes con marcada impronta de sándalo, incienso, frutas tropicales y madera tostada.'
+            },
+            {
+                id: 'regulacion-jslma-blending-rituales',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Regulación JSLMA (2021), Blending y Rituales de Servicio',
+                shortSubtitle: 'Embotellado en Japón (≥40% ABV) • Mizuwari, Oyuwari y Haiboru',
+                icon: 'fa-wine-glass',
+                colorClass: 'bg-stone-900',
+                metrics: [
+                    { label: 'Norma JSLMA (2021)', value: '100% Japón • ≥40% ABV • E150a' },
+                    { label: 'Pure Malt (Nikka)', value: 'Mezcla de maltas (= Blended Malt)' },
+                    { label: 'Rituales Servicio', value: 'Mizuwari, Oyuwari y Haiboru' }
+                ],
+                videoCaptions: [
+                    '1/3 • Regulación JSLMA (2021): Exige que el embotellado se realice exclusivamente en Japón con un mínimo de 40% ABV, permitiendo únicamente colorante de caramelo simple (E150a) para garantizar trazabilidad.',
+                    '2/3 • Arte del Blending y "Pure Malt": Los maestros mezcladores ensamblan sus distintos destilados internos (y Nikka popularizó "Pure Malt" para mezclas 100% de cebada malteada de distintas destilerías).',
+                    '3/3 • Rituales Tradicionales de Consumo: Se sirve solo (16–18°C), en Mizuwari (con agua mineral fría y hielo, 1:2 o 1:2,5), Oyuwari (con agua caliente en invierno) o Haiboru (Highball con soda y mucho hielo).'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(88, 68)">
+                            <rect x="-56" y="-34" width="112" height="68" rx="10" fill="#1c1917" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="9" font-weight="bold">NORMA JSLMA 2021</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Envasado en Japón</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">≥40% ABV • Solo E150a</text>
+                        </g>
+                        <g transform="translate(230, 68)">
+                            <rect x="-66" y="-34" width="132" height="68" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#bae6fd" font-size="9.5" font-weight="bold">RITUALES SERVICIO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Mizuwari (1:2 agua fría)</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Oyuwari &amp; Haiboru (Soda)</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">Acompaña la gastronomía japonesa con precisión, frescura y equilibrio</text>
+                    </svg>
+                `,
+                description: 'El ciclo concluye bajo los estándares de la Japan Spirits & Liqueurs Makers Association (JSLMA, 2021), que exigen embotellado exclusivo en Japón con mínimo 40% ABV (admitiendo solo caramelo E150a), dando paso al arte del blending y a formas de consumo propias de la cultura nipona.',
+                bullets: [
+                    'Regulación JSLMA (2021): creada por la asociación de 82 productores para proteger la autenticidad del Japanese Whisky (agua japonesa, cereales malteados, elaboración y embotellado 100% en Japón, destilación <95% ABV, maduración ≥3 años en ≤700 L y graduación final ≥40% ABV).',
+                    'Pure Malt (Malta Pura): denominación popularizada por Nikka equivalente al Blended Malt escocés (mezcla de whiskies 100% cebada malteada de distintas destilerías).',
+                    'Rituales de servicio: Mizuwari (whisky + agua mineral fría y hielo en proporción 1:2 o 1:2,5), Oyuwari (con agua caliente en invierno), Haiboru (Highball con soda y mucho hielo) o solo como digestivo a 16–18°C.'
+                ],
+                sensory: 'El Mizuwari y el Haiboru abren los aromas florales y frutales del whisky japonés sin saturar el paladar, haciéndolo ideal para acompañar toda una comida.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Norte Frío (Marino y Turbado)', hint: 'Ubicar región' },
+            { slotId: 6, phase: 2, title: 'Honshu Central (Valles y Alpes)', hint: 'Ubicar región' },
+            { slotId: 7, phase: 2, title: 'Sur Cálido (Aceleración Térmica)', hint: 'Ubicar región' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // =========================================================================
+        // BASE DE DATOS COMPLETA DE REGIONES, NORMATIVA Y DESTILERÍAS JAPONESAS
+        // =========================================================================
+        const JAPANESE_WHISKY_CLASSIFICATION_DATA = [
+            // EJE 1: REGIONES Y TERRUÑOS DEL ARCHIPIÉLAGO
+            {
+                id: 'region-hokkaido',
+                family: 'REGIONES',
+                style: 'Hokkaido (Región Más Septentrional y Fría)',
+                brandsWorld: 'Yoichi (Nikka, fundada en 1934) y Akkeshi (Hokkaido Akkeshi)',
+                origin: 'Isla de Hokkaido (Norte de Japón)',
+                cepasCrianza: 'Maduración lenta en clima frío • Proximidad al mar y uso de turba',
+                notes: 'Perfil típico robusto, salino y ahumado, influenciado por el aire marino costero y el secado tradicional con turba.'
+            },
+            {
+                id: 'region-kansai-yamazaki',
+                family: 'REGIONES',
+                style: 'Kansai (Valle de Yamazaki • Convergencia de Tres Ríos)',
+                brandsWorld: 'Yamazaki (Suntory, fundada en 1923 como primera destilería de Japón)',
+                origin: 'Valle de Yamazaki (entre Kioto y Osaka, isla de Honshu)',
+                cepasCrianza: 'Convergencia de los ríos Katsura, Uji y Kizu • Humedad elevada constante',
+                notes: 'Región pionera de la industria; su humedad constante resulta ideal para el envejecimiento y la obtención de perfiles complejos y frutales.'
+            },
+            {
+                id: 'region-chubu-hakushu',
+                family: 'REGIONES',
+                style: 'Chūbu (Alpes Japoneses • Altitud y Agua Granítica)',
+                brandsWorld: 'Hakushu (Suntory), Shinshu Mars (Hombo), Fuji Gotemba (Kirin), Chita',
+                origin: 'Zona boscosa de gran altitud (Alpes Japoneses, centro de Honshu)',
+                cepasCrianza: 'Clima fresco de montaña • Agua filtrada por rocas graníticas',
+                notes: 'Produce whiskies notablemente más ligeros, herbales y frescos en comparación con las destilerías costeras o urbanas.'
+            },
+            {
+                id: 'region-kanto-kyushu-chugoku',
+                family: 'REGIONES',
+                style: 'Kanto (Chichibu), Kyushu (Tsunuki / Kanosuke) y Chūgoku (Kurayoshi)',
+                brandsWorld: 'Chichibu (Ichiro Akuto), Tsunuki (Mars Whisky), Kanosuke, Matsui Shuzo',
+                origin: 'Saitama (Kanto), Sur cálido (Kyushu) y Monte Daisen (Chūgoku)',
+                cepasCrianza: 'Variaciones térmicas en Kanto • Aceleración cálida en Kyushu (Mizunara)',
+                notes: 'Kanto lidera la producción craft; Kyushu posee la tasa de maduración más alta de Japón acelerando el aporte del Mizunara; Chūgoku usa aguas del Monte Daisen.'
+            },
+            // EJE 2: NORMATIVA JSLMA Y TÉCNICAS AUTÓCTONAS
+            {
+                id: 'norma-jslma-2021',
+                family: 'NORMATIVA',
+                style: 'Regulación JSLMA (2021) • 82 Productores Asociados',
+                brandsWorld: 'Aplicable a miembros de la Japan Spirits & Liqueurs Makers Association',
+                origin: 'Estándar de trazabilidad establecido en 2021 en Japón',
+                cepasCrianza: 'Agua y elaboración 100% en Japón • <95% ABV • ≥3 años (≤700 L) • ≥40% ABV',
+                notes: 'Exige cereales malteados, agua natural japonesa, fermentación/destilación/guarda/envasado íntegros en Japón y admite únicamente caramelo simple (E150a).'
+            },
+            {
+                id: 'tecnica-roble-mizunara',
+                family: 'NORMATIVA',
+                style: 'Maduración en Roble Mizunara (Quercus crispula)',
+                brandsWorld: 'Suntory (Yamazaki Mizunara), Nikka, Chichibu y Mars Whisky',
+                origin: 'Roble autóctono de Asia ("roble de agua") • Tala regulada (200 años)',
+                cepasCrianza: 'Alta porosidad y humedad • Notas de sándalo, incienso (kara), coco y especias',
+                notes: 'Tarda ~200 años en crecer, es propenso a fugas y tánico al inicio; se emplea en guardas largas (>12–15 años) o como acabado ("finishing") de pocos meses.'
+            },
+            {
+                id: 'tecnica-autosuficiencia-pure-malt',
+                family: 'NORMATIVA',
+                style: 'Modelo Autosuficiente, Ji-Whisky, Pure Malt y Shochu Cask',
+                brandsWorld: 'Nikka Taketsuru Pure Malt • Destilerías locales de Ji-Whisky',
+                origin: 'Filosofía técnica de las destilerías japonesas',
+                cepasCrianza: 'Alambiques diversos por planta • Pure Malt (= Blended Malt) • Barricas ex-Shochu',
+                notes: 'Cada planta fabrica sus propios perfiles sin intercambiar maltas; Ji-Whisky designa destilerías artesanales locales; Shochu Cask aporta notas únicas de tradición nipona.'
+            },
+            {
+                id: 'rituales-mizuwari-oyuwari-haiboru',
+                family: 'NORMATIVA',
+                style: 'Rituales de Servicio: Mizuwari, Oyuwari y Haiboru (Highball)',
+                brandsWorld: 'Cultura gastronómica y de barra en Japón (incluyendo formatos RTD)',
+                origin: 'Protocolo tradicional japonés de consumo de whisky',
+                cepasCrianza: 'Mizuwari (1:2 agua fría + hielo) • Oyuwari (agua caliente) • Haiboru (soda + hielo)',
+                notes: 'Adaptan la graduación del whisky a la mesa japonesa: Mizuwari refresca y abre aromas, Oyuwari reconforta en invierno y Haiboru lidera el consumo diario.'
+            },
+            // EJE 3: PIONEROS Y DESTILERÍAS HISTÓRICAS
+            {
+                id: 'pioneros-torii-taketsuru',
+                family: 'DESTILERIAS',
+                style: 'Shinjiro Torii y Masataka Taketsuru (1923 y 1934)',
+                brandsWorld: 'Fundadores de Suntory (Yamazaki, 1923) y Nikka (Yoichi, 1934)',
+                origin: 'Kotobukiya / Yamazaki (Honshu) y Yoichi (Hokkaido)',
+                cepasCrianza: 'Formación química de Taketsuru en Glasgow + visión comercial de Torii',
+                notes: 'Sentaron las bases definitivas de la industria del whisky japonés al combinar la ciencia de destilación escocesa con el paladar y entorno nipón.'
+            },
+            {
+                id: 'grupo-suntory-destilerias',
+                family: 'DESTILERIAS',
+                style: 'Suntory: Yamazaki, Hakushu y Chita',
+                brandsWorld: 'Yamazaki (Single Malt) • Hakushu (Single Malt) • Chita (Single Grain) • Hibiki (Blend)',
+                origin: 'Kansai y Chūbu (Isla de Honshu, Japón)',
+                cepasCrianza: 'Integración de maltas frutales (Yamazaki), herbales (Hakushu) y grano (Chita)',
+                notes: 'Conforma el ecosistema completo de Suntory, cubriendo tanto maltas de estilos opuestos como whisky de grano japonés.'
+            },
+            {
+                id: 'grupo-nikka-destilerias',
+                family: 'DESTILERIAS',
+                style: 'Nikka: Yoichi (Hokkaido) y Miyagikyo (Sendai)',
+                brandsWorld: 'Yoichi Single Malt • Miyagikyo Single Malt • Nikka From The Barrel • Taketsuru Pure Malt',
+                origin: 'Hokkaido (norte costero) y Miyagi (valle montañoso en Honshu)',
+                cepasCrianza: 'Contraste entre Yoichi (robusto/turbado) y Miyagikyo (floral/alambiques a vapor)',
+                notes: 'Fundada por Masataka Taketsuru en 1934, equilibra la potencia marítima de Yoichi con la elegancia frutal de Miyagikyo.'
+            },
+            {
+                id: 'destilerias-craft-emergentes',
+                family: 'DESTILERIAS',
+                style: 'Chichibu, Mars Whisky (Shinshu / Tsunuki), Akkeshi, White Oak y Saburomaru',
+                brandsWorld: 'Ichiro’s Malt (Chichibu) • Mars Iwai / Komagatake • Akkeshi • Eigashima White Oak',
+                origin: 'Las 11 destilerías principales del archipiélago japonés',
+                cepasCrianza: 'Innovación en maderas (Mizunara, Sakura, Shochu) y lotes artesanales',
+                notes: 'Representan el dinamismo contemporáneo del whisky japonés desde Hokkaido hasta Kyushu.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Regiones, Normativa y Destilerías
+        let activeStyleCards = []; // Subconjunto de 12 fichas activas en la ronda
+        let stylePlacements = {}; // { styleId: 'REGIONES' | 'NORMATIVA' | 'DESTILERIAS' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            initVoiceIndicator();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°\s*GL/g, '$1 a $2 grados Gay-Lussac')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                        updateHeaderAudioBadge();
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        function initVoiceIndicator() {
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill && textEl && iconEl) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                textEl.textContent = 'Audio narrado listo';
+            }
+        }
+
+        function updateHeaderAudioBadge() {
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+            const readyCount = Object.keys(ttsAudioCache).length;
+            if (textEl && iconEl && readyCount > 0) {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                textEl.textContent = `Audios HD en caché (${readyCount}/24)`;
+            }
+        }
+
+        async function preloadStepScenes(step) {
+            if (!step) return;
+            for (let idx = 0; idx < step.videoCaptions.length; idx++) {
+                const cacheKey = `${step.id}_${idx}`;
+                if (!ttsAudioCache[cacheKey]) {
+                    const cleanText = cleanCaptionForSpeech(step.videoCaptions[idx]);
+                    await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+            }
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData) {
+                        const rateMatch = mimeType ? mimeType.match(/rate=(\d+)/) : null;
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete, reqId) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft')))
+                         || voices.find(v => v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Narrando (voz local)...', 'speaking');
+                }
+            };
+            utterance.onend = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Audio listo');
+                    if (onComplete) onComplete();
+                }
+            };
+            utterance.onerror = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    scheduleSilentSceneAdvance(cleanText, onComplete);
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Conectando audio HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 3500));
+                    const fetchResult = await Promise.race([
+                        getOrFetchTtsAudio(cacheKey, cleanText),
+                        timeoutPromise
+                    ]);
+
+                    if (fetchResult !== 'TIMEOUT') {
+                        audioUrl = fetchResult;
+                    }
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+            preloadStepScenes(step);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-800 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-500';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-600 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-800 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia de elaboración del Whisky Japonés 100% correcta',
+                    'Dominas todo el proceso del Japanese Whisky: Fuentes de agua japonesa y cereales malteados → Modelo autosuficiente (fermentación en acero/madera y múltiples alambiques <95% ABV) → Maduración en Japón (≥3 años, ≤700 L) y roble Mizunara → Variaciones climáticas del archipiélago → Regiones (Hokkaido, Honshu central y Kyushu/Chūgoku) → Regulación JSLMA (2021), blending y rituales (Mizuwari, Oyuwari, Haiboru).'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el flujo desde el agua japonesa y el modelo autosuficiente hasta la guarda en Mizunara, las regiones del archipiélago y la norma JSLMA.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE REGIONES, NORMATIVA Y DESTILERÍAS JAPONESAS
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const regiones = JAPANESE_WHISKY_CLASSIFICATION_DATA.filter(s => s.family === 'REGIONES').sort(() => Math.random() - 0.5).slice(0, 4);
+                const normativa = JAPANESE_WHISKY_CLASSIFICATION_DATA.filter(s => s.family === 'NORMATIVA').sort(() => Math.random() - 0.5).slice(0, 4);
+                const destilerias = JAPANESE_WHISKY_CLASSIFICATION_DATA.filter(s => s.family === 'DESTILERIAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                activeStyleCards = [...regiones, ...normativa, ...destilerias].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} fichas clasificadas`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras de Whisky Japonés! Pulsa <strong>"Verificar Clasificación"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Referencias:</span> ${item.brandsWorld}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span class="truncate pr-1">${item.origin}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = [
+                { key: 'REGIONES', label: 'Regiones y Terruños' },
+                { key: 'NORMATIVA', label: 'Normativa y Técnicas' },
+                { key: 'DESTILERIAS', label: 'Pioneros y Destilerías' }
+            ];
+
+            families.forEach(famObj => {
+                const fam = famObj.key;
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar fichas de <strong>${famObj.label}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const famShortName = {
+                    REGIONES: 'Región / Terruño',
+                    NORMATIVA: 'Norma / Técnica',
+                    DESTILERIAS: 'Pionero / Destilería'
+                };
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${famShortName[item.family]}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Referencias:</strong> ${item.brandsWorld}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan fichas por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Regiones y Terruños, Normativa y Técnicas o Pioneros y Destilerías antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos en Whisky Japonés',
+                    'Has identificado correctamente las regiones climáticas del archipiélago, la regulación JSLMA (2021) y el roble Mizunara, así como los pioneros y destilerías japonesas.'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} fichas`,
+                    'Revisa las fichas marcadas en rojo donde se indica su eje correcto. Puedes pulsar "Ver Tabla Completa" para repasar cada región, norma y destilería.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.getAttribute('data-filter');
+                const isMatch = (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? JAPANESE_WHISKY_CLASSIFICATION_DATA
+                : JAPANESE_WHISKY_CLASSIFICATION_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                REGIONES: { label: 'REGIÓN / TERRUÑO', cls: 'bg-amber-100 text-amber-900 border-amber-200' },
+                NORMATIVA: { label: 'NORMA / TÉCNICA', cls: 'bg-rose-100 text-rose-900 border-rose-200' },
+                DESTILERIAS: { label: 'PIONERO / DESTILERÍA', cls: 'bg-stone-200 text-stone-900 border-stone-300' }
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family].cls}">${famBadge[item.family].label}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700 font-medium">${item.cepasCrianza}</td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Referencias:</strong> ${item.brandsWorld}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elaboración y Clasificación del Whiskey Americano - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.25; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(-44px) scale(1.15); opacity: 0; }
+        }
+        @keyframes dripDrop {
+            0% { transform: translateY(0); opacity: 0.9; }
+            80% { opacity: 1; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatAngels {
+            0%, 100% { transform: translateY(0px); opacity: 0.75; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+        .anim-vapor-1 { animation: vaporRise 2.2s infinite ease-in; }
+        .anim-vapor-2 { animation: vaporRise 2.8s infinite ease-in 0.7s; }
+        .anim-vapor-3 { animation: vaporRise 2.5s infinite ease-in 1.3s; }
+        .anim-drip { animation: dripDrop 1.8s infinite ease-in; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-angel { animation: floatAngels 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 via-red-800 to-stone-900 flex items-center justify-center text-amber-100 shadow-inner shrink-0 border border-amber-500/30">
+                    <i class="fa-solid fa-whiskey-glass text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Destilados de Cereales • Estados Unidos</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración y Clasificación del Whiskey Americano</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva, Estilos/Normativa/Marcas, Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de estado de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="audio-preload-text">Audio narrado listo</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                        <span>Estilos, Normativa y Marcas</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                        Actividad Destilados • American Whiskey
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración del Whiskey Americano</strong> distribuyéndolas en las tres fases del diagrama. Arrastra o selecciona cada tarjeta y ubícala en su casillero correspondiente; pulsa <i class="fa-solid fa-circle-info text-amber-700"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Mash Bill, Fermentación Sour Mash, Destilación y Roble Nuevo Carbonizado</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-800"></i>
+                        <span>Definición Estilística por Cereal Dominante (≥51%) y Filtrado en Carbón de Arce</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Estilos Principales de Whiskey Americano (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-800 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Estilos Principales del Whiskey Estadounidense</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5, 6, 7 -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Escala Proof, Bottled in Bond, Pureza Legal y Servicio</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración del Whiskey Americano (EE.UU.)</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa: llegada de colonos alemanes, escoceses e irlandeses en 1700, adopción del maíz en Limestone (condado de Bourbon, Kentucky) y declaración del Congreso en 1964; composición del <em>mash bill</em> (≥51% maíz + <em>small grains</em> y cebada malteada), cocción diferenciada, fermentación de 3–4 días con <em>sweet mash</em> + <em>sour mash</em> (25–33% para bajar el pH del agua dura rica en calcio), destilación continua con <em>doubler</em> (&lt;160° Proof / 80° GL), entrada en barrica a ≤125° Proof (62,5%), guarda mínima de 2 años en roble blanco americano nuevo carbonizado, estilos (Straight Bourbon, Tennessee Whiskey con <em>maple charcoal</em> y Rye Whiskey), normativa <em>Bottled in Bond</em> (1897) y coctelería clásica. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE ESTILOS, NORMATIVA Y MARCAS -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                            Taxonomía del American Whiskey
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 fichas clasificadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>estilo oficial, requisito técnico/legal o marca emblemática estadounidense</strong> dentro de su eje correspondiente: <strong>Estilos Oficiales (Bourbon, Tennessee, Rye, Blended)</strong>, <strong>Normativa y Procesos Clave (Sour Mash, Proof, Bottled in Bond)</strong> o <strong>Marcas Históricas y Derivados</strong>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Clasificación</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Fichas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Fichas de American Whiskey Disponibles (Arrastra o toca una ficha y luego toca su columna)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca Estilos Oficiales, Normativa y Procesos o Marcas e Iconos
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: ESTILOS, NORMATIVA, MARCAS -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna ESTILOS OFICIALES -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'ESTILOS')"
+                    onclick="handleStyleColumnClick('ESTILOS')"
+                    id="col-family-ESTILOS"
+                    class="rounded-2xl border-2 border-dashed border-amber-500 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-whiskey-glass text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Estilos Oficiales</h3>
+                                <span class="text-xs text-stone-500 font-medium">Bourbon, Tennessee, Rye y Blended</span>
+                            </div>
+                        </div>
+                        <span id="count-family-ESTILOS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-ESTILOS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna NORMATIVA Y PROCESOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'NORMATIVA')"
+                    onclick="handleStyleColumnClick('NORMATIVA')"
+                    id="col-family-NORMATIVA"
+                    class="rounded-2xl border-2 border-dashed border-red-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-red-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-scale-balanced text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Normativa y Procesos</h3>
+                                <span class="text-xs text-stone-500 font-medium">Sour Mash, Proof, Lincoln County e In Bond</span>
+                            </div>
+                        </div>
+                        <span id="count-family-NORMATIVA" class="text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-900">0</span>
+                    </div>
+                    <div id="items-family-NORMATIVA" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna MARCAS E ICONOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'MARCAS')"
+                    onclick="handleStyleColumnClick('MARCAS')"
+                    id="col-family-MARCAS"
+                    class="rounded-2xl border-2 border-dashed border-stone-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-stone-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-crown text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Marcas y Derivados</h3>
+                                <span class="text-xs text-stone-500 font-medium">Jim Beam, Jack Daniel’s, Maker’s Mark...</span>
+                            </div>
+                        </div>
+                        <span id="count-family-MARCAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-200 text-stone-900">0</span>
+                    </div>
+                    <div id="items-family-MARCAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa del Whiskey Americano (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo Completo del Whiskey Americano</h3>
+                        <p class="text-xs text-stone-500">Estilos por composición de cereales (mash bill), regulación federal estadounidense, escala Proof y marcas de referencia.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" data-filter="ALL" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('ESTILOS')" data-filter="ESTILOS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Estilos Oficiales</button>
+                        <button onclick="filterReferenceTable('NORMATIVA')" data-filter="NORMATIVA" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-red-100">Normativa y Procesos</button>
+                        <button onclick="filterReferenceTable('MARCAS')" data-filter="MARCAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200">Marcas y Derivados</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Eje</th>
+                                <th class="p-3">Estilo / Norma / Marca</th>
+                                <th class="p-3">Origen / Regulación</th>
+                                <th class="p-3">Granos / Destilación / Guarda</th>
+                                <th class="p-3">Características Técnicas</th>
+                                <th class="p-3 rounded-tr-xl">Referencias / Etiquetas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-700 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-whiskey-glass"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-700 hover:bg-amber-600 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Whiskey Americano (Bourbon, Tennessee &amp; Rye) • Bebidas Espirituosas</span> • Sommellerie
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS TÉCNICA: 8 ETAPAS DE ELABORACIÓN DEL WHISKEY AMERICANO
+        // =========================================================================
+        const STEPS_DATA = [
+            {
+                id: 'mash-bill-coccion-americano',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Mash Bill (≥51% Maíz/Centeno) y Cocción',
+                shortSubtitle: 'Triturado y cocción diferenciada + cebada malteada',
+                icon: 'fa-wheat-awn',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Grano Dominante', value: 'Mínimo 51% maíz (o centeno en Rye)' },
+                    { label: 'Small Grains', value: 'Centeno, trigo y cebada malteada' },
+                    { label: 'Cocción Previa', value: 'Solubiliza almidón (trigo a baja temp.)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Receta de Granos ("Mash Bill"): Por ley el Bourbon exige al menos 51% de maíz (y el Rye ≥51% de centeno), completado con "small grains" (centeno o trigo) y cebada malteada.',
+                    '2/3 • Cocción Diferenciada de Harinas: Cada grano triturado se cocina por separado para romper las membranas del almidón (el trigo se cuece a baja temperatura para no perder sus aromas delicados).',
+                    '3/3 • Acción Enzimática de la Cebada Malteada: Siempre se añade cebada malteada porque su enzima diastasa transforma el almidón gelatinizado de los cereales crudos en azúcares fermentables.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(65, 66)">
+                            <rect x="-48" y="-34" width="96" height="68" rx="10" fill="#78350f" stroke="#fbbf24" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold">MASH BILL (LEY)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10.5" font-weight="bold">≥ 51% Maíz</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">+ Centeno/Trigo/Malta</text>
+                        </g>
+                        <path d="M118,66 L142,66" stroke="#fbbf24" stroke-width="2"/>
+                        <g transform="translate(192, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#44403c" stroke="#f59e0b" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="8.5" font-weight="bold">COCCIÓN POR GRANO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">Solubiliza Almidón</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a8a29e" font-size="8">Trigo a baja temp.</text>
+                        </g>
+                        <g transform="translate(278, 66)">
+                            <rect x="-32" y="-34" width="64" height="68" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-8" text-anchor="middle" fill="#6ee7b7" font-size="8.5" font-weight="bold">MALTA</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">Diastasa</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a7f3d0" font-size="7.5">Sacarifica</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">Condado de Bourbon (Kentucky, 1700) • Declarado producto distintivo EE.UU. (1964)</text>
+                    </svg>
+                `,
+                description: 'Cuando en 1700 medio millón de colonos alemanes, escoceses e irlandeses llegaron a América, descubrieron que la cebada no prosperaba bien pero abundaba el maíz. Así nació el "mash bill" estadounidense: mínimo 51% de maíz (para Bourbon) o de centeno (para Rye), combinado con "small grains" y cebada malteada.',
+                bullets: [
+                    '¿Por qué se cocinan los granos por separado antes de fermentar? Porque el maíz y el centeno requieren altas temperaturas para estallar sus gránulos de almidón, mientras que el trigo debe cocerse a baja temperatura para preservar sus aromas delicados.',
+                    'Rol imprescindible de la cebada malteada: aporta las enzimas (diastasa) que desdoblan los almidones cocidos en azúcares asimilables por las levaduras.',
+                    'Hito histórico: a fines del siglo XVIII se embarcaba whiskey desde Limestone (condado de Bourbon, Kentucky) por los ríos Ohio y Mississippi hacia Nueva Orleans; en 1964 el Congreso de EE.UU. declaró al Bourbon producto distintivo nacional.'
+                ],
+                sensory: 'El maíz aporta dulzor redondo y cuerpo untuoso; el centeno suma notas especiadas y picantes; el trigo suaviza el paladar con notas de pan y miel.'
+            },
+            {
+                id: 'fermentacion-sour-mash',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Fermentación: Sweet Mash + Sour Mash (3–4 días)',
+                shortSubtitle: '25–33% de vinazas ácidas para bajar el pH del agua alcalina',
+                icon: 'fa-flask',
+                colorClass: 'bg-orange-700',
+                metrics: [
+                    { label: 'Componentes Mosto', value: 'Saccharomyces + Sweet + Sour Mash' },
+                    { label: 'Proporción Sour Mash', value: '25% a 33% de vinazas ácidas' },
+                    { label: 'Duración', value: '3 a 4 días de fermentación' }
+                ],
+                videoCaptions: [
+                    '1/3 • Problema del Agua Alcalina (Kentucky y Tennessee): A diferencia de Escocia (agua ácida de turba), el agua filtrada por piedra caliza es dura, rica en calcio y alcalina, lo que favorece infecciones bacterianas.',
+                    '2/3 • Adición de "Sour Mash" (25% a 33%): Se incorporan residuos ácidos de la destilación anterior (agua, levaduras muertas y granos) al mosto dulce ("sweet mash") porque bajan el pH del medio.',
+                    '3/3 • Fermentación Controlada (3 a 4 Días): Con el pH acidificado, las levaduras Saccharomyces cerevisiae fermentan limpiamente durante 3 a 4 días manteniendo consistencia entre lotes.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(76, 66)">
+                            <rect x="-52" y="-34" width="104" height="68" rx="10" fill="#292524" stroke="#38bdf8" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#7dd3fc" font-size="8.5" font-weight="bold">SWEET MASH</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Agua Rica en Calcio</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#bae6fd" font-size="8">pH alcalino (riesgo bact.)</text>
+                        </g>
+                        <text x="142" y="70" text-anchor="middle" fill="#fbbf24" font-size="14" font-weight="bold">+</text>
+                        <g transform="translate(226, 66)">
+                            <rect x="-68" y="-34" width="136" height="68" rx="10" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-weight="bold">SOUR MASH (25% – 33%)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">Baja el pH y Protege</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Fermenta 3–4 días (S. cerevisiae)</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">El Sour Mash garantiza fermentación sana y continuidad aromática entre lotes</text>
+                    </svg>
+                `,
+                description: 'Iniciada la fermentación (que dura entre 3 y 4 días), el mosto estadounidense se compone de tres elementos clave: levaduras Saccharomyces cerevisiae, "sweet mash" (mosto dulce) y "sour mash" (mezcla agria).',
+                bullets: [
+                    '¿Por qué es indispensable el "Sour Mash" (25% a 33% del total)? Porque las aguas de Kentucky y Tennessee son duras, ricas en calcio y alcalinas; añadir vinazas ácidas del lote anterior reduce el pH del mosto dulce e impide infecciones bacterianas que arruinarían la fermentación.',
+                    'Continuidad de estilo: el sour mash también aporta nutrientes de levaduras y mantiene un perfil organoléptico uniforme de una semana a otra.'
+                ],
+                sensory: 'Asegura una fermentación limpia libre de notas lácticas o acéticas indeseadas, potenciando ésteres frutales y notas de grano tostado.'
+            },
+            {
+                id: 'destilacion-columna-doubler',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Destilación Continua + Doubler (<160° Proof)',
+                shortSubtitle: 'Columna continua seguida de redestilación en pot still (≤80° GL)',
+                icon: 'fa-fire-flame-curved',
+                colorClass: 'bg-red-800',
+                metrics: [
+                    { label: 'Sistema Moderno', value: 'Columna continua + Doubler (Pot)' },
+                    { label: 'Límite Salida Legal', value: 'Máximo 160° Proof (80° GL)' },
+                    { label: 'Límite Entrada Barrica', value: 'Máximo 125° Proof (62,5° GL)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Columna Continua + "Doubler": La mayoría de los bourbons modernos se destilan primero en columna continua (eficiencia) y luego pasan por un "doubler" (alambique tipo pot still) para ganar redondez y textura.',
+                    '2/3 • Tope Legal de Salida (<160° Proof / 80° GL): La ley prohíbe destilar a más de 160° Proof porque superar los 80° GL eliminaría los congéneres aromáticos del maíz y el centeno.',
+                    '3/3 • Dilución Antes de Entrar en Barrica (≤125° Proof / 62,5° GL): Se rebaja con agua pura hasta un máximo de 62,5° GL para evitar una extracción excesivamente astringente en la barrica nueva.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="52" y="26" width="52" height="78" rx="6" fill="#7c2d12" stroke="#fb923c" stroke-width="2"/>
+                        <text x="78" y="62" text-anchor="middle" fill="#fef3c7" font-size="8.5" font-weight="bold">COLUMNA</text>
+                        <text x="78" y="75" text-anchor="middle" fill="#fed7aa" font-size="7.5">Continua</text>
+                        <path d="M108,65 L130,65" stroke="#fbbf24" stroke-width="2.5"/>
+                        <ellipse cx="162" cy="72" rx="26" ry="20" fill="#9a3412" stroke="#fbbf24" stroke-width="2"/>
+                        <text x="162" y="75" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="bold">DOUBLER</text>
+                        <path d="M192,65 L214,65" stroke="#fbbf24" stroke-width="2.5"/>
+                        <rect x="216" y="34" width="76" height="64" rx="8" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                        <text x="254" y="56" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-weight="bold">LÍMITES LEY</text>
+                        <text x="254" y="71" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">Salida &lt;80° GL</text>
+                        <text x="254" y="85" text-anchor="middle" fill="#fde68a" font-size="8">Barrica ≤62,5° GL</text>
+                        <text x="160" y="128" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">160° Proof = 80° GL • 125° Proof = 62,5° GL (2° Proof = 1° GL)</text>
+                    </svg>
+                `,
+                description: 'Aunque se permiten alambiques simples o continuos, la mayoría de los bourbons modernos se destilan en columna continua y luego se redestilan en un "doubler" (básicamente un pot still), sin poder superar legalmente los 160° Proof (80° GL) a la salida ni los 125° Proof (62,5° GL) al entrar en barrica.',
+                bullets: [
+                    '¿Por qué se utiliza un "doubler" tras la columna continua? Para pulir los compuestos sulfurados mediante el contacto con el cobre y aportar mayor untuosidad en boca.',
+                    'Topes legales de graduación: salida de destilación ≤160° Proof (80% alc./vol.) para conservar el sabor de los cereales, y llenado de barrica ≤125° Proof (62,5% alc./vol.) para equilibrar la extracción en madera nueva.'
+                ],
+                sensory: 'Conserva la dulzura natural del maíz y las notas especiadas del centeno con una textura limpia y aterciopelada.'
+            },
+            {
+                id: 'crianza-roble-nuevo-carbonizado',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Crianza en Roble Blanco Nuevo Carbonizado (≥2 años)',
+                shortSubtitle: 'Barricas de primer uso tostadas intensamente en su interior',
+                icon: 'fa-fire',
+                colorClass: 'bg-amber-900',
+                metrics: [
+                    { label: 'Barrica Obligatoria', value: 'Roble blanco americano de 1er uso' },
+                    { label: 'Tratamiento Interior', value: 'Tostado intenso / carbonizado' },
+                    { label: 'Mínimo Legal', value: '2 años (oblig. indicar edad si <4a)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Barricas Nuevas de Roble Blanco de Kentucky: A diferencia de Escocia o Irlanda (que reutilizan barricas), el Bourbon y el Rye exigen barricas nuevas de primer uso para ceder máxima intensidad aromática.',
+                    '2/3 • Carbonizado Interior ("Char"): Se quema el interior de las duelas porque el fuego carameliza los azúcares naturales de la madera (hemicelulosa) y crea una capa de carbón que filtra impurezas.',
+                    '3/3 • Mínimo Legal de 2 Años y Color 100% Natural: Debe envejecer al menos 2 años (si tiene menos de 4 años debe declararse en etiqueta) y su color proviene enteramente de la madera.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 74)">
+                            <ellipse cx="0" cy="0" rx="60" ry="34" fill="#451a03" stroke="#f97316" stroke-width="2.5"/>
+                            <path d="M-36,-27 Q-28,0 -36,27" stroke="#1c1917" stroke-width="3" fill="none"/>
+                            <path d="M36,-27 Q28,0 36,27" stroke="#1c1917" stroke-width="3" fill="none"/>
+                            <text x="0" y="-5" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">ROBLE NUEVO CARBONIZADO</text>
+                            <text x="0" y="11" text-anchor="middle" fill="#fde68a" font-size="8.5">Mín. 2 años • Color 100% madera</text>
+                        </g>
+                        <path d="M126,116 Q138,104 150,116 Q160,102 170,116 Q182,104 194,116" stroke="#ef4444" stroke-width="2.5" fill="none" class="anim-flame"/>
+                        <text x="160" y="20" text-anchor="middle" fill="#fdba74" font-size="9.5" font-weight="bold">Clima continental de Kentucky: marcada amplitud térmica anual</text>
+                        <text x="160" y="132" text-anchor="middle" fill="#fcd34d" font-size="8.5" font-weight="bold">Caramelización de azúcares de la madera → Vainilla, caramelo y coco</text>
+                    </svg>
+                `,
+                description: 'El sello distintivo de la crianza estadounidense es el uso obligatorio de barricas nuevas de roble blanco americano (roble blanco de Kentucky) tostadas intensamente hasta carbonizar su interior, durante un período mínimo de 2 años.',
+                bullets: [
+                    '¿Por qué se carboniza el interior de la barrica nueva? Porque el fuego degrada la lignina y carameliza los azúcares de la madera (aportando vainillina, caramelo y tostado), mientras la capa carbonizada actúa como filtro purificador natural.',
+                    'Regla de etiquetado de edad: el mínimo legal es de 2 años; cuando un straight whiskey tiene menos de 4 años de envejecimiento, es obligatorio indicar su edad exacta en la etiqueta.',
+                    'Coloración 100% natural: en el Straight Bourbon está prohibido añadir caramelo colorante; todo su color ámbar-cobrizo proviene exclusivamente de la madera.'
+                ],
+                sensory: 'Aporta notas intensas y golosas de vainilla, caramelo, toffee, coco tostado, roble quemado y especias dulces.'
+            },
+            {
+                id: 'estilo-straight-bourbon',
+                correctSlot: 5,
+                orderLabel: '5. Estilo Americano I',
+                title: 'Straight Bourbon Whiskey (Mín. 51% Maíz)',
+                shortSubtitle: 'Todo EE.UU. (Kentucky privilegiado) • Sin aditivos ni colorantes',
+                icon: 'fa-award',
+                colorClass: 'bg-amber-800',
+                metrics: [
+                    { label: 'Grano Base', value: 'Mínimo 51% maíz (habitual 65–80%)' },
+                    { label: 'Territorio', value: 'Todo EE.UU. (Kentucky territorio clave)' },
+                    { label: 'Pureza Legal', value: 'Prohibido saborizantes/colorantes' }
+                ],
+                videoCaptions: [
+                    '1/3 • Requisitos Legales del Straight Bourbon: Elaborado en Estados Unidos (principalmente Kentucky) con ≥51% de maíz, destilado a <160° Proof y entrado en barrica a ≤125° Proof.',
+                    '2/3 • Crianza en Roble Nuevo Tostado (≥2 Años): Envejece al menos 2 años en barricas de roble blanco nuevo carbonizado que le otorgan su carácter dulce y amaderado.',
+                    '3/3 • Prohibición Total de Aditivos: No se permite ningún saborizante ni colorante; únicamente se puede añadir agua pura para ajustar la graduación antes del embotellado.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fde047" font-size="12.5" font-weight="bold">STRAIGHT BOURBON WHISKEY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">≥51% Maíz • Roble nuevo tostado ≥2 años</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fde68a" font-size="8.5">Sin colorantes • Jim Beam, Maker's Mark, Wild Turkey</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Puede elaborarse en cualquier estado de EE.UU. (Virginia, Maryland, Pennsylvania, Illinois, Tennessee), aunque Kentucky sigue siendo su territorio privilegiado. Exige ≥51% de maíz, roble nuevo tostado por ≥2 años y cero aditivos.',
+                bullets: [
+                    'Diferencia entre Straight Bourbon y Blended Bourbon: el Straight es 100% puro sin saborizantes ni colorantes; el Blended Bourbon contiene al menos 51% de Straight Bourbon mezclado con alcohol neutro y admite caramelo.',
+                    'Marcas emblemáticas: Jim Beam, Maker’s Mark, Wild Turkey, Woodford Reserve, Four Roses, Knob Creek, Elijah Craig, Blanton’s, Early Times.'
+                ],
+                sensory: 'Perfil cálido, redondo y goloso con notas marcadas de maíz dulce, vainilla, caramelo, roble tostado y especias.'
+            },
+            {
+                id: 'estilo-tennessee-whiskey',
+                correctSlot: 6,
+                orderLabel: '6. Estilo Americano II',
+                title: 'Tennessee Whiskey (Lincoln County Process)',
+                shortSubtitle: 'Filtrado lento por 3–4 m de carbón vegetal de madera de arce',
+                icon: 'fa-filter',
+                colorClass: 'bg-stone-900',
+                metrics: [
+                    { label: 'Proceso Distintivo', value: 'Filtrado en carbón de arce (3–4 m)' },
+                    { label: 'Grano Usado', value: 'Maíz predominante (ej. 80% Jack Daniel’s)' },
+                    { label: 'Marcas Ícono', value: 'Jack Daniel’s y George Dickel' }
+                ],
+                videoCaptions: [
+                    '1/3 • Origen en el Estado de Tennessee: Cumple todos los requisitos técnicos de un Straight Bourbon (≥51% de un grano, usando maíz en un 80% en Jack Daniel’s), pero añade una etapa exclusiva antes de la barrica.',
+                    '2/3 • Filtrado por Carbón Vegetal de Arce ("Maple Charcoal"): Tras destilarse, el whiskey se bombea lentamente durante días a través de columnas de 3 a 4 metros rellenas de carbón de arce sacarino.',
+                    '3/3 • Doble Efecto Sensorial: El carbón elimina impurezas y aporta dulzor suave porque al quemar la madera de arce se caramelizan sus azúcares naturales.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(88, 66)">
+                            <rect x="-46" y="-36" width="92" height="72" rx="8" fill="#1c1917" stroke="#94a3b8" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-weight="bold">COLUMNA 3–4 m</text>
+                            <text x="0" y="2" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">Maple Charcoal</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#cbd5e1" font-size="7.5">Carbón de arce</text>
+                        </g>
+                        <path d="M140,66 L168,66" stroke="#fbbf24" stroke-width="2.5"/>
+                        <g transform="translate(232, 66)">
+                            <rect x="-58" y="-36" width="116" height="72" rx="10" fill="#292524" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="9.5" font-weight="bold">TENNESSEE WHISKEY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">Pureza + Dulzor Arce</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Jack Daniel's • Dickel</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="bold">Lincoln County Process: filtrado previo a entrar en barrica de roble nuevo</text>
+                    </svg>
+                `,
+                description: 'Elaborado en el estado de Tennessee (representado por Jack Daniel’s y George Dickel), cumple las normas del Bourbon pero incorpora antes del envejecimiento un filtrado lento de varios días a través de columnas de 3 a 4 metros de carbón vegetal de madera de arce ("maple charcoal").',
+                bullets: [
+                    '¿Cuál es el doble sentido del filtrado en carbón de arce? 1) Remover aceites pesados e impurezas para suavizar el destilado; 2) Aportar un dulzor característico, ya que al quemar la madera de arce se caramelizan los azúcares presentes en ella.',
+                    'Composición de granos: aunque la norma permite un mínimo del 51% de un grano, tanto Jack Daniel’s (80% maíz) como George Dickel emplean maíz como base principal.'
+                ],
+                sensory: 'Presenta una suavidad sedosa muy característica con notas de azúcar caramelizado, plátano maduro, vainilla y un sutil matiz ahumado de carbón de arce.'
+            },
+            {
+                id: 'estilo-rye-whiskey',
+                correctSlot: 7,
+                orderLabel: '7. Estilo Americano III',
+                title: 'Rye Whiskey (Whiskey de Centeno • ≥51%)',
+                shortSubtitle: 'Pionero histórico de los colonos • Especiado, seco y vibrante',
+                icon: 'fa-seedling',
+                colorClass: 'bg-emerald-800',
+                metrics: [
+                    { label: 'Grano Dominante', value: 'Mínimo 51% de centeno' },
+                    { label: 'Destilación', value: 'Sistema continuo (≤80° GL)' },
+                    { label: 'Crianza', value: 'Roble nuevo tostado (mín. 1–2 años)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Origen Colonial del Rye Whiskey: Ante las dificultades para cultivar cebada en la costa este, los emigrantes escoceses e irlandeses eligieron el centeno como grano base para producir los primeros whiskeys de EE.UU.',
+                    '2/3 • Regulación Técnica (≥51% Centeno): Debe contener al menos 51% de centeno, destilarse sin superar los 80° GL (160° Proof) y envejecer en barricas nuevas de roble tostado.',
+                    '3/3 • Perfil Sensorial Especiado y Seco: A diferencia del dulzor redondo del Bourbon, el Rye ofrece notas vibrantes de pimienta negra, clavo, menta y corteza de pan.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#6ee7b7" font-size="12.5" font-weight="bold">RYE WHISKEY (CENTENO)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">Mínimo 51% Centeno • Roble nuevo tostado</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#a7f3d0" font-size="8.5">Seco, especiado y picante • Ideal Manhattan y Old Fashioned</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Fue el primer estilo de whiskey producido históricamente en la costa este de Estados Unidos por los colonos escoceses e irlandeses. Exige al menos un 51% de centeno en su mash bill, destilación por debajo de 80° GL y guarda en barricas de roble nuevo tostadas.',
+                bullets: [
+                    'Origen histórico: el centeno resistía mejor los inviernos del noreste estadounidense (Pennsylvania y Maryland) que la cebada europea.',
+                    'Protagonismo en coctelería clásica: su sequedad y carácter especiado equilibran el vermouth dulce y los bitters en cócteles históricos como el Manhattan y el Sazerac.'
+                ],
+                sensory: 'Más seco, vibrante y especiado que el Bourbon, con notas marcadas de pimienta negra, nuez moscada, hierbas secas y roble tostado.'
+            },
+            {
+                id: 'proof-bottled-in-bond-servicio',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Escala Proof, "Bottled in Bond" y Servicio',
+                shortSubtitle: '2° Proof = 1° GL • Ley 1897 (4 años / 100 Proof) • Coctelería',
+                icon: 'fa-wine-glass',
+                colorClass: 'bg-sky-800',
+                metrics: [
+                    { label: 'Equivalencia Proof', value: '2° Proof = 1° GL (80 Proof = 40%)' },
+                    { label: 'Bottled in Bond (1897)', value: 'Mín. 4 años • 100 Proof (50° GL)' },
+                    { label: 'Coctelería Ícono', value: 'Old Fashioned, Manhattan, Mint Julep' }
+                ],
+                videoCaptions: [
+                    '1/3 • Escala Americana "Proof": En EE.UU. el grado Proof equivale exactamente al doble del porcentaje de alcohol por volumen (80 Proof = 40° GL; 100 Proof = 50° GL).',
+                    '2/3 • Garantía "Bottled in Bond" (Ley de 1897): Exige un straight whiskey de una sola destilería y temporada, envejecido al menos 4 años en depósitos supervisados por el gobierno y embotellado a 100 Proof (50° GL).',
+                    '3/3 • Servicio en Sala y Coctelería Clásica: Se degusta solo (neat), con hielo (on the rocks) o a 16–18°C, y es la base insustituible del Old Fashioned, Manhattan, Whiskey Sour y Mint Julep.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(88, 68)">
+                            <rect x="-56" y="-34" width="112" height="68" rx="10" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="9" font-weight="bold">BOTTLED IN BOND</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">100 Proof = 50° GL</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Ley 1897 • Mín. 4 años</text>
+                        </g>
+                        <g transform="translate(230, 68)">
+                            <rect x="-66" y="-34" width="132" height="68" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#bae6fd" font-size="9.5" font-weight="bold">SERVICIO Y BARRA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Neat / Rocks / 16–18°C</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Old Fashioned &amp; Manhattan</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">2° Proof = 1° GL • También base de Mint Julep, Boulevardier y Paper Plane</text>
+                    </svg>
+                `,
+                description: 'Antes del embotellado se ajusta el grado alcohólico con agua pura expresándolo en grados Proof americanos (2° Proof = 1° GL), destacando la mención histórica "Bottled in Bond" (1897) y su rol estelar tanto en cata pura como en la coctelería clásica.',
+                bullets: [
+                    'Conversión Proof en EE.UU.: 2° Proof equivalen exactamente a 1° GL (por ejemplo, 80 Proof = 40% alc./vol.; 100 Proof = 50% alc./vol.).',
+                    'Ley Bottled in Bond (1897): permitió almacenar barricas de straight whiskey en depósitos federales supervisados por al menos 4 años sin pagar impuestos anticipados, garantizando autenticidad y embotellado a 100 Proof.',
+                    'Servicio y mixología: los ejemplares añejos se disfrutan solos (neat) o a 16–18°C; en barra protagonizan el Old Fashioned, Manhattan, Mint Julep, Whiskey Sour y Boulevardier.'
+                ],
+                sensory: 'Con hielo o unas gotas de agua abre sus notas de vainilla, caramelo y fruta seca; en coctelería sostiene con firmeza bitters, vermouth y cítricos.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: '≥51% Maíz • Sin Aditivos', hint: 'Ubicar estilo' },
+            { slotId: 6, phase: 2, title: 'Filtrado Carbón de Arce', hint: 'Ubicar estilo' },
+            { slotId: 7, phase: 2, title: '≥51% Centeno • Especiado', hint: 'Ubicar estilo' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // =========================================================================
+        // BASE DE DATOS COMPLETA DE ESTILOS, NORMATIVA Y MARCAS DE AMERICAN WHISKEY
+        // =========================================================================
+        const AMERICAN_WHISKEY_CLASSIFICATION_DATA = [
+            // EJE 1: ESTILOS OFICIALES
+            {
+                id: 'estilo-straight-bourbon',
+                family: 'ESTILOS',
+                style: 'Straight Bourbon Whiskey',
+                brandsWorld: 'Jim Beam, Maker’s Mark, Wild Turkey, Woodford Reserve, Four Roses, Knob Creek, Elijah Craig, Blanton’s',
+                origin: 'Estados Unidos (Kentucky como territorio privilegiado) • Ley 1964',
+                cepasCrianza: '≥51% maíz • Roble blanco nuevo tostado ≥2 años • Sin colorantes ni saborizantes',
+                notes: 'Destilado a <160° Proof (80° GL) y entrado en barrica a ≤125° Proof (62,5° GL). Si tiene menos de 4 años debe declarar su edad en etiqueta.'
+            },
+            {
+                id: 'estilo-blended-bourbon',
+                family: 'ESTILOS',
+                style: 'Blended Bourbon Whiskey',
+                brandsWorld: 'Mezclas comerciales estadounidenses con base de Straight Bourbon',
+                origin: 'Estados Unidos • Categoría de mezcla',
+                cepasCrianza: 'Mínimo 51% de Straight Bourbon + alcohol neutro de grano',
+                notes: 'A diferencia del Straight Bourbon, los whiskeys "blended" tienen derecho legal a añadir caramelo para ajustar y homogenizar el color.'
+            },
+            {
+                id: 'estilo-tennessee-whiskey',
+                family: 'ESTILOS',
+                style: 'Tennessee Whiskey',
+                brandsWorld: 'Jack Daniel’s (80% maíz) y George Dickel',
+                origin: 'Estado de Tennessee (EE.UU.)',
+                cepasCrianza: '≥51% grano (maíz) • Filtrado en carbón de arce (3–4 m) + roble nuevo',
+                notes: 'Se diferencia del Bourbon de Kentucky por el filtrado lento tras la destilación a través de columnas de carbón vegetal de madera de arce ("maple charcoal").'
+            },
+            {
+                id: 'estilo-rye-whiskey',
+                family: 'ESTILOS',
+                style: 'Rye Whiskey (Whiskey de Centeno)',
+                brandsWorld: 'Old Overholt, Rittenhouse Rye, Wild Turkey Rye, Sazerac Rye, Bulleit Rye',
+                origin: 'Costa Este de EE.UU. (Pennsylvania y Maryland) • Estilo colonial pionero',
+                cepasCrianza: 'Mínimo 51% centeno • Destilación continua (≤80° GL) • Roble nuevo tostado',
+                notes: 'Nacido cuando los inmigrantes escoceses e irlandeses sustituyeron la cebada por centeno. Perfil seco, especiado y picante.'
+            },
+            // EJE 2: NORMATIVA Y PROCESOS CLAVE
+            {
+                id: 'norma-sour-mash',
+                family: 'NORMATIVA',
+                style: 'Proceso Sour Mash (Mezcla Agria • 25% a 33%)',
+                brandsWorld: 'Técnica estándar en Kentucky y Tennessee (Jack Daniel’s, Jim Beam, etc.)',
+                origin: 'Control de pH frente al agua calcárea alcalina de Kentucky/Tennessee',
+                cepasCrianza: 'Residuos ácidos de destilación previa + Sweet Mash + Saccharomyces cerevisiae',
+                notes: 'Baja el pH del mosto alcalino (rico en calcio) para evitar infecciones bacterianas durante los 3 a 4 días de fermentación.'
+            },
+            {
+                id: 'norma-maple-charcoal',
+                family: 'NORMATIVA',
+                style: 'Filtrado en Carbón Vegetal de Arce ("Maple Charcoal")',
+                brandsWorld: 'Lincoln County Process (Jack Daniel’s y George Dickel)',
+                origin: 'Tennessee (EE.UU.) • Columnas de 3 a 4 metros',
+                cepasCrianza: 'Remueve impurezas y carameliza azúcares propios de la madera de arce',
+                notes: 'Dura varios días antes de llenar la barrica de roble nuevo; aporta suavidad extrema y un sutil dulzor acaramelado.'
+            },
+            {
+                id: 'norma-bottled-in-bond-1897',
+                family: 'NORMATIVA',
+                style: 'Legislación "Bottled in Bond" (1897)',
+                brandsWorld: 'Old Grand-Dad Bonded, Rittenhouse Bottled in Bond, Evan Williams BiB',
+                origin: 'Ley Federal de EE.UU. de 1897 • Depósitos supervisados por el gobierno',
+                cepasCrianza: 'Straight Whiskey • Mínimo 4 años de guarda • Embotellado a 100 Proof (50° GL)',
+                notes: 'Garantía gubernamental de pureza y trazabilidad (una sola destilería, una sola temporada de destilación) con exención fiscal durante los 4 años de crianza.'
+            },
+            {
+                id: 'norma-escala-proof-eeuu',
+                family: 'NORMATIVA',
+                style: 'Escala Americana "Proof" y Topes Legales (160° / 125° Proof)',
+                brandsWorld: 'Sistema oficial de graduación alcohólica en Estados Unidos',
+                origin: 'Etiquetado y regulación federal estadounidense',
+                cepasCrianza: '2° Proof = 1° GL • Salida destilación <160° Proof (80° GL) • Barrica ≤125° Proof',
+                notes: 'Un whiskey de 80 Proof tiene 40% alc./vol.; entrar a barrica con no más de 125 Proof (62,5° GL) regula la extracción de la madera nueva.'
+            },
+            // EJE 3: MARCAS HISTÓRICAS Y DERIVADOS
+            {
+                id: 'marca-jim-beam-makers-wild-turkey',
+                family: 'MARCAS',
+                style: 'Jim Beam, Maker’s Mark y Wild Turkey',
+                brandsWorld: 'Jim Beam • Maker’s Mark (trigo como small grain) • Wild Turkey',
+                origin: 'Kentucky (EE.UU.) • Casas emblemáticas del Straight Bourbon',
+                cepasCrianza: 'Straight Bourbon Whiskey • Roble blanco de Kentucky carbonizado',
+                notes: 'Tres pilares del Bourbon: Maker’s Mark destaca por sustituir el centeno por trigo rojo de invierno en su mash bill, logrando gran suavidad.'
+            },
+            {
+                id: 'marca-woodford-four-roses-knob-blantons',
+                family: 'MARCAS',
+                style: 'Woodford Reserve, Four Roses, Knob Creek, Elijah Craig y Blanton’s',
+                brandsWorld: 'Woodford Reserve • Four Roses • Knob Creek • Elijah Craig • Blanton’s • Early Times',
+                origin: 'Kentucky (EE.UU.) • Referentes Small Batch y Single Barrel',
+                cepasCrianza: 'Straight Bourbon Whiskey • Crianza en roble nuevo tostado',
+                notes: 'Representan la diversidad de recetas (mash bills) y selecciones de barrica única (Single Barrel, como Blanton’s) o pequeños lotes (Small Batch).'
+            },
+            {
+                id: 'marca-jack-daniels-dickel',
+                family: 'MARCAS',
+                style: 'Jack Daniel’s y George Dickel',
+                brandsWorld: 'Jack Daniel’s (Lynchburg) • George Dickel (Cascade Hollow)',
+                origin: 'Estado de Tennessee (EE.UU.)',
+                cepasCrianza: 'Tennessee Whiskey • Filtrado por carbón de madera de arce + roble nuevo',
+                notes: 'Los dos grandes referentes mundiales del Tennessee Whiskey, reconocidos por su suavidad filtrada en carbón de arce.'
+            },
+            {
+                id: 'derivados-southern-comfort-cocteleria',
+                family: 'MARCAS',
+                style: 'Southern Comfort (35° GL) y Coctelería Clásica Estadounidense',
+                brandsWorld: 'Southern Comfort (Nueva Orleans, base whiskey americano + durazno/cítricos) • Old Fashioned • Manhattan',
+                origin: 'Nueva Orleans y cultura clásica del bar estadounidense',
+                cepasCrianza: 'Licor a base de whiskey americano (35° GL) • Base de Sours, Juleps y Manhattans',
+                notes: 'El whiskey americano es la base de Southern Comfort (licor con duraznos, peras, naranjas y hierbas) y de cócteles icónicos como Old Fashioned, Manhattan, Mint Julep, Boulevardier y Paper Plane.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Estilos, Normativa y Marcas
+        let activeStyleCards = []; // Subconjunto de 12 fichas activas en la ronda
+        let stylePlacements = {}; // { styleId: 'ESTILOS' | 'NORMATIVA' | 'MARCAS' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            initVoiceIndicator();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°\s*GL/g, '$1 a $2 grados Gay-Lussac')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac')
+                .replace(/°\s*Proof/gi, ' grados Proof');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                        updateHeaderAudioBadge();
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        function initVoiceIndicator() {
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill && textEl && iconEl) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                textEl.textContent = 'Audio narrado listo';
+            }
+        }
+
+        function updateHeaderAudioBadge() {
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+            const readyCount = Object.keys(ttsAudioCache).length;
+            if (textEl && iconEl && readyCount > 0) {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                textEl.textContent = `Audios HD en caché (${readyCount}/24)`;
+            }
+        }
+
+        async function preloadStepScenes(step) {
+            if (!step) return;
+            for (let idx = 0; idx < step.videoCaptions.length; idx++) {
+                const cacheKey = `${step.id}_${idx}`;
+                if (!ttsAudioCache[cacheKey]) {
+                    const cleanText = cleanCaptionForSpeech(step.videoCaptions[idx]);
+                    await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+            }
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData) {
+                        const rateMatch = mimeType ? mimeType.match(/rate=(\d+)/) : null;
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete, reqId) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft')))
+                         || voices.find(v => v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Narrando (voz local)...', 'speaking');
+                }
+            };
+            utterance.onend = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Audio listo');
+                    if (onComplete) onComplete();
+                }
+            };
+            utterance.onerror = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    scheduleSilentSceneAdvance(cleanText, onComplete);
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Conectando audio HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 3500));
+                    const fetchResult = await Promise.race([
+                        getOrFetchTtsAudio(cacheKey, cleanText),
+                        timeoutPromise
+                    ]);
+
+                    if (fetchResult !== 'TIMEOUT') {
+                        audioUrl = fetchResult;
+                    }
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+            preloadStepScenes(step);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-800 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-500';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-600 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-800 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia de elaboración del Whiskey Americano 100% correcta',
+                    'Dominas todo el proceso del American Whiskey: Mash bill (≥51% maíz o centeno) y cocción diferenciada → Fermentación con Sweet Mash + Sour Mash (25–33%) → Destilación continua + Doubler (<160° Proof / 80° GL) → Crianza en roble blanco nuevo carbonizado (≥2 años) → Estilos (Straight Bourbon, Tennessee Whiskey y Rye Whiskey) → Escala Proof, Bottled in Bond y servicio.'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el flujo desde el mash bill y la fermentación Sour Mash hasta la guarda en roble nuevo carbonizado, los estilos estadounidenses y la escala Proof.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE ESTILOS, NORMATIVA Y MARCAS
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const estilos = AMERICAN_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'ESTILOS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const normativa = AMERICAN_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'NORMATIVA').sort(() => Math.random() - 0.5).slice(0, 4);
+                const marcas = AMERICAN_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'MARCAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                activeStyleCards = [...estilos, ...normativa, ...marcas].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} fichas clasificadas`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras de American Whiskey! Pulsa <strong>"Verificar Clasificación"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Referencias:</span> ${item.brandsWorld}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span class="truncate pr-1">${item.origin}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = [
+                { key: 'ESTILOS', label: 'Estilos Oficiales' },
+                { key: 'NORMATIVA', label: 'Normativa y Procesos' },
+                { key: 'MARCAS', label: 'Marcas y Derivados' }
+            ];
+
+            families.forEach(famObj => {
+                const fam = famObj.key;
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar fichas de <strong>${famObj.label}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const famShortName = {
+                    ESTILOS: 'Estilo Oficial',
+                    NORMATIVA: 'Norma / Proceso',
+                    MARCAS: 'Marca / Derivado'
+                };
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${famShortName[item.family]}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Referencias:</strong> ${item.brandsWorld}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan fichas por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Estilos Oficiales, Normativa y Procesos o Marcas y Derivados antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos en American Whiskey',
+                    'Has identificado correctamente los estilos estadounidenses (Straight Bourbon, Blended Bourbon, Tennessee Whiskey y Rye Whiskey), las normas clave (Sour Mash, Maple Charcoal, Bottled in Bond y Proof) y las marcas históricas.'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} fichas`,
+                    'Revisa las fichas marcadas en rojo donde se indica su eje correcto. Puedes pulsar "Ver Tabla Completa" para repasar cada estilo, norma y marca.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.getAttribute('data-filter');
+                const isMatch = (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? AMERICAN_WHISKEY_CLASSIFICATION_DATA
+                : AMERICAN_WHISKEY_CLASSIFICATION_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                ESTILOS: { label: 'ESTILO OFICIAL', cls: 'bg-amber-100 text-amber-900 border-amber-200' },
+                NORMATIVA: { label: 'NORMA / PROCESO', cls: 'bg-red-100 text-red-900 border-red-200' },
+                MARCAS: { label: 'MARCA / DERIVADO', cls: 'bg-stone-200 text-stone-900 border-stone-300' }
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family].cls}">${famBadge[item.family].label}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700 font-medium">${item.cepasCrianza}</td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Referencias:</strong> ${item.brandsWorld}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

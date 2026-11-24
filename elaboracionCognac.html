@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elaboración del Cognac (AOC) - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.25; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(-44px) scale(1.15); opacity: 0; }
+        }
+        @keyframes dripDrop {
+            0% { transform: translateY(0); opacity: 0.9; }
+            80% { opacity: 1; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatAngels {
+            0%, 100% { transform: translateY(0px); opacity: 0.75; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+        .anim-vapor-1 { animation: vaporRise 2.2s infinite ease-in; }
+        .anim-vapor-2 { animation: vaporRise 2.8s infinite ease-in 0.7s; }
+        .anim-vapor-3 { animation: vaporRise 2.5s infinite ease-in 1.3s; }
+        .anim-drip { animation: dripDrop 1.8s infinite ease-in; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-angel { animation: floatAngels 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 via-orange-700 to-stone-900 flex items-center justify-center text-amber-100 shadow-inner shrink-0 border border-amber-500/30">
+                    <i class="fa-solid fa-wine-glass text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • AOC Cognac (Francia)</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración y Clasificación del Cognac</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva, Crus/Categorías/Casas, Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de precarga de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-spinner fa-spin text-amber-400"></i>
+                    <span id="audio-preload-text">Preparando audios HD (0/24)...</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-champagne-glasses"></i>
+                        <span>Crus, Edad y Casas</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                        Actividad AOC Cognac • BNIC
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración del Cognac</strong>: comienza por la viticultura y doble destilación Charentais, identifica las <strong>3 categorías oficiales de crianza en roble</strong> (VS, VO/VSOP y Napoléon/XO) y finaliza con el ensamblaje y servicio. Pulsa <i class="fa-solid fa-circle-info text-amber-700"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Viticultura, Doble Destilación Charentais y Principios de Crianza</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-800"></i>
+                        <span>Clasificación Oficial por Tiempo Mínimo de Añejamiento en Roble (BNIC)</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Las 3 Categorías de Crianza en Roble (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-800 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Categorías de Envejecimiento del Cognac</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5 (VS), 6 (VO/VSOP), 7 (Napoléon / XO) -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Ensamblaje (Blend), Reducción y Servicio</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración de la AOC Cognac</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa: historia del "branwein", cepas blancas autorizadas, alambique Charentais con calienta-vinos, flemas y holandas, Part des Anges, categorías VS a XO y servicio a 16–18°C. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE CRUS, CATEGORÍAS Y CASAS DE COGNAC -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                            Taxonomía AOC Cognac
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 fichas clasificadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>concepto, terruño o etiqueta emblemática del Cognac</strong> dentro de su eje correspondiente: <strong>Crus y Zonificación (6 Crus)</strong>, <strong>Categorías por Edad (VS a XO)</strong> o <strong>Casas Históricas y Etiquetas Ícono</strong>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Clasificación</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Fichas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Fichas de AOC Cognac Disponibles (Arrastra o toca una ficha y luego toca su columna)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca Crus, Categorías de Edad o Casas Históricas
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas de estilos/marcas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: CRUS, CATEGORÍAS, CASAS -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna CRUS Y ZONIFICACIÓN -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'CRUS')"
+                    onclick="handleStyleColumnClick('CRUS')"
+                    id="col-family-CRUS"
+                    class="rounded-2xl border-2 border-dashed border-amber-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-map-location-dot text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Crus y Terruño</h3>
+                                <span class="text-xs text-stone-500 font-medium">6 Zonas Delimitadas (+85.000 ha)</span>
+                            </div>
+                        </div>
+                        <span id="count-family-CRUS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-CRUS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna CATEGORÍAS DE AÑEJAMIENTO -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'CATEGORIAS')"
+                    onclick="handleStyleColumnClick('CATEGORIAS')"
+                    id="col-family-CATEGORIAS"
+                    class="rounded-2xl border-2 border-dashed border-orange-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-orange-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-hourglass-half text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Categorías por Edad</h3>
+                                <span class="text-xs text-stone-500 font-medium">VS, VO/VSOP, Napoléon y XO</span>
+                            </div>
+                        </div>
+                        <span id="count-family-CATEGORIAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-900">0</span>
+                    </div>
+                    <div id="items-family-CATEGORIAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna CASAS HISTÓRICAS Y ETIQUETAS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'CASAS')"
+                    onclick="handleStyleColumnClick('CASAS')"
+                    id="col-family-CASAS"
+                    class="rounded-2xl border-2 border-dashed border-stone-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-stone-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-crown text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Casas y Etiquetas Ícono</h3>
+                                <span class="text-xs text-stone-500 font-medium">Grandes Maisons de Cognac</span>
+                            </div>
+                        </div>
+                        <span id="count-family-CASAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-200 text-stone-900">0</span>
+                    </div>
+                    <div id="items-family-CASAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa de AOC Cognac (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo Completo de la AOC Cognac</h3>
+                        <p class="text-xs text-stone-500">Superficie de viñedo, perfil sensorial de los 6 crus, tiempos mínimos de crianza en roble y etiquetas emblemáticas.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" data-filter="ALL" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('CRUS')" data-filter="CRUS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Crus (Terruño)</button>
+                        <button onclick="filterReferenceTable('CATEGORIAS')" data-filter="CATEGORIAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-orange-100">Categorías Edad</button>
+                        <button onclick="filterReferenceTable('CASAS')" data-filter="CASAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200">Casas Ícono</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Eje</th>
+                                <th class="p-3">Cru / Categoría / Casa</th>
+                                <th class="p-3">Superficie / Ubicación</th>
+                                <th class="p-3">Regulación / Crianza / Perfil</th>
+                                <th class="p-3">Características Técnicas</th>
+                                <th class="p-3 rounded-tr-xl">Referencias / Etiquetas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-700 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-wine-bottle"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-700 hover:bg-amber-600 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">AOC Cognac • Bebidas Espirituosas</span> • Sommellerie
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS TÉCNICA: 8 ETAPAS DE ELABORACIÓN DEL COGNAC (AOC)
+        // =========================================================================
+        const STEPS_DATA = [
+            {
+                id: 'vinificacion-cognac',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Viticultura y Vinificación Base',
+                shortSubtitle: 'Ugni Blanc, Folle Blanche y Colombard (7–10% alc.)',
+                icon: 'fa-wine-bottle',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Cepas Principales', value: 'Ugni Blanc, Folle Blanche, Colombard' },
+                    { label: 'Grado Vino Base', value: '7% a 10% alc. (acidez alta)' },
+                    { label: 'Norma AOC', value: 'Prohibido chaptalizar' }
+                ],
+                videoCaptions: [
+                    '1/3 • Terruño de Charente: Más de 85.000 ha de suelos calcáreos y clima oceánico templado (800 mm de lluvia), ideales porque favorecen una maduración lenta que preserva la acidez natural de la uva.',
+                    '2/3 • Cepas Blancas: Se emplea Ugni Blanc, Folle Blanche y Colombard porque aportan alta acidez y bajo grado alcohólico, evitando aromas pesados y concentrando precursores florales tras destilar.',
+                    '3/3 • Vino Ácido y Ligero: Se elabora un vino de 7–10% alc. sin chaptalizar; la alta acidez protege el vino sin añadir sulfitos (que dañarían el cobre y darían malos olores) y el bajo alcohol permite mayor concentración aromática.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Racimo Ugni Blanc -->
+                        <g transform="translate(55, 62)">
+                            <circle cx="-10" cy="-12" r="9" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="10" cy="-12" r="9" fill="#ca8a04" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="0" cy="0" r="9" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="-8" cy="12" r="8" fill="#a16207" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="8" cy="12" r="8" fill="#ca8a04" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="0" cy="23" r="7" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <path d="M0,-22 Q6,-34 16,-30" stroke="#84cc16" stroke-width="2.5" fill="none"/>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">1. Ugni Blanc</text>
+                        </g>
+                        <!-- Flecha 1 -->
+                        <path d="M88,68 L116,68" stroke="#a8a29e" stroke-width="2"/>
+                        <!-- Cuba de Fermentación -->
+                        <g transform="translate(160, 68)">
+                            <rect x="-32" y="-34" width="64" height="68" rx="8" fill="#44403c" stroke="#f59e0b" stroke-width="2"/>
+                            <rect x="-28" y="-14" width="56" height="44" rx="4" fill="#fbbf24" opacity="0.85"/>
+                            <circle cx="-12" cy="16" r="3" fill="#fef9c3" class="anim-vapor-1"/>
+                            <circle cx="8" cy="20" r="3.5" fill="#fef9c3" class="anim-vapor-2"/>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">2. Sin Chaptalizar</text>
+                        </g>
+                        <!-- Flecha 2 -->
+                        <path d="M204,68 L230,68" stroke="#a8a29e" stroke-width="2"/>
+                        <!-- Vino Base -->
+                        <g transform="translate(265, 68)">
+                            <rect x="-24" y="-26" width="48" height="54" rx="8" fill="#78350f" stroke="#fbbf24" stroke-width="1.8"/>
+                            <text x="0" y="-4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">VINO</text>
+                            <text x="0" y="10" text-anchor="middle" fill="#fde68a" font-size="9">7–10% alc.</text>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">3. Alta Acidez</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'La AOC Cognac, situada al norte de Bordeaux en los departamentos de Charente y Charente-Maritime (más de 85.000 ha), es la mayor región productora de uvas blancas de Francia. Su clima oceánico templado (800 mm de lluvia anual) y suelos calcáreos generan vinos ligeros y ácidos ideales para destilar.',
+                bullets: [
+                    'Variedades principales: Ugni Blanc (predominante), Folle Blanche y Colombard (complementarias hasta 10%: Blanc Ramé, Jurançon, Semillón y Sauvignon Blanc). ¿Por qué estas cepas? Porque producen rendimientos equilibrados con alta acidez y baja graduación alcohólica, perfil óptimo para concentrar ésteres finos durante la destilación.',
+                    'Perfil del vino base (7% a 10% alc. y acidez elevada): ¿Por qué debe ser tan ácido y ligero? Porque la acidez actúa como conservante natural evitando usar dióxido de azufre (que reaccionaría con el cobre generando defectos) y el bajo alcohol exige destilar mayor volumen de vino, concentrando mucho más los aromas.',
+                    'Prohibición de chaptalizar: ¿Por qué está prohibido añadir azúcar al mosto? Porque elevar artificialmente el alcohol reduciría la proporción de agua y aromas vínicos necesarios para lograr un destilado complejo y fiel al terruño.',
+                    'Origen histórico: en el siglo XVII, negociantes holandeses e ingleses destilaban este vino ("branwein" o vino quemado) porque así ocupaba menos espacio en los barcos y evitaba que el vino ligero se avinagrara durante las travesías marítimas.'
+                ],
+                sensory: 'La combinación de suelos calcáreos y vinos ácidos de baja graduación aporta una estructura aromática delicada, floral y frutada que se amplificará tras la doble destilación.'
+            },
+            {
+                id: 'primera-destilacion-flemas',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Primera Destilación Charentais (Flemas)',
+                shortSubtitle: 'Alambique de cobre con calienta-vinos → flemas (25–30° GL)',
+                icon: 'fa-fire-flame-curved',
+                colorClass: 'bg-orange-700',
+                metrics: [
+                    { label: 'Puntos Ebullición', value: 'Metanol 65,5°C | Etanol 78,5°C' },
+                    { label: 'Resultado 1ª Dest.', value: 'Flemas (25° a 30° GL)' },
+                    { label: 'Pieza Clave', value: 'Calienta-vinos (Charentais)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Alambique Charentais de Cobre: Se calienta el vino (7–10° GL) en caldera de cobre porque este metal fija compuestos azufrados indeseados, purificando los vapores que suben por el capitel.',
+                    '2/3 • Calienta-vinos y Condensación: El cuello de cisne atraviesa el calienta-vinos para aprovechar el calor del vapor y precalentar la siguiente tanda, ahorrando energía y tiempo antes del serpentín.',
+                    '3/3 • Corte de Cabeza y Cola: Se descarta la cabeza (metanol a 65,5°C, tóxico y punzante) y la cola (alcoholes pesados), conservando solo el corazón (etanol a 78,5°C): las flemas de 25–30° GL.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Caldera Alambique -->
+                        <ellipse cx="64" cy="80" rx="30" ry="20" fill="#9a3412" stroke="#fb923c" stroke-width="2"/>
+                        <path d="M48,62 Q64,44 80,62" fill="#c2410c" stroke="#fdba74" stroke-width="2"/>
+                        <!-- Fuego -->
+                        <path d="M42,110 Q50,100 58,110 Q64,98 70,110 Q78,100 86,110" stroke="#ef4444" stroke-width="2.5" fill="none" class="anim-flame"/>
+                        <!-- Calienta-vinos central -->
+                        <ellipse cx="136" cy="66" rx="20" ry="24" fill="#b45309" stroke="#fbbf24" stroke-width="1.8"/>
+                        <text x="136" y="102" text-anchor="middle" fill="#fde68a" font-size="7.5" font-weight="bold">Calienta-vinos</text>
+                        <!-- Cuello de cisne -->
+                        <path d="M64,50 Q100,24 185,48" stroke="#fdba74" stroke-width="3.5" fill="none"/>
+                        <circle cx="102" cy="34" r="3" fill="#fef08a" class="anim-vapor-1"/>
+                        <!-- Refrigerador / Serpentín -->
+                        <rect x="185" y="36" width="44" height="64" rx="6" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+                        <path d="M192,48 L222,55 L192,62 L222,69 L192,76 L222,83" stroke="#fbbf24" stroke-width="2.2" fill="none"/>
+                        <!-- Recipiente Flemas -->
+                        <rect x="244" y="64" width="54" height="42" rx="6" fill="#44403c" stroke="#fbbf24" stroke-width="1.8"/>
+                        <text x="271" y="82" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="bold">FLEMAS</text>
+                        <text x="271" y="95" text-anchor="middle" fill="#fde68a" font-size="8.5">25–30° GL</text>
+                        <text x="160" y="130" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">1ª Destilación (Pot Still) • Descarte de Cabezas y Colas</text>
+                    </svg>
+                `,
+                description: 'El Cognac exige obligatoriamente el método tradicional de destilación discontinua en alambique Charentais de cobre. En la primera pasada se calienta el vino base para separar los alcoholes por su punto de ebullición (metanol 65,5°C; etanol 78,5°C; agua 100°C).',
+                bullets: [
+                    'Anatomía del alambique Charentais: caldera (A) calentada generalmente a fuego directo, capitel en forma de cebolla, cuello de cisne y calienta-vinos. ¿Por qué de cobre y con calienta-vinos? El cobre reacciona químicamente eliminando compuestos sulfurados desagradables, mientras que el calienta-vinos recupera calor residual para precalentar la siguiente carga de vino.',
+                    'Fraccionamiento estricto (cabezas y colas): ¿Por qué se descartan los primeros y últimos vapores? Porque la "cabeza" concentra metanol (65,5°C, tóxico) y ésteres volátiles agresivos, mientras que la "cola" arrastra alcoholes superiores pesados y aceitosos que restarían fineza.',
+                    'Obtención de flemas (25° a 30° GL): ¿Por qué se realiza esta primera concentración? Para separar gran parte del agua del vino base (8–10° GL) y obtener un primer aguardiente intermedio ("brouillis") listo para ser refinado en una segunda pasada.'
+                ],
+                sensory: 'El cobre del alambique Charentais reacciona con compuestos azufrados no deseados, limpiando el destilado mientras preserva los ésteres aromáticos delicados de la uva.'
+            },
+            {
+                id: 'segunda-destilacion-holandas',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Segunda Destilación (La Bonne Chauffe)',
+                shortSubtitle: 'Flemas redestiladas → holandas (~70° GL) antes del 31 de marzo',
+                icon: 'fa-flask',
+                colorClass: 'bg-red-800',
+                metrics: [
+                    { label: 'Holandas (2ª Dest.)', value: 'Aprox. 60° a 70° GL' },
+                    { label: 'Rendimiento', value: '9 L vino (8°) → 1 L holanda' },
+                    { label: 'Fecha Límite AOC', value: '31 de marzo post-cosecha' }
+                ],
+                videoCaptions: [
+                    '1/3 • La Bonne Chauffe: Se redestilan las flemas (25–30° GL) en el alambique Charentais porque una sola pasada no alcanza la pureza ni la graduación necesarias para una larga guarda en roble.',
+                    '2/3 • Holandas de 70° GL: Al cortar nuevamente cabezas y colas, el corazón alcanza ~70° GL; este grado intermedio (frente a >90° GL de columna) permite conservar ~2.000 mg/L de congéneres aromáticos.',
+                    '3/3 • Plazo Legal BNIC (31 de marzo): Se exige terminar antes de primavera porque el aumento de temperatura oxidaría y alteraría los vinos base sin sulfitos guardados en bodega.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(72, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#292524" stroke="#fb923c" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">FLEMAS</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="bold">25–30° GL</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a8a29e" font-size="8">2ª pasada Charentais</text>
+                        </g>
+                        <path d="M124,66 L156,66" stroke="#fbbf24" stroke-width="2.5"/>
+                        <g transform="translate(226, 66)">
+                            <rect x="-62" y="-34" width="124" height="68" rx="10" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">HOLANDAS (CORAZÓN)</text>
+                            <text x="0" y="5" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">Aprox. 70° GL</text>
+                            <text x="0" y="21" text-anchor="middle" fill="#fde68a" font-size="8">9 L vino (8° GL) → 1 L holanda</text>
+                        </g>
+                        <text x="160" y="126" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Fecha límite AOC: 31 de marzo siguiente a la cosecha</text>
+                    </svg>
+                `,
+                description: 'Las flemas obtenidas en la primera etapa se someten a una segunda destilación en el alambique Charentais (conocida como "la bonne chauffe"), descartando nuevamente cabezas y colas para obtener un aguardiente fino y concentrado denominado holanda.',
+                bullets: [
+                    'Graduación de salida (~70° GL, entre 60° y 70° GL): ¿Por qué no destilar a 90° GL como en columna continua? Porque detener la concentración en torno a 70° GL permite conservar ~2.000 mg/L de congéneres (ésteres, ácidos y aldehídos) que otorgan al Cognac su personalidad aromática.',
+                    'Relación de rendimiento (9 L de vino de 8° GL → 1 L de holandas): ¿Por qué se necesita tanto vino para un solo litro? Porque se elimina más del 85% del agua y se descartan cabezas y colas en dos tandas sucesivas para quedarse únicamente con la fracción más pura.',
+                    'Calendario regulado BNIC (hasta el 31 de marzo): ¿Por qué existe esta fecha límite? Porque los vinos base no contienen sulfitos; destilarlos durante el invierno evita que el calor primaveral provoque desviaciones bacterianas u oxidación antes de pasar al alambique.'
+                ],
+                sensory: 'El aguardiente recién destilado ("eau-de-vie blanche") es cristalino, potente, con intensas notas florales (tilo, flor de vid) y frutales (pera, durazno).'
+            },
+            {
+                id: 'crianza-part-des-anges',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Crianza en Roble y "Part des Anges"',
+                shortSubtitle: 'Barricas de Limousin/Tronçais, oxidación y evaporación',
+                icon: 'fa-cloud-sun',
+                colorClass: 'bg-amber-900',
+                metrics: [
+                    { label: 'Mínimo Legal AOC', value: '2 años en barrica de roble' },
+                    { label: 'Evolución Grado', value: 'De 70° GL hacia ~40° GL' },
+                    { label: 'Evaporación', value: 'Part des Anges (bodega)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Ingreso en Barricas de Roble: Las holandas (~70° GL) reposan en roble poroso (mínimo 2 años) porque la madera cede taninos, vainillina y color ámbar natural al destilado incoloro.',
+                    '2/3 • Part des Anges: Parte del alcohol y agua se evapora por los poros del roble según la humedad de la bodega (las bodegas húmedas evaporan más alcohol, suavizando el destilado).',
+                    '3/3 • Microoxigenación y Grado: El oxígeno lento polimeriza los taninos y reduce el grado de 70° GL hacia ~40° GL, eliminando la agresividad alcohólica y creando complejidad.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Barrica de Roble -->
+                        <g transform="translate(160, 76)">
+                            <ellipse cx="0" cy="0" rx="58" ry="34" fill="#78350f" stroke="#d97706" stroke-width="2.5"/>
+                            <path d="M-36,-27 Q-28,0 -36,27" stroke="#292524" stroke-width="3" fill="none"/>
+                            <path d="M36,-27 Q28,0 36,27" stroke="#292524" stroke-width="3" fill="none"/>
+                            <text x="0" y="-4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">HOLANDAS 70° GL</text>
+                            <text x="0" y="12" text-anchor="middle" fill="#fde68a" font-size="9">→ Aguardiente ~40° GL</text>
+                        </g>
+                        <!-- Evaporación Part des Anges -->
+                        <g class="anim-angel">
+                            <path d="M125,36 Q135,20 145,32" stroke="#bae6fd" stroke-width="2" fill="none"/>
+                            <path d="M175,32 Q185,20 195,36" stroke="#bae6fd" stroke-width="2" fill="none"/>
+                            <text x="160" y="20" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">Part des Anges (Evaporación)</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Mínimo 2 años en roble • Lenta oxidación y cesión de taninos</text>
+                    </svg>
+                `,
+                description: 'Para poder llevar la denominación AOC Cognac, el aguardiente debe envejecer un mínimo de dos años en barricas de roble. La pared porosa de la madera permite una lenta oxidación y una evaporación constante que afina y redondea el destilado.',
+                bullets: [
+                    'Partida de los Ángeles ("Part des Anges"): ¿Por qué ocurre y cómo influye la bodega? Porque el roble es semipermeable; en bodegas húmedas se evapora proporcionalmente más alcohol (suavizando y redondeando el cognac), mientras que en bodegas secas se evapora más agua (concentrando estructura).',
+                    'Reducción natural del grado (de 70° GL hacia ~40° GL): ¿Por qué disminuye la graduación sin añadir agua en añejamientos largos? Porque la evaporación continua de etanol a través de las duelas rebaja paulatinamente el volumen alcohólico de forma natural.',
+                    'Intercambio con la madera (mínimo 2 años): ¿Por qué se exige crianza en roble? Porque los compuestos hidroalcohólicos extraen lignina, hemicelulosa y taninos de la barrica, aportando color ámbar, untuosidad y notas de vainilla y especias.',
+                    'Regla de edad en los cortes: ¿Por qué manda el componente más joven? Para garantizar transparencia al consumidor: cualquier mención de edad en la etiqueta responde estrictamente al aguardiente más joven del ensamblaje.'
+                ],
+                sensory: 'Aparecen notas de vainilla, roble tostado, frutos secos, miel y, en añejamientos largos ("rancio charentais"), aromas complejos de nuez, cuero, tabaco y especias dulces.'
+            },
+            {
+                id: 'categoria-vs',
+                correctSlot: 5,
+                orderLabel: '5. Categoría de Crianza I',
+                title: 'Categoría V.S. (Very Special)',
+                shortSubtitle: 'Aguardiente más joven con al menos 2 años en roble',
+                icon: 'fa-star',
+                colorClass: 'bg-amber-600',
+                metrics: [
+                    { label: 'Crianza Mínima', value: 'Al menos 2 años en roble' },
+                    { label: 'Siglas Equivalentes', value: 'V.S. / Trois Étoiles (***)' },
+                    { label: 'Perfil Dominante', value: 'Frutal, floral y vibrante' }
+                ],
+                videoCaptions: [
+                    '1/3 • Base Legal del Cognac (V.S.): Exige mínimo 2 años en roble porque antes de ese plazo el destilado conserva aristas alcohólicas crudas y carece de integración con la madera.',
+                    '2/3 • Regla del Componente Más Joven: Se incorporan partidas algo mayores al corte para aportar redondez sin perder la vivacidad y frescura propias de un cognac joven.',
+                    '3/3 • Uso en Sommellerie y Barra: Se elige para coctelería clásica (Sidecar) porque su perfil floral y frutal de Ugni Blanc brilla sin quedar tapado por exceso de roble.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-95" y="-38" width="190" height="76" rx="12" fill="#451a03" stroke="#f59e0b" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">V.S. • VERY SPECIAL</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10.5" font-weight="bold">Mínimo 2 años en roble</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fde68a" font-size="8.5">Frutal • Floral • Fresco • Ideal coctelería</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'La categoría V.S. (Very Special) agrupa aquellos cognacs cuyo aguardiente más joven ha permanecido al menos 2 años en barricas de roble.',
+                bullets: [
+                    'Criterio de edad (mínimo 2 años): ¿Por qué se fija este piso legal? Porque dos años de contacto con el roble es el tiempo mínimo indispensable para transformar el aguardiente blanco ("eau-de-vie blanche") en Cognac, suavizando su ataque y aportando tono dorado.',
+                    'Carácter estilístico: ¿Por qué domina la fruta sobre la madera? Porque la breve extracción tánica preserva intactos los aromas primarios de fruta blanca, flores de vid y cítricos confitados.',
+                    'Versatilidad en barra: ¿Por qué es el favorito para cócteles clásicos? Porque su perfil fresco y vibrante aporta estructura vínica sin imponer notas pesadas de roble viejo.'
+                ],
+                sensory: 'Color dorado pálido brillante, ataque vivo y fresco en boca, con notas de pera, albaricoque y un sutil toque de vainilla.'
+            },
+            {
+                id: 'categoria-vsop',
+                correctSlot: 6,
+                orderLabel: '6. Categoría de Crianza II',
+                title: 'Categoría V.O. / V.S.O.P.',
+                shortSubtitle: 'Very Superior Old Pale • Mínimo 4 años en roble',
+                icon: 'fa-award',
+                colorClass: 'bg-amber-800',
+                metrics: [
+                    { label: 'Crianza Mínima', value: 'Al menos 4 años en roble' },
+                    { label: 'Denominaciones', value: 'V.O. / V.S.O.P. / Réserve' },
+                    { label: 'Equilibrio', value: 'Fruta madura + roble integrado' }
+                ],
+                videoCaptions: [
+                    '1/3 • Cuatro Años Mínimos (V.O. / V.S.O.P.): Exige al menos 4 años en roble para lograr una maduración intermedia donde la madera se funde con la fruta sin dominarla.',
+                    '2/3 • Armonía de Madera y Fruta: Se suelen ensamblar partidas de 4 a 12 años porque la combinación de edades aporta complejidad aromática y textura sedosa en boca.',
+                    '3/3 • Consumo Versátil: Funciona tanto solo en copa tulipa como en cócteles estructurados porque posee suficiente cuerpo para beberse puro y frescura para mezclarse.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-105" y="-38" width="210" height="76" rx="12" fill="#431407" stroke="#fb923c" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fdba74" font-size="12.5" font-weight="bold">V.O. / V.S.O.P.</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10.5" font-weight="bold">Mínimo 4 años en roble</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fed7aa" font-size="8.5">Equilibrio entre fruta confitada, vainilla y especias</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Los cognacs V.O. (Very Old) y V.S.O.P. (Very Superior Old Pale) son ensamblajes cuyo brandy más joven cuenta con un mínimo de 4 años de envejecimiento en roble.',
+                bullets: [
+                    'Punto de equilibrio (mínimo 4 años): ¿Por qué es la categoría más equilibrada? Porque cuatro años de microoxigenación eliminan la ardencia alcohólica juvenil sin que los taninos ni el "rancio" cubran la tipicidad floral de la uva.',
+                    'Ensamblajes habituales: ¿Por qué los maestros mezcladores incluyen partidas de 6 a 12 años en un VSOP? Para dotar al corte de mayor amplitud media en boca y persistencia aromática.',
+                    'Maridaje y servicio: ¿Por qué acompaña bien postres de frutas o chocolate con leche? Porque sus notas naturales de vainilla, caramelo suave y fruta confitada armonizan por afinidad sin resultar astringentes.'
+                ],
+                sensory: 'Tonalidad ámbar dorada profunda; aromas de fruta madura, cáscara de naranja, vainilla, avellana tostada y especias suaves.'
+            },
+            {
+                id: 'categoria-xo',
+                correctSlot: 7,
+                orderLabel: '7. Categoría de Crianza III',
+                title: 'Napoléon (6–9 años) y X.O. (Mín. 10 años)',
+                shortSubtitle: 'Larga guarda, "rancio charentais" y complejidad',
+                icon: 'fa-crown',
+                colorClass: 'bg-stone-900',
+                metrics: [
+                    { label: 'Napoléon', value: '6 a 9 años de crianza' },
+                    { label: 'X.O. (Extra Old)', value: 'Mín. 10 años (desde 01/04/2018)' },
+                    { label: 'Etiquetas Ícono', value: 'Le Paradis, Louis XIII, Triomphe' }
+                ],
+                videoCaptions: [
+                    '1/3 • Categoría Napoléon (6–9 años): Ocupa el escalón previo al X.O. porque ofrece una crianza avanzada con notas tostadas y especiadas antes de entrar en la década de guarda.',
+                    '2/3 • Categoría X.O. (Mín. 10 años desde 2018): El BNIC elevó el mínimo de 6 a 10 años para garantizar la aparición del "rancio charentais" y distinguir claramente los cognacs de larga guarda.',
+                    '3/3 • Bodegas "Paradis": Se reservan aguardientes de varias décadas en cavas húmedas para que la evaporación natural concentre aromas terciarios de nuez, cuero y cacao.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(86, 68)">
+                            <rect x="-56" y="-34" width="112" height="68" rx="10" fill="#292524" stroke="#f59e0b" stroke-width="1.8"/>
+                            <text x="0" y="-10" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-weight="bold">NAPOLÉON</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">6 – 9 años</text>
+                            <text x="0" y="21" text-anchor="middle" fill="#a8a29e" font-size="8">Guarda intermedia sup.</text>
+                        </g>
+                        <g transform="translate(226, 68)">
+                            <rect x="-66" y="-34" width="132" height="68" rx="10" fill="#1c1917" stroke="#fbbf24" stroke-width="2.2"/>
+                            <text x="0" y="-10" text-anchor="middle" fill="#fde047" font-size="11" font-weight="bold">X.O. (EXTRA OLD)</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Mín. 10 años (2018)</text>
+                            <text x="0" y="21" text-anchor="middle" fill="#fde68a" font-size="8">Rancio • Cuero • Cacao</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Representan la cúspide de la crianza en la AOC Cognac. La categoría Napoléon abarca de 6 a 9 años, mientras que X.O. (Extra Old) exige desde el 1 de abril de 2018 un mínimo de 10 años de añejamiento en roble para su componente más joven.',
+                bullets: [
+                    'Reforma del BNIC (01/04/2018): ¿Por qué se elevó el mínimo del X.O. de 6 a 10 años? Para reforzar el prestigio internacional de la categoría Extra Old y asegurar que el destilado desarrolle verdadera complejidad terciaria, dejando el rango de 6 a 9 años para Napoléon.',
+                    'Bodegas "Paradis": ¿Por qué se trasladan los aguardientes más viejos a estas salas? Para frenar la extracción excesiva de taninos de barricas jóvenes (usando toneles viejos o damajuanas) mientras la Part des Anges afina su textura sedosa.',
+                    'Ejemplos históricos: Hennessy (Le Paradis), Rémy Martin (Louis XIII), Martell (Cordon d’Argent), Courvoisier (Napoléon Fine Champagne), Hine (Triomphe).'
+                ],
+                sensory: 'Color caoba cobrizo intenso, textura sedosa y larga persistencia con notas de ciruela pasa, higo seco, cacao, tabaco, cuero, nuez y especias exóticas.'
+            },
+            {
+                id: 'ensamblaje-servicio-cognac',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Ensamblaje (Blend), Reducción y Servicio',
+                shortSubtitle: 'Corte del Maître de Chai, ajuste con agua y copa a 16–18°C',
+                icon: 'fa-champagne-glasses',
+                colorClass: 'bg-emerald-800',
+                metrics: [
+                    { label: 'Fine Champagne', value: 'Grande (≥50%) + Petite Champ.' },
+                    { label: 'Ajuste Alcohólico', value: 'Agua destilada / desmineralizada' },
+                    { label: 'Temperatura Servicio', value: '16° a 18°C (digestivo)' }
+                ],
+                videoCaptions: [
+                    '1/3 • El Arte del Blend: El Maître de Chai combina distintos crus y añadas (ej. Fine Champagne: ≥50% Grande Champagne) para mantener el estilo de la casa cada año y equilibrar estructura con fineza.',
+                    '2/3 • Reducción Gradual: Se rebaja el grado con agua destilada o desmineralizada en etapas lentas porque un golpe brusco de agua enturbiaría el destilado y rompería su armonía aromática.',
+                    '3/3 • Servicio en Sommellerie (16–18°C): Se sirve a temperatura fresca de cava (sin calentar la copa con fuego) porque el calor excesivo volatiliza el etanol y quema la nariz.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Copa Tulipa / Balón -->
+                        <g transform="translate(105, 68)">
+                            <path d="M-22,-22 C-26,8 -13,22 0,22 C13,22 26,8 22,-22 Z" fill="#b45309" stroke="#fbbf24" stroke-width="2"/>
+                            <line x1="0" y1="22" x2="0" y2="44" stroke="#fde68a" stroke-width="3"/>
+                            <line x1="-16" y1="44" x2="16" y2="44" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+                            <text x="0" y="2" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="bold">16–18°C</text>
+                        </g>
+                        <!-- Ficha Fine Champagne & Servicio -->
+                        <g transform="translate(222, 68)">
+                            <rect x="-64" y="-34" width="128" height="68" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#a7f3d0" font-size="9.5" font-weight="bold">BLEND Y SERVICIO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#6ee7b7" font-size="8.5">• Fine Champagne (≥50% GC)</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#6ee7b7" font-size="8.5">• Digestivo, puros o postres</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#a7f3d0" font-size="9" font-weight="bold">Postres de chocolate o café • Tendencia actual en coctelería de autor</text>
+                    </svg>
+                `,
+                description: 'Terminada la crianza, el maestro bodeguero ("Maître de Chai") realiza los blends combinando aguardientes de diferentes edades y crus, ajustando el grado alcohólico con agua si fuera necesario antes del embotellado.',
+                bullets: [
+                    'Fine Champagne (≥50% Grande Champagne + Petite Champagne): ¿Por qué se ensamblan ambos crus? Porque Grande Champagne aporta longevidad y estructura calcárea, mientras Petite Champagne suma fineza floral y una expresión aromática más accesible.',
+                    'Ajuste alcohólico con agua destilada o desmineralizada: ¿Por qué debe ser agua libre de minerales y añadirse lentamente? Porque las sales minerales precipitarían causando turbidez en botella, y la dilución gradual permite que agua y etanol se integren sin choques térmicos.',
+                    'Protocolo de servicio (16° a 18°C): ¿Por qué servirlo entre 16° y 18°C sin calentar la copa? Porque a mayor temperatura los vapores de alcohol anestesian el olfato y ocultan los aromas delicados; es ideal como digestivo solo, con puros o postres de chocolate y café.'
+                ],
+                sensory: 'Servido entre 16° y 18°C (evitando calentar excesivamente la copa para no volatilizar el alcohol), despliega en equilibrio sus notas florales, frutadas y de crianza.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Crianza Mínima (2 años)', hint: 'Ubicar categoría' },
+            { slotId: 6, phase: 2, title: 'Crianza Intermedia (4 años)', hint: 'Ubicar categoría' },
+            { slotId: 7, phase: 2, title: 'Larga Guarda (6–9 y ≥10 años)', hint: 'Ubicar categoría' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // =========================================================================
+        // BASE DE DATOS COMPLETA DE CRUS, CATEGORÍAS Y CASAS DE COGNAC
+        // =========================================================================
+        const COGNAC_CLASSIFICATION_DATA = [
+            // EJE 1: CRUS Y TERRUÑO (6 CRUS + FINE CHAMPAGNE)
+            {
+                id: 'cru-grande-champagne',
+                family: 'CRUS',
+                style: '1er Cru • Grande Champagne',
+                brandsWorld: 'Frapin (100% Grande Champagne), Delamain, Hine',
+                brandsArgentina: 'Rémy Martin Louis XIII (100% Grande Champagne)',
+                origin: 'Corazón de Cognac • 13.000 ha de viñedo',
+                cepasCrianza: 'Suelos muy calcáreos y friables • Máxima fineza y potencial de guarda',
+                notes: 'Considerado el cru de mayor calidad de toda la AOC Cognac. Produce aguardientes florales, sumamente finos y estructurados que requieren largos envejecimientos en roble para alcanzar su plenitud.'
+            },
+            {
+                id: 'cru-petite-champagne',
+                family: 'CRUS',
+                style: '2º Cru • Petite Champagne',
+                brandsWorld: 'Hine Rare, Frapin, Delamain',
+                brandsArgentina: 'Rémy Martin VSOP / XO (componente clave)',
+                origin: 'Rodeando Grande Champagne • 15.000 ha de viñedo',
+                cepasCrianza: 'Suelos calcáreos • Gran fineza y elegancia aromática',
+                notes: 'Aporta gran fineza y ligereza floral, muy similar a Grande Champagne aunque con una maduración ligeramente más rápida en barrica.'
+            },
+            {
+                id: 'cru-fine-champagne',
+                family: 'CRUS',
+                style: 'Mención Legal • Fine Champagne (Ensamblaje)',
+                brandsWorld: 'Courvoisier Napoléon Fine Champagne, Hine Rare VSOP',
+                brandsArgentina: 'Rémy Martin VSOP Fine Champagne, Rémy Martin XO',
+                origin: 'Ensamblaje exclusivo de Grande y Petite Champagne',
+                cepasCrianza: 'Mínimo 50% de Grande Champagne + resto de Petite Champagne',
+                notes: 'No es un cru geográfico independiente, sino una denominación regulada para los blends que combinan exclusivamente ambos crus calcáreos con al menos un 50% de Grande Champagne.'
+            },
+            {
+                id: 'cru-borderies',
+                family: 'CRUS',
+                style: '3er Cru • Borderies',
+                brandsWorld: 'Camus Borderies XO, Martell Cordon Bleu (corazón de Borderies)',
+                brandsArgentina: 'Martell VSOP / XO (casa histórica vinculada a Borderies)',
+                origin: 'Noroeste de la ciudad de Cognac • 4.000 ha de viñedo (el más pequeño)',
+                cepasCrianza: 'Suelos arcillo-silíceos descalcificados • Perfil más fuerte y redondo',
+                notes: 'Es el cru de menor extensión (4.000 ha). Da aguardientes con carácter más fuerte, cuerpo redondo y distintivas notas aromáticas de violeta e iris.'
+            },
+            {
+                id: 'cru-fins-bons-bois',
+                family: 'CRUS',
+                style: '4º y 5º Cru • Fins Bois (31.000 ha) y Bons Bois (9.500 ha)',
+                brandsWorld: 'Hennessy, Courvoisier, Martell (bases de ensamblaje)',
+                brandsArgentina: 'Hennessy VS / VSOP, Courvoisier VS / VSOP',
+                origin: 'Anillo exterior de la región • 31.000 ha (Fins Bois) y 9.500 ha (Bons Bois)',
+                cepasCrianza: 'Menos finos, buena calidad y evolución más rápida y suave',
+                notes: 'Fins Bois (31.000 ha) es el cru más extenso de la AOC; junto con Bons Bois (9.500 ha) produce aguardientes más suaves, frutales y de maduración ágil ideales para los cortes.'
+            },
+            {
+                id: 'cru-bois-ordinaire',
+                family: 'CRUS',
+                style: '6º Cru • Bois Ordinaire (Bois à Terroirs)',
+                brandsWorld: 'Productores locales costeros e islas de Ré y Oléron',
+                brandsArgentina: 'Ediciones limitadas marítimas',
+                origin: 'Franja costera atlántica e islas • 1.100 ha de viñedo',
+                cepasCrianza: 'Clima marítimo • Sabor muy especial con notas yodadas/salinas',
+                notes: 'El cru más pequeño en producción (1.100 ha), marcado por suelos arenosos y la influencia directa del océano Atlántico que le imprime un carácter singular.'
+            },
+            // EJE 2: CATEGORÍAS OFICIALES POR EDAD (BNIC)
+            {
+                id: 'cat-vs',
+                family: 'CATEGORIAS',
+                style: 'Categoría V.S. (Very Special)',
+                brandsWorld: 'Frapin VS, Hine H by Hine, Delamain (no elabora VS)',
+                brandsArgentina: 'Hennessy VS, Courvoisier VS, Martell VS',
+                origin: 'Clasificación Oficial BNIC • AOC Cognac',
+                cepasCrianza: 'Aguardiente más joven con al menos 2 años en roble',
+                notes: 'Marca el piso legal de envejecimiento de la AOC Cognac (2 años contados desde el 1 de abril posterior a la cosecha). Perfil fresco, frutal y floral.'
+            },
+            {
+                id: 'cat-vsop',
+                family: 'CATEGORIAS',
+                style: 'Categoría V.O. / V.S.O.P. (Very Superior Old Pale)',
+                brandsWorld: 'Hine Rare VSOP, Frapin VSOP Grande Champagne',
+                brandsArgentina: 'Hennessy VSOP, Rémy Martin VSOP, Martell VSOP, Courvoisier VSOP',
+                origin: 'Clasificación Oficial BNIC • AOC Cognac',
+                cepasCrianza: 'Aguardiente más joven con al menos 4 años en roble',
+                notes: 'Equilibrio clásico entre los aromas primarios de Ugni Blanc y las notas avainilladas y especiadas aportadas por cuatro años mínimos en barrica de roble.'
+            },
+            {
+                id: 'cat-napoleon',
+                family: 'CATEGORIAS',
+                style: 'Categoría Napoléon',
+                brandsWorld: 'Courvoisier Napoléon Fine Champagne, Frapin Napoléon',
+                brandsArgentina: 'Courvoisier Napoléon (vinotecas especializadas)',
+                origin: 'Clasificación Oficial BNIC • AOC Cognac',
+                cepasCrianza: '6 a 9 años de envejecimiento en roble',
+                notes: 'Escalón intermedio entre V.S.O.P. y X.O. Tras la reforma de 2018 que elevó el X.O. a 10 años, Napoléon identifica los cortes de 6 a 9 años.'
+            },
+            {
+                id: 'cat-xo',
+                family: 'CATEGORIAS',
+                style: 'Categoría X.O. (Extra Old)',
+                brandsWorld: 'Delamain Pale & Dry XO, Frapin XO VIP, Hine Antique XO',
+                brandsArgentina: 'Hennessy XO, Rémy Martin XO, Martell XO, Courvoisier XO',
+                origin: 'Clasificación Oficial BNIC • Norma vigente desde 01/04/2018',
+                cepasCrianza: 'Aguardiente más joven con al menos 10 años en roble',
+                notes: 'Desde el 1 de abril de 2018 el mínimo legal pasó de 6 a 10 años. Ofrece textura untuosa, notas de rancio charentais, cacao, cuero, nuez y frutas secas.'
+            },
+            // EJE 3: CASAS HISTÓRICAS Y ETIQUETAS ÍCONO
+            {
+                id: 'casa-hennessy-remy',
+                family: 'CASAS',
+                style: 'Hennessy (Le Paradis) y Rémy Martin (Louis XIII)',
+                brandsWorld: 'Hennessy Paradis Impérial, Rémy Martin Louis XIII (100% Grande Champagne)',
+                brandsArgentina: 'Hennessy VS / VSOP / XO / Paradis • Rémy Martin VSOP / XO / Louis XIII',
+                origin: 'Cognac (Charente) • Fundadas en 1765 y 1724',
+                cepasCrianza: 'Largas guardas en bodegas "Paradis" • Cortes centenarios en Louis XIII',
+                notes: 'Hennessy destaca por su emblemática bodega Le Paradis y su amplitud de crus; Rémy Martin se especializa exclusivamente en Fine Champagne y su joya Louis XIII (100% Grande Champagne).'
+            },
+            {
+                id: 'casa-martell-courvoisier-hine',
+                family: 'CASAS',
+                style: 'Martell (Cordon d’Argent), Courvoisier, Hine, Delamain y Frapin',
+                brandsWorld: 'Martell Cordon d’Argent, Courvoisier Napoléon Fine Champagne, Hine Triomphe',
+                brandsArgentina: 'Martell VSOP / XO, Courvoisier VS / VSOP / XO, Delamain / Frapin (importadores boutique)',
+                origin: 'Cognac y Jarnac (Charente) • Casas históricas',
+                cepasCrianza: 'Estilos distintivos: Borderies (Martell), Fine Champagne (Courvoisier/Hine), Grande Champagne (Delamain/Frapin)',
+                notes: 'Completan el panteón histórico de la AOC Cognac: Martell (fundada en 1715), Courvoisier (Jarnac), Hine (especialista en añadas y Triomphe), Delamain y Frapin.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Crus, Categorías y Casas
+        let activeStyleCards = []; // Subconjunto de 12 fichas activas en la ronda
+        let stylePlacements = {}; // { styleId: 'CRUS' | 'CATEGORIAS' | 'CASAS' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            preloadAllTtsAudios();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°\s*GL/g, '$1 a $2 grados Gay-Lussac')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        async function preloadAllTtsAudios() {
+            const queue = [];
+            for (const step of STEPS_DATA) {
+                step.videoCaptions.forEach((rawText, idx) => {
+                    queue.push({
+                        cacheKey: `${step.id}_${idx}`,
+                        cleanText: cleanCaptionForSpeech(rawText)
+                    });
+                });
+            }
+
+            const total = queue.length;
+            let completed = 0;
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+            }
+
+            const updatePreloadUI = () => {
+                if (!textEl || !iconEl) return;
+                if (completed < total) {
+                    textEl.textContent = `Preparando audios HD (${completed}/${total})...`;
+                } else {
+                    const readyCount = Object.keys(ttsAudioCache).length;
+                    if (readyCount > 0) {
+                        iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                        textEl.textContent = `Audios HD listos (${readyCount}/${total})`;
+                    } else {
+                        iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                        textEl.textContent = 'Voz local lista';
+                    }
+                }
+            };
+
+            updatePreloadUI();
+
+            const CONCURRENCY = 3;
+            let cursor = 0;
+
+            async function worker() {
+                while (cursor < queue.length) {
+                    const item = queue[cursor++];
+                    await getOrFetchTtsAudio(item.cacheKey, item.cleanText);
+                    completed++;
+                    updatePreloadUI();
+                }
+            }
+
+            const workers = Array.from({ length: CONCURRENCY }, () => worker());
+            await Promise.all(workers);
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => setVoiceStatus('Narrando (local)...', 'speaking');
+            utterance.onend = () => {
+                setVoiceStatus('Voz activa');
+                if (onComplete) onComplete();
+            };
+            utterance.onerror = () => {
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Cargando voz HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+                    audioUrl = await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-800 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-500';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-600 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-800 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia de AOC Cognac 100% correcta',
+                    'Dominas todo el proceso del Cognac: Viticultura y Vinificación Base (Ugni Blanc, 7–10% alc., sin chaptalizar) → Primera Destilación Charentais (Flemas 25–30° GL) → Segunda Destilación (Holandas ~70° GL antes del 31 de marzo) → Crianza en Roble y Part des Anges → Categorías (VS 2a, VO/VSOP 4a, Napoléon 6–9a y XO ≥10a) → Ensamblaje (Fine Champagne), Reducción y Servicio a 16–18°C.'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el orden del alambique Charentais (flemas → holandas) y los años mínimos de crianza de VS (2), VSOP (4) y XO (10).'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE CRUS, CATEGORÍAS Y CASAS DE COGNAC
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const crus = COGNAC_CLASSIFICATION_DATA.filter(s => s.family === 'CRUS').sort(() => Math.random() - 0.5).slice(0, 6);
+                const cats = COGNAC_CLASSIFICATION_DATA.filter(s => s.family === 'CATEGORIAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const casas = COGNAC_CLASSIFICATION_DATA.filter(s => s.family === 'CASAS').sort(() => Math.random() - 0.5).slice(0, 2);
+                activeStyleCards = [...crus, ...cats, ...casas].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} fichas clasificadas`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras de Cognac! Pulsa <strong>"Verificar Clasificación"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Francia / Global:</span> ${item.brandsWorld}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span class="truncate pr-1">${item.origin}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = [
+                { key: 'CRUS', label: 'Crus y Terruño' },
+                { key: 'CATEGORIAS', label: 'Categorías por Edad' },
+                { key: 'CASAS', label: 'Casas y Etiquetas Ícono' }
+            ];
+
+            families.forEach(famObj => {
+                const fam = famObj.key;
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar fichas de <strong>${famObj.label}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const famShortName = {
+                    CRUS: 'Cru / Terruño',
+                    CATEGORIAS: 'Categoría Edad',
+                    CASAS: 'Casa Ícono'
+                };
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${famShortName[item.family]}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Francia / Global:</strong> ${item.brandsWorld}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan fichas por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Crus y Terruño, Categorías por Edad o Casas y Etiquetas Ícono antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos en AOC Cognac',
+                    'Has identificado correctamente los 6 crus de Cognac, las categorías legales de crianza (VS, VSOP, Napoléon, XO) y las grandes casas productoras.'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} fichas`,
+                    'Revisa las fichas marcadas en rojo donde se indica su eje correcto. Puedes pulsar "Ver Tabla Completa" para repasar hectáreas, crianzas y maisons.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.getAttribute('data-filter');
+                const isMatch = (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? COGNAC_CLASSIFICATION_DATA
+                : COGNAC_CLASSIFICATION_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                CRUS: { label: 'CRU / TERRUÑO', cls: 'bg-amber-100 text-amber-900 border-amber-200' },
+                CATEGORIAS: { label: 'CATEGORÍA EDAD', cls: 'bg-orange-100 text-orange-900 border-orange-200' },
+                CASAS: { label: 'CASA ÍCONO', cls: 'bg-stone-200 text-stone-900 border-stone-300' }
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family].cls}">${famBadge[item.family].label}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700 font-medium">${item.cepasCrianza}</td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Francia / Global:</strong> ${item.brandsWorld}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

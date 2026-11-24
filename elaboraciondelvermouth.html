@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elaboración y Clasificación del Vermouth - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.25; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(-44px) scale(1.15); opacity: 0; }
+        }
+        @keyframes dripDrop {
+            0% { transform: translateY(0); opacity: 0.9; }
+            80% { opacity: 1; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatAngels {
+            0%, 100% { transform: translateY(0px); opacity: 0.75; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+        .anim-vapor-1 { animation: vaporRise 2.2s infinite ease-in; }
+        .anim-vapor-2 { animation: vaporRise 2.8s infinite ease-in 0.7s; }
+        .anim-vapor-3 { animation: vaporRise 2.5s infinite ease-in 1.3s; }
+        .anim-drip { animation: dripDrop 1.8s infinite ease-in; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-angel { animation: floatAngels 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-700 via-amber-700 to-stone-900 flex items-center justify-center text-amber-100 shadow-inner shrink-0 border border-amber-500/30">
+                    <i class="fa-solid fa-martini-glass-citrus text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Bebidas Compuestas • Vinos Aromatizados</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración y Clasificación del Vermouth</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva, Estilos/Botánicos/Marcas, Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de estado de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="audio-preload-text">Audio narrado listo</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-leaf"></i>
+                        <span>Estilos, Botánicos y Marcas</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                        Actividad Bebidas Compuestas • Vermouth
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración del Vermouth</strong> distribuyéndolas en las tres fases del diagrama. Arrastra o selecciona cada tarjeta y ubícala en su casillero correspondiente; pulsa <i class="fa-solid fa-circle-info text-amber-700"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Vino Base, Extracción de Botánicos (Wermut) y Encabezado</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-800"></i>
+                        <span>Definición Estilística por Contenido de Azúcar, Coloración y Origen</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Estilos Principales de Vermouth (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-800 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Elaboración según Estilo (Rosso, Bianco y Dry / Extra Dry)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5, 6, 7 -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Reposo, Filtración y Servicio en Sommellerie</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración del Vermouth (Bebidas Compuestas)</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa: ubicación dentro de las <strong>Bebidas Compuestas</strong> (junto a Bitters y Licores), etimología alemana <em>Wermut</em> (ajenjo / <em>Artemisia absinthium</em>), nacimiento moderno en Turín en 1786 con Antonio Benedetto Carpano, vino base (mínimo 75% de vino), maceración e infusión de botánicos, encabezado con alcohol vínico neutro hasta 15°–22° GL, perfiles Rosso (con caramelo), Bianco y Dry/Extra Dry, y servicio como aperitivo o en coctelería clásica. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE ESTILOS, BOTÁNICOS Y MARCAS DE VERMOUTH -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                            Taxonomía del Vermouth
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 fichas clasificadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>estilo, ingrediente botánico o casa histórica</strong> dentro de su eje correspondiente: <strong>Estilos Clásicos (Rosso, Bianco, Dry, Rosé)</strong>, <strong>Botánicos y Componentes Base</strong> o <strong>Escuelas y Marcas Emblemáticas (Italia, Francia, España)</strong>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Clasificación</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Fichas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Fichas de Vermouth Disponibles (Arrastra o toca una ficha y luego toca su columna)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca Estilos Clásicos, Botánicos y Base o Escuelas y Marcas
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: ESTILOS, BOTANICOS, MARCAS -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna ESTILOS CLÁSICOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'ESTILOS')"
+                    onclick="handleStyleColumnClick('ESTILOS')"
+                    id="col-family-ESTILOS"
+                    class="rounded-2xl border-2 border-dashed border-rose-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-rose-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-martini-glass-citrus text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Estilos Clásicos</h3>
+                                <span class="text-xs text-stone-500 font-medium">Rosso, Bianco, Dry / Extra Dry y Rosé</span>
+                            </div>
+                        </div>
+                        <span id="count-family-ESTILOS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-900">0</span>
+                    </div>
+                    <div id="items-family-ESTILOS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna BOTÁNICOS Y BASE -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'BOTANICOS')"
+                    onclick="handleStyleColumnClick('BOTANICOS')"
+                    id="col-family-BOTANICOS"
+                    class="rounded-2xl border-2 border-dashed border-emerald-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-seedling text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Botánicos y Base</h3>
+                                <span class="text-xs text-stone-500 font-medium">Ajenjo (Wermut), Vino Base y Alcohol</span>
+                            </div>
+                        </div>
+                        <span id="count-family-BOTANICOS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">0</span>
+                    </div>
+                    <div id="items-family-BOTANICOS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna ESCUELAS Y MARCAS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'MARCAS')"
+                    onclick="handleStyleColumnClick('MARCAS')"
+                    id="col-family-MARCAS"
+                    class="rounded-2xl border-2 border-dashed border-amber-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-crown text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Escuelas y Marcas</h3>
+                                <span class="text-xs text-stone-500 font-medium">Turín, Chambéry, Reus/Jerez e Hitos</span>
+                            </div>
+                        </div>
+                        <span id="count-family-MARCAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-MARCAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa de Vermouth (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo Completo del Vermouth</h3>
+                        <p class="text-xs text-stone-500">Estilos por nivel de azúcar y color, botánicos fundamentales y escuelas históricas de producción.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" data-filter="ALL" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('ESTILOS')" data-filter="ESTILOS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-rose-100">Estilos Clásicos</button>
+                        <button onclick="filterReferenceTable('BOTANICOS')" data-filter="BOTANICOS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-emerald-100">Botánicos y Base</button>
+                        <button onclick="filterReferenceTable('MARCAS')" data-filter="MARCAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Escuelas y Marcas</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Eje</th>
+                                <th class="p-3">Estilo / Botánico / Escuela</th>
+                                <th class="p-3">Origen / Regulación</th>
+                                <th class="p-3">Azúcar / Graduación / Perfil</th>
+                                <th class="p-3">Características Técnicas</th>
+                                <th class="p-3 rounded-tr-xl">Referencias / Marcas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-700 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-wine-bottle"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-700 hover:bg-amber-600 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Vermouth • Bebidas Compuestas (Vinos Aromatizados)</span> • Sommellerie
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS TÉCNICA: 8 ETAPAS DE ELABORACIÓN DEL VERMOUTH
+        // =========================================================================
+        const STEPS_DATA = [
+            {
+                id: 'vino-base-vermouth',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Selección del Vino Base (Mínimo 75%)',
+                shortSubtitle: 'Vino neutro joven (generalmente blanco) como matriz',
+                icon: 'fa-wine-bottle',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Categoría Manual', value: 'Bebidas Compuestas (junto a Bitters/Licores)' },
+                    { label: 'Proporción Mínima', value: 'Al menos 75% de vino en volumen' },
+                    { label: 'Origen Moderno', value: 'Turín, 1786 (A. B. Carpano)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Bebida Compuesta sobre Vino (≥75%): El Vermouth pertenece a las Bebidas Compuestas y parte obligatoriamente de al menos un 75% de vino porque el vino aporta acidez, frescura y estructura.',
+                    '2/3 • Elección de Vinos Blancos Neutros: Incluso para elaborar vermouth tinto (Rosso) se suele emplear vino blanco joven y neutro porque evita taninos ásperos que chocarían con las hierbas amargas.',
+                    '3/3 • Hito Histórico de Turín (1786): Antonio Benedetto Carpano estandarizó en Turín la fórmula moderna combinando vinos blancos del Piamonte con infusiones de hierbas y especias.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(55, 62)">
+                            <circle cx="-10" cy="-12" r="9" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="10" cy="-12" r="9" fill="#ca8a04" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="0" cy="0" r="9" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="-8" cy="12" r="8" fill="#a16207" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="8" cy="12" r="8" fill="#ca8a04" stroke="#fef08a" stroke-width="1.5"/>
+                            <circle cx="0" cy="23" r="7" fill="#eab308" stroke="#fef08a" stroke-width="1.5"/>
+                            <path d="M0,-22 Q6,-34 16,-30" stroke="#84cc16" stroke-width="2.5" fill="none"/>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="8.5" font-weight="bold">1. Uva Blanca</text>
+                        </g>
+                        <path d="M88,68 L116,68" stroke="#a8a29e" stroke-width="2"/>
+                        <g transform="translate(160, 68)">
+                            <rect x="-32" y="-34" width="64" height="68" rx="8" fill="#44403c" stroke="#f59e0b" stroke-width="2"/>
+                            <rect x="-28" y="-14" width="56" height="44" rx="4" fill="#fbbf24" opacity="0.85"/>
+                            <circle cx="-12" cy="16" r="3" fill="#fef9c3" class="anim-vapor-1"/>
+                            <circle cx="8" cy="20" r="3.5" fill="#fef9c3" class="anim-vapor-2"/>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="8.5" font-weight="bold">2. Vino Neutro</text>
+                        </g>
+                        <path d="M204,68 L230,68" stroke="#a8a29e" stroke-width="2"/>
+                        <g transform="translate(265, 68)">
+                            <rect x="-28" y="-26" width="56" height="54" rx="8" fill="#78350f" stroke="#fbbf24" stroke-width="1.8"/>
+                            <text x="0" y="-4" text-anchor="middle" fill="#fef3c7" font-size="9.5" font-weight="bold">≥ 75%</text>
+                            <text x="0" y="10" text-anchor="middle" fill="#fde68a" font-size="8">Vino Base</text>
+                            <text x="0" y="45" text-anchor="middle" fill="#fde68a" font-size="8.5" font-weight="bold">3. Matriz Legal</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Ubicado dentro de las Bebidas Compuestas (junto a Bitters y Licores), el Vermouth es un vino aromatizado y encabezado que debe contener por normativa al menos un 75% de vino en su volumen total, utilizando habitualmente vinos blancos jóvenes y neutros.',
+                bullets: [
+                    '¿Por qué se utiliza vino blanco neutro incluso en vermouths tintos? Porque un vino tinto cargado de taninos aportaría astringencia excesiva al sumarse a los principios amargos de las hierbas y raíces.',
+                    'Mínimo 75% de vino: garantiza que la acidez natural y el carácter vínico sigan siendo el eje estructural de la bebida frente a los extractos botánicos y el alcohol añadido.',
+                    'Nacimiento comercial en Turín (1786): Antonio Benedetto Carpano creó en su tienda frente al Palacio Real de Turín el vermouth moderno, convirtiéndolo en el aperitivo emblemático del Piamonte.'
+                ],
+                sensory: 'El vino base aporta frescura ácida, ligereza en boca y un lienzo limpio para que brillen los aromas herbáceos, cítricos y especiados.'
+            },
+            {
+                id: 'maceracion-botanicos-wermut',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Maceración e Infusión de Botánicos ("Wermut")',
+                shortSubtitle: 'Ajenjo (Artemisia absinthium), hierbas, raíces y cítricos',
+                icon: 'fa-leaf',
+                colorClass: 'bg-emerald-700',
+                metrics: [
+                    { label: 'Etimología', value: 'Alemán "Wermut" = Ajenjo' },
+                    { label: 'Botánico Obligatorio', value: 'Artemisia absinthium / pontica' },
+                    { label: 'Extracción', value: 'Maceración hidroalcohólica / infusión' }
+                ],
+                videoCaptions: [
+                    '1/3 • Origen del Nombre ("Wermut"): La palabra vermouth deriva del alemán "Wermut" (ajenjo), planta indispensable porque aporta el amargor tónico y aperitivo que define la categoría.',
+                    '2/3 • Fórmula Secreta de 20 a 50 Botánicos: Se combinan raíces (genciana, ruibarbo, angélica), cortezas (quina, canela), cáscaras cítricas (naranja amarga) y flores (saúco, manzanilla) para equilibrar amargor y perfume.',
+                    '3/3 • Maceración e Infusión ("Mistela" Aromática): Los botánicos se maceran en solución hidroalcohólica o vino caliente porque el alcohol disuelve aceites esenciales y el agua extrae compuestos amargos.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(82, 66)">
+                            <rect x="-56" y="-36" width="112" height="72" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#6ee7b7" font-size="9.5" font-weight="bold">AJENJO (WERMUT)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">Artemisia absinthium</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a7f3d0" font-size="8">Amargor tónico esencial</text>
+                        </g>
+                        <path d="M144,66 L174,66" stroke="#34d399" stroke-width="2.5"/>
+                        <g transform="translate(236, 66)">
+                            <rect x="-58" y="-36" width="116" height="72" rx="10" fill="#292524" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">EXTRACCIÓN BOTÁNICA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9">Quina • Genciana • Cítricos</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Maceración e infusión</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#6ee7b7" font-size="9" font-weight="bold">Sin presencia de Artemisia (ajenjo) no puede denominarse Vermouth</text>
+                    </svg>
+                `,
+                description: 'El alma aromática del Vermouth proviene de la maceración e infusión de decenas de botánicos donde es obligatoria la presencia de especies del género Artemisia (ajenjo, del alemán "Wermut"), acompañadas de raíces, cortezas, especias y cítricos.',
+                bullets: [
+                    'Ajenjo ("Wermut" en alemán): ¿Por qué da nombre a la bebida y es indispensable? Porque contiene tuyona y absintina, principios amargos que estimulan el apetito y las secreciones gástricas.',
+                    'Complementos botánicos habituales: corteza de quina, raíz de genciana y ruibarbo (amargor), cáscara de naranja amarga y limón (frescura), canela, clavo, cardamomo, coriandro, vainilla y flores de saúco.',
+                    '¿Por qué se realiza una maceración hidroalcohólica previa antes de unirla al vino? Porque muchos aceites esenciales son liposolubles y requieren una graduación alcohólica alta para extraerse por completo sin sobre-extraer taninos vegetales.'
+                ],
+                sensory: 'Crea el característico equilibrio agridulce y balsámico donde el amargor tónico del ajenjo y la genciana dialoga con notas cítricas y especiadas.'
+            },
+            {
+                id: 'encabezado-alcohol-vinico',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Encabezado con Alcohol Vínico Neutro (15°–22° GL)',
+                shortSubtitle: 'Fortificación del vino aromatizado para estabilidad y cuerpo',
+                icon: 'fa-flask',
+                colorClass: 'bg-orange-700',
+                metrics: [
+                    { label: 'Graduación Final', value: 'Entre 15° y 22° GL (habitual 15°–18°)' },
+                    { label: 'Alcohol Añadido', value: 'Alcohol neutro de origen vínico' },
+                    { label: 'Función Clave', value: 'Estabilidad y fijación aromática' }
+                ],
+                videoCaptions: [
+                    '1/3 • Fortificación o Encabezado: Se añade alcohol neutro de origen vínico al vino aromatizado para elevar su graduación hasta el rango legal de 15° a 22° GL.',
+                    '2/3 • Porqué Técnico del Encabezado: El aumento alcohólico impide que las levaduras refermenten el azúcar añadido y actúa como conservante natural una vez abierta la botella.',
+                    '3/3 • Fijación de Aceites Esenciales: Un grado entre 15° y 18° GL mantiene perfectamente disueltos los extractos botánicos sin enturbiar la bebida ni enmascarar el vino.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(82, 66)">
+                            <rect x="-56" y="-34" width="112" height="68" rx="10" fill="#44403c" stroke="#fb923c" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">VINO + EXTRACTOS</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10.5" font-weight="bold">~11° – 12° GL</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a8a29e" font-size="8">+ Alcohol vínico neutro</text>
+                        </g>
+                        <path d="M144,66 L174,66" stroke="#fbbf24" stroke-width="2.5"/>
+                        <g transform="translate(236, 66)">
+                            <rect x="-58" y="-34" width="116" height="68" rx="10" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">VERMOUTH FORTIFICADO</text>
+                            <text x="0" y="5" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">15° a 22° GL</text>
+                            <text x="0" y="21" text-anchor="middle" fill="#fde68a" font-size="8">Estabilidad y untuosidad</text>
+                        </g>
+                        <text x="160" y="126" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Normativa europea: graduación adquirida mínima 14,5° y máxima 22° GL</text>
+                    </svg>
+                `,
+                description: 'Para convertir el vino aromatizado en Vermouth, se procede al encabezado mediante la adición de alcohol neutro (generalmente de origen vínico), llevando la graduación final a un rango de entre 15° y 22° GL.',
+                bullets: [
+                    '¿Por qué se utiliza alcohol neutro y no un aguardiente muy marcado? Porque el objetivo es elevar el grado alcohólico y fijar los botánicos sin tapar los aromas delicados de las hierbas y del vino base.',
+                    'Estabilidad microbiológica: alcanzar los 15°–18° GL bloquea cualquier actividad residual de levaduras sobre el azúcar de dosificación y permite conservar la botella abierta en frío durante semanas.'
+                ],
+                sensory: 'Aporta sensación cálida, peso en el paladar medio y prolonga la persistencia retronasal de las especias y hierbas.'
+            },
+            {
+                id: 'endulzado-caramelo-ensamblaje',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Dosificación de Azúcar, Caramelo y Ensamblaje',
+                shortSubtitle: 'Mosto concentrado, azúcar de caña y coloración natural',
+                icon: 'fa-droplet',
+                colorClass: 'bg-amber-900',
+                metrics: [
+                    { label: 'Endulzantes', value: 'Azúcar de caña / mosto concentrado' },
+                    { label: 'Colorante Rosso', value: 'Caramelo natural (nunca vino tinto)' },
+                    { label: 'Función Sensorial', value: 'Contrapeso al amargor del ajenjo' }
+                ],
+                videoCaptions: [
+                    '1/3 • Dosificación de Azúcar: Se añade azúcar de caña o mosto de uva concentrado porque el amargor intenso del ajenjo y la genciana resultaría agresivo sin un contrapeso dulce.',
+                    '2/3 • Uso de Caramelo en el Vermouth Rosso: El color ámbar-rojizo oscuro del vermouth tinto tradicional se logra añadiendo caramelo natural de azúcar quemado, no mediante vino tinto.',
+                    '3/3 • Integración del Ensamblaje: Se unifican vino base, extracto botánico, alcohol vínico y jarabe para definir la escala de dulzor (de Extra Dry a Dolce).'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 72)">
+                            <ellipse cx="0" cy="0" rx="64" ry="34" fill="#78350f" stroke="#d97706" stroke-width="2.5"/>
+                            <text x="0" y="-6" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">ENSAMBLAJE FINAL</text>
+                            <text x="0" y="10" text-anchor="middle" fill="#fde68a" font-size="8.5">Vino + Botánicos + Alcohol + Azúcar</text>
+                        </g>
+                        <g class="anim-angel">
+                            <text x="160" y="22" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">Azúcar / Mosto + Caramelo (Rosso)</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Equilibrio agridulce • El caramelo aporta color y notas tostadas al Rosso</text>
+                    </svg>
+                `,
+                description: 'En esta fase se incorpora el azúcar (sacarosa o mosto concentrado) para equilibrar el amargor de las hierbas y, en el caso de los vermouths rojos tradicionales, se añade caramelo natural para otorgar su coloración característica.',
+                bullets: [
+                    '¿Por qué el Vermouth Rosso lleva caramelo? Porque al elaborarse mayoritariamente a partir de vino blanco neutro, el caramelo aporta su tonalidad ámbar-caoba oscura y un matiz tostado que armoniza con la vainilla y la canela.',
+                    'Calibración del nivel de azúcar: determina la clasificación legal del producto, desde Extra Dry (<30 g/L) y Dry (<50 g/L) hasta Bianco y Rosso/Dolce (≥130 g/L).'
+                ],
+                sensory: 'Genera la tensión agridulce característica del vermouth: entrada amable y sedosa seguida de un final amargo y refrescante.'
+            },
+            {
+                id: 'estilo-vermouth-rosso',
+                correctSlot: 5,
+                orderLabel: '5. Estilo Clásico I',
+                title: 'Vermouth Rosso (Tinto / Dulce Italiano)',
+                shortSubtitle: 'Escuela de Turín • Dulce (≥130 g/L), especiado y con caramelo',
+                icon: 'fa-wine-glass',
+                colorClass: 'bg-rose-800',
+                metrics: [
+                    { label: 'Origen Histórico', value: 'Turín, Italia (1786)' },
+                    { label: 'Azúcar Residual', value: 'Dulce (mínimo 130 g/L)' },
+                    { label: 'Perfil Botánico', value: 'Especiado, caramelo, naranja amarga' }
+                ],
+                videoCaptions: [
+                    '1/3 • Estilo Italiano (Rosso / Rojo): Nacido en Turín, se caracteriza por su color ámbar-rojizo oscuro obtenido con caramelo y un perfil dulce (≥130 g/L de azúcar).',
+                    '2/3 • Protagonismo Especiado y Amargo: Destacan notas de canela, clavo, vainilla, quina, ruibarbo y piel de naranja amarga que envuelven el amargor del ajenjo.',
+                    '3/3 • Uso en Coctelería Clásica: Es la base insustituible del Negroni, Manhattan, Americano y Boulevardier, además de servirse solo con hielo y rodaja de naranja.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-108" y="-38" width="216" height="76" rx="12" fill="#4c0519" stroke="#fb7185" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fda4af" font-size="12.5" font-weight="bold">VERMOUTH ROSSO (ITALIANO)</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffe4e6" font-size="10" font-weight="bold">Dulce (≥130 g/L) • Color con caramelo</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fecdd3" font-size="8.5">Especiado, cítrico amargo • Base de Negroni y Manhattan</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Originario de Turín (Italia), el Vermouth Rosso es el estilo histórico por excelencia: dulce (mínimo 130 g/L de azúcar), coloreado con caramelo y dominado por especias dulces, piel de naranja amarga y raíces amargas.',
+                bullets: [
+                    'Coloración con caramelo sobre vino blanco: rasgo técnico fundamental que distingue al vermouth rojo tradicional de un vino tinto común.',
+                    'Perfil aromático: equilibrio entre dulzor goloso, amargor de ajenjo/quina y notas cálidas de vainilla, canela y clavo.',
+                    'Referentes históricos: Carpano Antica Formula, Martini Rosso, Cinzano Rosso, Punt e Mes, Cocchi Storico Vermouth di Torino.'
+                ],
+                sensory: 'Color caoba rojizo brillante; boca amplia, agridulce, balsámica y especiada con final amargo persistente.'
+            },
+            {
+                id: 'estilo-vermouth-bianco',
+                correctSlot: 6,
+                orderLabel: '6. Estilo Clásico II',
+                title: 'Vermouth Bianco (Blanco Dulce / Floral)',
+                shortSubtitle: 'Sin caramelo • Dulce (≥130 g/L), vainilla, flores y cítricos',
+                icon: 'fa-sun',
+                colorClass: 'bg-amber-600',
+                metrics: [
+                    { label: 'Coloración', value: 'Amarillo pálido (sin caramelo)' },
+                    { label: 'Azúcar Residual', value: 'Dulce / Semidulce (≥130 g/L)' },
+                    { label: 'Perfil Botánico', value: 'Floral, vainilla y cítricos dulces' }
+                ],
+                videoCaptions: [
+                    '1/3 • Ausencia de Caramelo (Bianco): Mantiene el color dorado pálido transparente del vino blanco base porque no se le añade caramelo oscurecedor.',
+                    '2/3 • Perfil Floral, Avainillado y Cítrico: Mantiene un nivel dulce (≥130 g/L), pero suaviza el amargor del ajenjo con flores blancas, manzanilla, vainilla y limón.',
+                    '3/3 • Degustación Refrescante: Suele beberse solo muy frío con hielo y twist de limón o lima como aperitivo aromático y amable.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-108" y="-38" width="216" height="76" rx="12" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fde047" font-size="12.5" font-weight="bold">VERMOUTH BIANCO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">Dulce (≥130 g/L) • Sin caramelo</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fde68a" font-size="8.5">Notas florales, vainilla, manzanilla y cítricos frescos</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Surgido a comienzos del siglo XX en el norte de Italia, el Vermouth Bianco conserva el color pálido del vino blanco al prescindir del caramelo, combinando un dulzor marcado con aromas florales, de vainilla y cítricos.',
+                bullets: [
+                    'Diferencia clave frente al Dry: aunque ambos son de color pálido, el Bianco es dulce (≥130 g/L de azúcar), mientras que el Dry es seco (<50 g/L).',
+                    'Botánicos protagonistas: flor de saúco, manzanilla, iris, vainilla y cáscaras cítricas que suavizan el amargor del ajenjo.'
+                ],
+                sensory: 'Color amarillo pajizo luminoso; nariz perfumada a flores blancas y vainilla, con paladar sedoso, dulce y refrescante.'
+            },
+            {
+                id: 'estilo-vermouth-dry',
+                correctSlot: 7,
+                orderLabel: '7. Estilo Clásico III',
+                title: 'Vermouth Dry / Extra Dry (Escuela Francesa)',
+                shortSubtitle: 'Chambéry / Marsella • Seco (<50 g/L y <30 g/L), herbal y limpio',
+                icon: 'fa-martini-glass',
+                colorClass: 'bg-stone-900',
+                metrics: [
+                    { label: 'Origen Histórico', value: 'Francia (Chambéry / Marsella, 1813)' },
+                    { label: 'Azúcar Residual', value: 'Dry <50 g/L | Extra Dry <30 g/L' },
+                    { label: 'Coctelería Ícono', value: 'Dry Martini y Gibson' }
+                ],
+                videoCaptions: [
+                    '1/3 • Escuela Francesa (Joseph Noilly, 1813): Desarrollado en el sur de Francia (Marsella y Chambéry) utilizando vinos blancos secos con mínima dosificación de azúcar.',
+                    '2/3 • Bajísima Carga de Azúcar: El Dry contiene menos de 50 g/L y el Extra Dry menos de 30 g/L, permitiendo que la acidez del vino y el perfil herbáceo brillen con nitidez.',
+                    '3/3 • Pilar del Dry Martini: Su carácter seco, limpio y ligeramente salino-herbal lo convierte en el compañero esencial del gin o vodka en el Dry Martini.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#1c1917" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#7dd3fc" font-size="12" font-weight="bold">VERMOUTH DRY / EXTRA DRY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#f0f9ff" font-size="10" font-weight="bold">Dry (<50 g/L) • Extra Dry (<30 g/L)</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#bae6fd" font-size="8.5">Escuela Francesa • Seco, herbal • Esencial en Dry Martini</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Desarrollado en Francia a principios del siglo XIX (Joseph Noilly, 1813), el Vermouth Dry / Extra Dry se caracteriza por su bajo contenido de azúcar (<50 g/L en Dry y <30 g/L en Extra Dry) y su perfil seco, herbal y punzante.',
+                bullets: [
+                    'Escuela Francesa (Noilly Prat en Marsella y Dolin en Chambéry): emplea vinos blancos secos y una dosificación mínima de azúcar para resaltar la acidez natural y los botánicos herbáceos.',
+                    'Protagonismo en coctelería: ingrediente insustituible del Dry Martini, Gibson y Dirty Martini.'
+                ],
+                sensory: 'Color pálido cristalino; aromas herbáceos, florales secos y cítricos, con paso afilado, limpio y amargo-seco en boca.'
+            },
+            {
+                id: 'reposo-filtracion-servicio-vermouth',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Reposo, Filtración y Servicio de Aperitivo',
+                shortSubtitle: 'Estabilización en frío, temperatura 6–10°C y conservación',
+                icon: 'fa-snowflake',
+                colorClass: 'bg-sky-800',
+                metrics: [
+                    { label: 'Estabilización', value: 'Reposo, clarificación y filtrado' },
+                    { label: 'Servicio Aperitivo', value: '6° a 10°C (con hielo y cítrico)' },
+                    { label: 'Conservación', value: 'Refrigerado tras abrir (vino base)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Reposo y Estabilización en Frío: Tras el ensamblaje, el vermouth reposa para armonizar los extractos botánicos con el vino y se filtra en frío para evitar turbideces.',
+                    '2/3 • Servicio como Aperitivo (6–10°C): Se sirve bien frío (6°–10°C) solo con hielo, piel de naranja (Rosso) o limón (Bianco/Dry), o en cócteles clásicos.',
+                    '3/3 • Regla de Oro en Barra (Conservación en Frío): Al tener al menos 75% de vino, una vez abierta la botella debe guardarse en heladera para evitar su oxidación.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(105, 68)">
+                            <path d="M-24,-22 L24,-22 L16,24 L-16,24 Z" fill="#9f1239" stroke="#fbbf24" stroke-width="2"/>
+                            <rect x="-10" y="-12" width="12" height="12" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                            <rect x="2" y="-4" width="11" height="11" rx="2" fill="#e0f2fe" opacity="0.8"/>
+                            <text x="0" y="16" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="bold">6–10°C</text>
+                        </g>
+                        <g transform="translate(222, 68)">
+                            <rect x="-64" y="-34" width="128" height="68" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#bae6fd" font-size="9.5" font-weight="bold">SERVICIO Y GUARDA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Aperitivo frío (6–10°C)</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Refrigerar tras abrir</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">Por su base de vino (≥75%), debe conservarse en frío una vez abierto</text>
+                    </svg>
+                `,
+                description: 'Antes del embotellado el vermouth reposa para integrar sus componentes, se estabiliza en frío y se filtra. En servicio se disfruta frío (6°–10°C) como aperitivo o en coctelería, requiriendo refrigeración una vez abierta la botella.',
+                bullets: [
+                    '¿Por qué debe guardarse el vermouth abierto en la heladera? Porque, a diferencia de los destilados de 40° GL, contiene un 75% o más de vino y solo 15°–18° GL, por lo que el oxígeno a temperatura ambiente lo avinagra y apaga sus botánicos.',
+                    'Protocolo de servicio (6° a 10°C): se sirve en vaso corto con abundante hielo y piel de naranja (Rosso) o twist de limón (Bianco/Dry), o bien refrescado en cócteles como Negroni, Manhattan y Dry Martini.'
+                ],
+                sensory: 'Servido entre 6° y 10°C mantiene viva la acidez del vino base, modera la percepción del azúcar y despliega con nitidez su frescura balsámica y aperitiva.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Dulce + Caramelo (Turín)', hint: 'Ubicar estilo' },
+            { slotId: 6, phase: 2, title: 'Dulce + Sin Caramelo (Floral)', hint: 'Ubicar estilo' },
+            { slotId: 7, phase: 2, title: 'Seco <50 g/L (Francia)', hint: 'Ubicar estilo' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // =========================================================================
+        // BASE DE DATOS COMPLETA DE ESTILOS, BOTÁNICOS Y MARCAS DE VERMOUTH
+        // =========================================================================
+        const VERMOUTH_CLASSIFICATION_DATA = [
+            // EJE 1: ESTILOS CLÁSICOS
+            {
+                id: 'estilo-rosso',
+                family: 'ESTILOS',
+                style: 'Vermouth Rosso (Rojo / Tinto Italiano)',
+                brandsWorld: 'Carpano Antica Formula, Martini Rosso, Cinzano Rosso, Cocchi Storico, Punt e Mes',
+                origin: 'Turín (Piamonte, Italia) • Escuela Italiana',
+                cepasCrianza: 'Dulce (≥130 g/L azúcar) • 15°–18° GL • Color con caramelo',
+                notes: 'Elaborado sobre vino blanco neutro coloreado con caramelo. Perfil agridulce, especiado (canela, clavo, vainilla) y cítrico amargo; base del Negroni y Manhattan.'
+            },
+            {
+                id: 'estilo-bianco',
+                family: 'ESTILOS',
+                style: 'Vermouth Bianco (Blanco Dulce)',
+                brandsWorld: 'Martini Bianco, Cinzano Bianco, Carpano Bianco, Gancia Bianco',
+                origin: 'Norte de Italia (inicios del siglo XX)',
+                cepasCrianza: 'Dulce (≥130 g/L azúcar) • 15°–16° GL • Sin caramelo',
+                notes: 'Mantiene el color dorado pálido transparente del vino blanco base al no llevar caramelo. Perfil floral, avainillado y cítrico con amargor más suave que el Rosso.'
+            },
+            {
+                id: 'estilo-dry-extra-dry',
+                family: 'ESTILOS',
+                style: 'Vermouth Dry / Extra Dry',
+                brandsWorld: 'Noilly Prat Original Dry, Dolin Dry de Chambéry, Martini Extra Dry, Cinzano Extra Dry',
+                origin: 'Francia (Marsella y Chambéry) • Escuela Francesa',
+                cepasCrianza: 'Seco: Dry (<50 g/L) y Extra Dry (<30 g/L) • 17°–18° GL',
+                notes: 'Bajo contenido de azúcar y marcada acidez vínica con notas herbáceas secas. Pilar imprescindible de la coctelería seca clásica (Dry Martini, Gibson).'
+            },
+            {
+                id: 'estilo-rose-chinato',
+                family: 'ESTILOS',
+                style: 'Vermouth Rosé / Rosato y Variantes Especiales',
+                brandsWorld: 'Martini Rosato, Dolin Chambéryzette, Lillet Rosé / Blanc (aperitivos vínicos afines)',
+                origin: 'Italia y Francia • Aperitivos contemporáneos',
+                cepasCrianza: 'Semidulce / Dulce • Mezcla de vinos blancos y tintos o maceración frutal',
+                notes: 'Combina frescura frutal y floral ligera con el trasfondo amargo del ajenjo; ideal para aperitivos con soda o tónica.'
+            },
+            // EJE 2: BOTÁNICOS Y COMPONENTES BASE
+            {
+                id: 'botanico-ajenjo-wermut',
+                family: 'BOTANICOS',
+                style: 'Ajenjo ("Wermut" • Artemisia absinthium / pontica)',
+                brandsWorld: 'Ingrediente botánico obligatorio en toda la categoría Vermouth',
+                origin: 'Etimología alemana "Wermut" (ajenjo)',
+                cepasCrianza: 'Aporta principios amargos tónicos (absintina / tuyona) y carácter aperitivo',
+                notes: 'Botánico definitorio sin el cual un vino aromatizado no puede denominarse legalmente Vermouth.'
+            },
+            {
+                id: 'botanico-raices-cortezas',
+                family: 'BOTANICOS',
+                style: 'Raíces y Cortezas Amargas (Quina, Genciana, Ruibarbo, Angélica)',
+                brandsWorld: 'Punt e Mes (extra amargo de quina), Carpano, fórmulas tradicionales',
+                origin: 'Estructurantes del amargor y profundidad balsámica',
+                cepasCrianza: 'Extracción hidroalcohólica • Equilibran la dosificación de azúcar',
+                notes: 'Aportan complejidad terrosa, tónica y persistencia en el retrogusto de los vermouths clásicos.'
+            },
+            {
+                id: 'botanico-especias-citricos',
+                family: 'BOTANICOS',
+                style: 'Cítricos y Especias (Naranja Amarga, Canela, Clavo, Vainilla, Cardamomo)',
+                brandsWorld: 'Carpano Antica Formula (vainilla marcada), Cinzano, Martini',
+                origin: 'Aromáticos de salida y corazón en la fórmula botánica',
+                cepasCrianza: 'Maceración e infusión • Aportan perfume y calidez',
+                notes: 'La cáscara de naranja amarga aporta frescura cítrica mientras la canela, el clavo y la vainilla redondean el perfil.'
+            },
+            {
+                id: 'base-vino-alcohol-azucar',
+                family: 'BOTANICOS',
+                style: 'Matriz Legal: ≥75% Vino Base + Alcohol Vínico + Azúcar / Caramelo',
+                brandsWorld: 'Normativa Europea y Código Alimentario para Vinos Aromatizados',
+                origin: 'Composición estructural del Vermouth',
+                cepasCrianza: 'Graduación final 15°–22° GL • Vino blanco neutro + encabezado',
+                notes: 'El vino aporta ≥75% del volumen; el alcohol vínico neutro estabiliza y fija aromas; el azúcar y el caramelo calibran dulzor y color.'
+            },
+            // EJE 3: ESCUELAS Y MARCAS EMBLEMÁTICAS
+            {
+                id: 'escuela-italiana-turin',
+                family: 'MARCAS',
+                style: 'Escuela Italiana (Turín, 1786): Carpano, Martini, Cinzano y Cocchi',
+                brandsWorld: 'Carpano (Antica Formula, Punt e Mes) • Martini & Rossi • Cinzano • Giulio Cocchi',
+                origin: 'Turín (Piamonte, Italia) • Cuna del vermouth moderno en 1786',
+                cepasCrianza: 'Estilo Rosso dulce y especiado con caramelo • Tradición aperitiva italiana',
+                notes: 'Antonio Benedetto Carpano fundó la categoría moderna en Turín en 1786; Martini (1863) y Cinzano (1757) lo difundieron mundialmente.'
+            },
+            {
+                id: 'escuela-francesa-chambery',
+                family: 'MARCAS',
+                style: 'Escuela Francesa (1813): Noilly Prat y Dolin de Chambéry',
+                brandsWorld: 'Noilly Prat (Marseillan/Marsella) • Dolin (AOC Vermouth de Chambéry)',
+                origin: 'Sur de Francia y Saboya (Chambéry posee denominación protegida)',
+                cepasCrianza: 'Estilo Dry / Extra Dry • Vinos blancos secos y crianza oxidativa al aire libre (Noilly Prat)',
+                notes: 'Joseph Noilly creó el primer vermouth seco en 1813; Chambéry cuenta con indicación geográfica protegida por su estilo alpino delicado.'
+            },
+            {
+                id: 'escuela-espanola-reus-jerez',
+                family: 'MARCAS',
+                style: 'Escuela Española (Reus y Jerez): Yzaguirre, Lustau y González Byass',
+                brandsWorld: 'Yzaguirre (Reus) • Lustau Vermut (Jerez) • La Copa (González Byass) • Miró',
+                origin: 'Reus (Tarragona, Cataluña) y Marco de Jerez (Andalucía)',
+                cepasCrianza: 'Vermouth de grifo / solera • Bases de vinos generosos (Oloroso / Pedro Ximénez)',
+                notes: 'España destaca por la tradición de Reus y por los vermouths jerezanos elaborados sobre vinos de Jerez envejecidos en criaderas y solera.'
+            },
+            {
+                id: 'vermouth-argentino-tradicion',
+                family: 'MARCAS',
+                style: 'Cultura del Vermouth en Argentina y Coctelería Clásica',
+                brandsWorld: 'La Fuerza, Lunfa, Giovannoni, Úunico, además de Cinzano y Carpano históricos',
+                origin: 'Inmigración piamontesa en Argentina • Hora del vermouth y coctelería',
+                notes: 'La herencia italiana consolidó en Argentina la costumbre del vermouth con soda y aceitunas, junto a clásicos internacionales como Negroni, Americano y Manhattan.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Estilos, Botánicos y Marcas
+        let activeStyleCards = []; // Subconjunto de 12 fichas activas en la ronda
+        let stylePlacements = {}; // { styleId: 'ESTILOS' | 'BOTANICOS' | 'MARCAS' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            initVoiceIndicator();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°\s*GL/g, '$1 a $2 grados Gay-Lussac')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                        updateHeaderAudioBadge();
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        function initVoiceIndicator() {
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill && textEl && iconEl) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                textEl.textContent = 'Audio narrado listo';
+            }
+        }
+
+        function updateHeaderAudioBadge() {
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+            const readyCount = Object.keys(ttsAudioCache).length;
+            if (textEl && iconEl && readyCount > 0) {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                textEl.textContent = `Audios HD en caché (${readyCount}/24)`;
+            }
+        }
+
+        async function preloadStepScenes(step) {
+            if (!step) return;
+            for (let idx = 0; idx < step.videoCaptions.length; idx++) {
+                const cacheKey = `${step.id}_${idx}`;
+                if (!ttsAudioCache[cacheKey]) {
+                    const cleanText = cleanCaptionForSpeech(step.videoCaptions[idx]);
+                    await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+            }
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData) {
+                        const rateMatch = mimeType ? mimeType.match(/rate=(\d+)/) : null;
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete, reqId) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft')))
+                         || voices.find(v => v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Narrando (voz local)...', 'speaking');
+                }
+            };
+            utterance.onend = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Audio listo');
+                    if (onComplete) onComplete();
+                }
+            };
+            utterance.onerror = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    scheduleSilentSceneAdvance(cleanText, onComplete);
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Conectando audio HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 3500));
+                    const fetchResult = await Promise.race([
+                        getOrFetchTtsAudio(cacheKey, cleanText),
+                        timeoutPromise
+                    ]);
+
+                    if (fetchResult !== 'TIMEOUT') {
+                        audioUrl = fetchResult;
+                    }
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+            preloadStepScenes(step);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-800 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-500';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-600 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-800 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia de elaboración del Vermouth 100% correcta',
+                    'Dominas todo el proceso del Vermouth: Selección del Vino Base (≥75%) → Maceración e Infusión de Botánicos ("Wermut" / ajenjo) → Encabezado con Alcohol Vínico Neutro (15°–22° GL) → Dosificación de Azúcar y Caramelo → Definición por Estilos (Rosso, Bianco y Dry/Extra Dry) → Reposo, Filtración y Servicio de Aperitivo a 6–10°C.'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el flujo desde el vino base y la extracción del ajenjo ("Wermut") hasta el encabezado, endulzado, estilos y servicio frío.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE ESTILOS, BOTÁNICOS Y MARCAS DE VERMOUTH
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const estilos = VERMOUTH_CLASSIFICATION_DATA.filter(s => s.family === 'ESTILOS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const botanicos = VERMOUTH_CLASSIFICATION_DATA.filter(s => s.family === 'BOTANICOS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const marcas = VERMOUTH_CLASSIFICATION_DATA.filter(s => s.family === 'MARCAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                activeStyleCards = [...estilos, ...botanicos, ...marcas].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} fichas clasificadas`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras de Vermouth! Pulsa <strong>"Verificar Clasificación"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Referencias:</span> ${item.brandsWorld}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span class="truncate pr-1">${item.origin}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = [
+                { key: 'ESTILOS', label: 'Estilos Clásicos' },
+                { key: 'BOTANICOS', label: 'Botánicos y Base' },
+                { key: 'MARCAS', label: 'Escuelas y Marcas' }
+            ];
+
+            families.forEach(famObj => {
+                const fam = famObj.key;
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar fichas de <strong>${famObj.label}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const famShortName = {
+                    ESTILOS: 'Estilo Clásico',
+                    BOTANICOS: 'Botánico / Base',
+                    MARCAS: 'Escuela / Marca'
+                };
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${famShortName[item.family]}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Referencias:</strong> ${item.brandsWorld}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan fichas por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Estilos Clásicos, Botánicos y Base o Escuelas y Marcas antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos en Vermouth',
+                    'Has identificado correctamente los estilos clásicos (Rosso, Bianco, Dry/Extra Dry y Rosé), los botánicos fundamentales (ajenjo/Wermut, raíces, cítricos) y las escuelas históricas.'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} fichas`,
+                    'Revisa las fichas marcadas en rojo donde se indica su eje correcto. Puedes pulsar "Ver Tabla Completa" para repasar cada estilo, botánico y marca.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.getAttribute('data-filter');
+                const isMatch = (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? VERMOUTH_CLASSIFICATION_DATA
+                : VERMOUTH_CLASSIFICATION_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                ESTILOS: { label: 'ESTILO CLÁSICO', cls: 'bg-rose-100 text-rose-900 border-rose-200' },
+                BOTANICOS: { label: 'BOTÁNICO / BASE', cls: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+                MARCAS: { label: 'ESCUELA / MARCA', cls: 'bg-amber-100 text-amber-900 border-amber-200' }
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family].cls}">${famBadge[item.family].label}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700 font-medium">${item.cepasCrianza}</td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Referencias:</strong> ${item.brandsWorld}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

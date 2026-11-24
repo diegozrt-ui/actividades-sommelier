@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elaboración y Clasificación del Whiskey Irlandés - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.22);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes vaporRise {
+            0% { transform: translateY(0) scale(0.85); opacity: 0.25; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(-44px) scale(1.15); opacity: 0; }
+        }
+        @keyframes dripDrop {
+            0% { transform: translateY(0); opacity: 0.9; }
+            80% { opacity: 1; }
+            100% { transform: translateY(22px); opacity: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatAngels {
+            0%, 100% { transform: translateY(0px); opacity: 0.75; }
+            50% { transform: translateY(-6px); opacity: 1; }
+        }
+        .anim-vapor-1 { animation: vaporRise 2.2s infinite ease-in; }
+        .anim-vapor-2 { animation: vaporRise 2.8s infinite ease-in 0.7s; }
+        .anim-vapor-3 { animation: vaporRise 2.5s infinite ease-in 1.3s; }
+        .anim-drip { animation: dripDrop 1.8s infinite ease-in; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-angel { animation: floatAngels 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-700 via-amber-700 to-stone-900 flex items-center justify-center text-amber-100 shadow-inner shrink-0 border border-amber-500/30">
+                    <i class="fa-solid fa-whiskey-glass text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Destilados de Cereales • Irlanda</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Elaboración y Clasificación del Whiskey Irlandés</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo (Práctica Interactiva, Estilos/Destilerías/Marcas, Guía de Estudio) -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Indicador de estado de locuciones HD -->
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+                    <span id="audio-preload-text">Audio narrado listo</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-styles" onclick="switchMode('styles')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-wheat-awn"></i>
+                        <span>Estilos, Destilerías y Marcas</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                        Actividad Destilados • Irish Whiskey
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena cronológicamente las <strong>8 etapas de elaboración del Whiskey Irlandés</strong> distribuyéndolas en las tres fases del diagrama. Arrastra o selecciona cada tarjeta y ubícala en su casillero correspondiente; pulsa <i class="fa-solid fa-circle-info text-amber-700"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: MODO PRÁCTICA INTERACTIVA -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Granos, Secado sin Turba, Triple Destilación y Guarda</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-800"></i>
+                        <span>Definición Estilística por Composición de Granos y Sistema de Destilación</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Estilos Principales de Irish Whiskey (Slots 5, 6, 7) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-800 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Estilos Principales del Whiskey Irlandés</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5, 6, 7 -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Etapa Final (Slot 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Cortes de Barricas (700+), Graduación y Servicio</h3>
+                    </div>
+                    <div class="max-w-xl mx-auto" id="slots-phase-3">
+                        <!-- Casillero 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica de Elaboración del Whiskey Irlandés</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa: orígenes monásticos en el siglo XI, combinación tradicional de cebada malteada (25–50%) y cebada sin maltear (además de trigo, avena, centeno o maíz), ausencia general de turba (con excepciones como Connemara), triple destilación en grandes alambiques de cobre hasta 85–90% vol. y columnas continuas en Midleton, reducción a 63% vol. antes de envejecer un mínimo legal de 3 años (ideal 5 a 7 años) en barricas ex-Jerez, ex-Bourbon, ex-Ron o roble americano nuevo, cortes de al menos 700 barricas y servicio. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VISTA 3: PRÁCTICA DE CLASIFICACIÓN DE ESTILOS, DESTILERÍAS Y MARCAS -->
+        <div id="view-styles" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles de la Actividad de Estilos -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900">
+                            Taxonomía del Irish Whiskey
+                        </span>
+                        <span id="styles-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 fichas clasificadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>estilo, grupo productor o marca emblemática irlandesa</strong> dentro de su eje correspondiente: <strong>Estilos Oficiales (Single Pot Still, Malt, Blend, Peated)</strong>, <strong>Grupos y Destilerías (Irish Distillers / Cooley)</strong> o <strong>Marcas Históricas y Derivados</strong>.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyStyles()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Clasificación</span>
+                    </button>
+                    <button onclick="resetStylesExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleStylesReference()" id="btn-toggle-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Tabla Completa</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Estilos -->
+            <div id="styles-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="styles-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="styles-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="styles-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideStylesFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Fichas por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Fichas de Irish Whiskey Disponibles (Arrastra o toca una ficha y luego toca su columna)</span>
+                    </h2>
+                    <span id="styles-selected-hint" class="hidden text-xs font-semibold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca Estilos Oficiales, Destilerías y Grupos o Marcas e Iconos
+                    </span>
+                </div>
+
+                <div id="styles-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 3 Columnas de Clasificación: ESTILOS, DESTILERIAS, MARCAS -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-5" id="styles-columns">
+                <!-- Columna ESTILOS OFICIALES -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'ESTILOS')"
+                    onclick="handleStyleColumnClick('ESTILOS')"
+                    id="col-family-ESTILOS"
+                    class="rounded-2xl border-2 border-dashed border-emerald-500 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-whiskey-glass text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Estilos Oficiales</h3>
+                                <span class="text-xs text-stone-500 font-medium">Pot Still, Malt, Blend y Peated</span>
+                            </div>
+                        </div>
+                        <span id="count-family-ESTILOS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">0</span>
+                    </div>
+                    <div id="items-family-ESTILOS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna DESTILERÍAS Y GRUPOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'DESTILERIAS')"
+                    onclick="handleStyleColumnClick('DESTILERIAS')"
+                    id="col-family-DESTILERIAS"
+                    class="rounded-2xl border-2 border-dashed border-amber-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-industry text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Destilerías y Grupos</h3>
+                                <span class="text-xs text-stone-500 font-medium">Irish Distillers, Midleton, Bushmills y Cooley</span>
+                            </div>
+                        </div>
+                        <span id="count-family-DESTILERIAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">0</span>
+                    </div>
+                    <div id="items-family-DESTILERIAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+
+                <!-- Columna MARCAS E ICONOS -->
+                <div
+                    ondragover="handleStyleDragOver(event)"
+                    ondragleave="handleStyleDragLeave(event)"
+                    ondrop="handleStyleDrop(event, 'MARCAS')"
+                    onclick="handleStyleColumnClick('MARCAS')"
+                    id="col-family-MARCAS"
+                    class="rounded-2xl border-2 border-dashed border-stone-400 bg-white/90 p-4 flex flex-col min-h-[320px] transition-all"
+                >
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-stone-200">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-stone-800 text-white flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-crown text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif-title text-base sm:text-lg font-bold text-stone-900">Marcas y Derivados</h3>
+                                <span class="text-xs text-stone-500 font-medium">Jameson, Redbreast, Bushmills, Irish Mist</span>
+                            </div>
+                        </div>
+                        <span id="count-family-MARCAS" class="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-200 text-stone-900">0</span>
+                    </div>
+                    <div id="items-family-MARCAS" class="space-y-2.5 flex-grow"></div>
+                </div>
+            </section>
+
+            <!-- Tabla de Referencia Completa del Whiskey Irlandés (Ocultable) -->
+            <section id="styles-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200 pb-3">
+                    <div>
+                        <h3 class="font-serif-title text-xl font-bold text-stone-900">Cuadro Comparativo Completo del Whiskey Irlandés</h3>
+                        <p class="text-xs text-stone-500">Estilos por composición de cereales y destilación, historia de las destilerías irlandesas y marcas de referencia.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="ref-filter-buttons">
+                        <button onclick="filterReferenceTable('ALL')" data-filter="ALL" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">Todos</button>
+                        <button onclick="filterReferenceTable('ESTILOS')" data-filter="ESTILOS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-emerald-100">Estilos Oficiales</button>
+                        <button onclick="filterReferenceTable('DESTILERIAS')" data-filter="DESTILERIAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-amber-100">Destilerías y Grupos</button>
+                        <button onclick="filterReferenceTable('MARCAS')" data-filter="MARCAS" class="ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200">Marcas y Derivados</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Eje</th>
+                                <th class="p-3">Estilo / Destilería / Marca</th>
+                                <th class="p-3">Origen / Historia</th>
+                                <th class="p-3">Granos / Destilación / Guarda</th>
+                                <th class="p-3">Características Técnicas</th>
+                                <th class="p-3 rounded-tr-xl">Referencias / Etiquetas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="styles-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-700 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-whiskey-glass"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-700 hover:bg-amber-600 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Whiskey Irlandés (Irish Whiskey) • Bebidas Espirituosas</span> • Sommellerie
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS TÉCNICA: 8 ETAPAS DE ELABORACIÓN DEL WHISKEY IRLANDÉS
+        // =========================================================================
+        const STEPS_DATA = [
+            {
+                id: 'cereales-secado-sin-turba',
+                correctSlot: 1,
+                orderLabel: '1. Tronco Común',
+                title: 'Selección de Granos y Secado sin Turba',
+                shortSubtitle: 'Cebada malteada (25–50%) + cebada sin maltear y otros granos',
+                icon: 'fa-wheat-awn',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Cebada Malteada', value: '25% a 50% (aporta diastasa)' },
+                    { label: 'Granos Crudos', value: 'Cebada sin maltear + maíz/trigo' },
+                    { label: 'Secado de Malta', value: 'Sin turba (hornos cerrados)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Mezcla Tradicional de Granos: Se combina cebada malteada (25% a 50%) con cebada sin maltear (y otros cereales como maíz, trigo o avena) porque antiguamente reducía impuestos sobre la malta y aportaba textura cremosa.',
+                    '2/3 • Secado en Hornos sin Turba ("Unpeated"): A diferencia de Escocia, la malta irlandesa se seca con aire caliente limpio sin humo de turba para preservar el sabor puro y fresco del cereal.',
+                    '3/3 • Sacarificación y Braceo: Las enzimas (citasa y diastasa) de la cebada malteada transforman el almidón propio y del grano crudo en maltosa fermentable antes de añadir levaduras.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(65, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#78350f" stroke="#fbbf24" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fde047" font-size="8.5" font-weight="bold">CEBADA MALTEADA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10.5" font-weight="bold">25% – 50%</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">Enzima diastasa</text>
+                        </g>
+                        <text x="122" y="70" text-anchor="middle" fill="#fbbf24" font-size="14" font-weight="bold">+</text>
+                        <g transform="translate(178, 66)">
+                            <rect x="-46" y="-34" width="92" height="68" rx="10" fill="#44403c" stroke="#f59e0b" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fdba74" font-size="8.5" font-weight="bold">GRANO SIN MALTEAR</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">Cebada Cruda</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a8a29e" font-size="8">+ Maíz / trigo / avena</text>
+                        </g>
+                        <g transform="translate(268, 66)">
+                            <rect x="-34" y="-34" width="68" height="68" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-8" text-anchor="middle" fill="#6ee7b7" font-size="8.5" font-weight="bold">HORNO</text>
+                            <text x="0" y="6" text-anchor="middle" fill="#ffffff" font-size="9.5" font-weight="bold">SIN TURBA</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#a7f3d0" font-size="7.5">Perfil limpio</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">Origen monástico (siglo XI) • Pureza del cereal sin notas ahumadas</text>
+                    </svg>
+                `,
+                description: 'Con raíces que se remontan al siglo XI en los monasterios irlandeses, la elaboración tradicional del Irish Whiskey combina entre un 25% y un 50% de cebada malteada con cebada sin maltear (y otros granos como maíz, trigo, avena o centeno), secando la malta sin turba.',
+                bullets: [
+                    '¿Por qué se mezcla cebada malteada (25–50%) con cebada sin maltear? Históricamente surgió para eludir el impuesto británico a la malta; técnicamente, la diastasa de la malta convierte el almidón de ambos granos en azúcares mientras la cebada cruda aporta untuosidad y un toque especiado.',
+                    '¿Por qué no se utiliza turba en el secado? Porque las destilerías irlandesas secan el grano en hornos cerrados sin humo de turba para obtener un destilado limpio, suave y frutal (salvo excepciones modernas como Connemara de Cooley).',
+                    'Sacarificación y fermentación: tras el braceo con agua caliente y la fermentación con levaduras, se obtiene un mosto fermentado listo para destilar.'
+                ],
+                sensory: 'La ausencia de turba y la presencia de cebada sin maltear otorgan un perfil limpio, sedoso, con notas de cereal fresco, manzana verde, miel y un sutil picante.'
+            },
+            {
+                id: 'triple-destilacion-irlandesa',
+                correctSlot: 2,
+                orderLabel: '2. Tronco Común',
+                title: 'Triple Destilación en Grandes Alambiques y Columnas',
+                shortSubtitle: '3 alambiques en hilera (85–90% alc.) + Coffey Still en Midleton',
+                icon: 'fa-fire-flame-curved',
+                colorClass: 'bg-orange-700',
+                metrics: [
+                    { label: 'Destilación Clásica', value: 'Triple destilación en Pot Still' },
+                    { label: 'Graduación Salida', value: '85% a 90% de alcohol' },
+                    { label: 'Alambiques Cobre', value: '3 en hilera (gran tamaño)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Tres Grandes Alambiques de Cobre en Hilera: El método tradicional irlandés utiliza alambiques Pot Still de mucho mayor tamaño que los escoceses y realiza una triple destilación discontinua.',
+                    '2/3 • Alta Pureza y Suavidad (85% a 90% vol.): Al destilar tres veces descartando cabezas y colas, el aguardiente alcanza 85–90° GL, eliminando congéneres pesados para lograr suavidad extrema.',
+                    '3/3 • Incorporación de Columnas Continuas (Midleton): En la gran planta de Midleton (Irish Distillers) también se emplean columnas Coffey Still (inventadas por el irlandés Aeneas Coffey en 1831) para whiskies de grano.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Alambique 1 -->
+                        <g transform="translate(54, 72)">
+                            <ellipse cx="0" cy="8" rx="22" ry="15" fill="#9a3412" stroke="#fb923c" stroke-width="1.8"/>
+                            <path d="M-10,-6 Q0,-22 10,-6" fill="#c2410c" stroke="#fdba74" stroke-width="1.5"/>
+                            <text x="0" y="12" text-anchor="middle" fill="#fef3c7" font-size="8" font-weight="bold">1° Pot</text>
+                        </g>
+                        <path d="M78,72 L96,72" stroke="#fbbf24" stroke-width="2"/>
+                        <!-- Alambique 2 -->
+                        <g transform="translate(120, 72)">
+                            <ellipse cx="0" cy="8" rx="22" ry="15" fill="#9a3412" stroke="#fb923c" stroke-width="1.8"/>
+                            <path d="M-10,-6 Q0,-22 10,-6" fill="#c2410c" stroke="#fdba74" stroke-width="1.5"/>
+                            <text x="0" y="12" text-anchor="middle" fill="#fef3c7" font-size="8" font-weight="bold">2° Pot</text>
+                        </g>
+                        <path d="M144,72 L162,72" stroke="#fbbf24" stroke-width="2"/>
+                        <!-- Alambique 3 -->
+                        <g transform="translate(186, 72)">
+                            <ellipse cx="0" cy="8" rx="22" ry="15" fill="#9a3412" stroke="#fb923c" stroke-width="1.8"/>
+                            <path d="M-10,-6 Q0,-22 10,-6" fill="#c2410c" stroke="#fdba74" stroke-width="1.5"/>
+                            <text x="0" y="12" text-anchor="middle" fill="#fef3c7" font-size="8" font-weight="bold">3° Pot</text>
+                        </g>
+                        <path d="M210,72 L228,72" stroke="#fbbf24" stroke-width="2"/>
+                        <!-- Resultado -->
+                        <rect x="230" y="42" width="66" height="58" rx="8" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                        <text x="263" y="64" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-weight="bold">DESTILADO</text>
+                        <text x="263" y="79" text-anchor="middle" fill="#ffffff" font-size="10.5" font-weight="bold">85–90% alc.</text>
+                        <text x="263" y="92" text-anchor="middle" fill="#fde68a" font-size="7.5">+ Coffey Still</text>
+                        <text x="160" y="128" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="bold">3 grandes alambiques de cobre en hilera • Suavidad característica</text>
+                    </svg>
+                `,
+                description: 'La firma técnica del whiskey irlandés tradicional es la triple destilación en alambiques de cobre (semejantes a los pot stills escoceses pero de mucho mayor tamaño, dispuestos de a tres en hilera), alcanzando entre 85% y 90% de alcohol, complementada con columnas continuas en la planta de Midleton.',
+                bullets: [
+                    '¿Por qué se realiza triple destilación en alambiques gigantes de cobre? Porque una tercera pasada en grandes alambiques depura aún más los alcoholes pesados y eleva el grado a 85–90% vol., otorgando al whiskey irlandés su legendaria suavidad y ligereza.',
+                    'Aporte histórico irlandés a la destilación continua: en 1831 el irlandés Aeneas Coffey patentó el alambique de columnas continuas (Coffey Still), empleado hoy en Midleton para elaborar whiskies de grano destinados a los blends.'
+                ],
+                sensory: 'Destilado cristalino muy limpio, ligero y sedoso en ataque, con aromas frutales delicados y sin asperezas.'
+            },
+            {
+                id: 'reduccion-llenado-barricas-irlanda',
+                correctSlot: 3,
+                orderLabel: '3. Tronco Común',
+                title: 'Reducción a 63% vol. y Selección de Barricas',
+                shortSubtitle: 'Dilución previa con agua pura y llenado en Jerez, Bourbon o Ron',
+                icon: 'fa-droplet',
+                colorClass: 'bg-red-800',
+                metrics: [
+                    { label: 'Grado al Entrar', value: 'Rebajado de 85–90% a 63% vol.' },
+                    { label: 'Barricas Usadas', value: 'Ex-Jerez, ex-Bourbon o ex-Ron' },
+                    { label: 'Alternativa', value: 'Roble americano nuevo' }
+                ],
+                videoCaptions: [
+                    '1/3 • Reducción Previa a 63% vol.: Antes de entrar en barrica, el destilado de 85–90% vol. se rebaja con agua pura hasta 63% porque una graduación excesiva extraería taninos amargos de la madera.',
+                    '2/3 • Barricas de Segundo Uso (Jerez, Bourbon y Ron): Se emplean botas que contuvieron Jerez (aportan frutos secos y especias), Bourbon (vainilla y caramelo) o Ron (dulzor tropical).',
+                    '3/3 • Uso Ocasional de Roble Americano Nuevo: También se utilizan barricas nuevas de roble americano para aportar intensidad aromática y estructura tostada.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(78, 66)">
+                            <rect x="-54" y="-34" width="108" height="68" rx="10" fill="#292524" stroke="#38bdf8" stroke-width="1.8"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">DILUCIÓN PREVIA</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">85–90% → 63%</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#bae6fd" font-size="8">+ Agua pura antes barrica</text>
+                        </g>
+                        <path d="M138,66 L168,66" stroke="#fbbf24" stroke-width="2.5"/>
+                        <g transform="translate(234, 66)">
+                            <rect x="-60" y="-34" width="120" height="68" rx="10" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-weight="bold">BARRICAS DE ROBLE</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="bold">Jerez • Bourbon • Ron</text>
+                            <text x="0" y="20" text-anchor="middle" fill="#fde68a" font-size="8">O roble americano nuevo</text>
+                        </g>
+                        <text x="160" y="128" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">El grado de 63% vol. optimiza la extracción de aromas de la madera</text>
+                    </svg>
+                `,
+                description: 'Tras alcanzar 85–90% de alcohol en la triple destilación, el aguardiente incoloro se rebaja con agua pura hasta los 63% vol. antes de ingresarlo en barricas o botas de roble previamente envinadas con Jerez, Bourbon o Ron (o en roble americano nuevo).',
+                bullets: [
+                    '¿Por qué se rebaja la graduación de 85–90% a 63% antes de la crianza? Porque el agua y el etanol disuelven distintos compuestos de la madera; a 63% vol. se logra una extracción equilibrada de azúcares de madera y vainillina sin volver astringente el whiskey.',
+                    'Diversidad de barricas: las botas ex-Jerez aportan notas de pasas, nuez y especias; las ex-Bourbon aportan vainilla y coco; las ex-Ron suman matices melosos y exóticos.'
+                ],
+                sensory: 'La combinación de distintos tipos de barricas permite construir capas aromáticas complejas sobre la base suave del destilado irlandés.'
+            },
+            {
+                id: 'anejamiento-minimo-ideal-irlanda',
+                correctSlot: 4,
+                orderLabel: '4. Tronco Común',
+                title: 'Añejamiento Legal (Mín. 3 años) y Tiempo Ideal (5–7 años)',
+                shortSubtitle: 'Clima húmedo irlandés • Edades habituales de 5, 7, 12 y 15+ años',
+                icon: 'fa-cloud-sun',
+                colorClass: 'bg-amber-900',
+                metrics: [
+                    { label: 'Mínimo Legal', value: '3 años en barrica de roble' },
+                    { label: 'Tiempo Ideal', value: '5 a 7 años (afirmado en Irlanda)' },
+                    { label: 'Reservas Añejas', value: '12, 15 años y superiores' }
+                ],
+                videoCaptions: [
+                    '1/3 • Mínimo Legal de 3 Años en Irlanda: Por ley, ningún destilado puede denominarse Irish Whiskey sin haber madurado al menos 3 años en barricas de madera en la isla de Irlanda.',
+                    '2/3 • El Punto Ideal de 5 a 7 Años: Aunque el piso legal es 3 años, la mayoría lleva la guarda a 5 años y los maestros irlandeses afirman que 7 años es el tiempo ideal de maduración.',
+                    '3/3 • Guarda Prolongada (12 a 15+ Años) y Part des Anges: El clima oceánico húmedo de Irlanda modera la evaporación y permite envejecimientos largos de 12, 15 o más años con gran elegancia.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 76)">
+                            <ellipse cx="0" cy="0" rx="58" ry="34" fill="#78350f" stroke="#d97706" stroke-width="2.5"/>
+                            <path d="M-36,-27 Q-28,0 -36,27" stroke="#292524" stroke-width="3" fill="none"/>
+                            <path d="M36,-27 Q28,0 36,27" stroke="#292524" stroke-width="3" fill="none"/>
+                            <text x="0" y="-4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">MÍNIMO 3 AÑOS</text>
+                            <text x="0" y="12" text-anchor="middle" fill="#fde68a" font-size="9">Ideal: 5 a 7 años (12–15+)</text>
+                        </g>
+                        <g class="anim-angel">
+                            <path d="M125,36 Q135,20 145,32" stroke="#bae6fd" stroke-width="2" fill="none"/>
+                            <path d="M175,32 Q185,20 195,36" stroke="#bae6fd" stroke-width="2" fill="none"/>
+                            <text x="160" y="20" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">Clima Oceánico Húmedo • Part des Anges</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">Oxidación progresiva, suavidad y color dorado natural</text>
+                    </svg>
+                `,
+                description: 'La legislación exige un envejecimiento mínimo de 3 años en barricas de roble en Irlanda, aunque la mayoría extiende la maduración a 5 años y los productores irlandeses sostienen que 7 años es el tiempo ideal, existiendo también expresiones de 12, 15 o más años.',
+                bullets: [
+                    'Mínimo legal (3 años) vs. óptimo sensorial (5 a 7 años): ¿Por qué se prolonga más allá del mínimo? Porque entre los 5 y 7 años el destilado alcanza la perfecta armonía entre la frescura del cereal y la dulzura avainillada de la madera.',
+                    'Influencia del clima atlántico irlandés: las temperaturas frescas y la elevada humedad ambiental favorecen una maduración pausada y equilibrada.'
+                ],
+                sensory: 'Desarrolla tonos dorados y ambarinos luminosos, textura aterciopelada y notas de miel de brezo, vainilla, manzana asada y especias suaves.'
+            },
+            {
+                id: 'estilo-single-pot-still',
+                correctSlot: 5,
+                orderLabel: '5. Estilo Irlandés I',
+                title: 'Single Pot Still Irish Whiskey (Estilo Emblema)',
+                shortSubtitle: 'Cebada malteada + sin maltear • Triple destilación en Pot Still',
+                icon: 'fa-award',
+                colorClass: 'bg-emerald-800',
+                metrics: [
+                    { label: 'Granos Exclusivos', value: 'Cebada malteada + sin maltear' },
+                    { label: 'Destilación', value: 'Triple destilación en Pot Still' },
+                    { label: 'Ícono Mundial', value: 'Redbreast (Single Pot Still)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Estilo Único de Irlanda (Single Pot Still): Se elabora en una sola destilería a partir de un mosto mixto de cebada malteada y cebada sin maltear destilado tres veces en alambiques de cobre.',
+                    '2/3 • Porqué de su Textura Cremosa y Especiada: La cebada cruda sin maltear aporta aceites naturales y una sensación sedosa en boca acompañada de notas picantes de pimienta y jengibre.',
+                    '3/3 • Referente Histórico (Redbreast): Representa la tradición más pura de la destilería irlandesa antes del auge de los blends.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#6ee7b7" font-size="12" font-weight="bold">SINGLE POT STILL IRISH WHISKEY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">Cebada malteada + sin maltear (3x Pot Still)</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#a7f3d0" font-size="8.5">Cremoso, especiado y pleno • Ícono: Redbreast</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Es el estilo histórico más genuino de Irlanda: elaborado en una única destilería a partir de una combinación de cebada malteada y cebada sin maltear, sometido a triple destilación en alambiques de cobre.',
+                bullets: [
+                    'Diferencia clave frente al Single Malt: mientras el Single Malt usa 100% cebada malteada, el Single Pot Still incorpora cebada cruda sin maltear, ganando cuerpo oleoso y notas especiadas.',
+                    'Marca emblemática: Redbreast (destilado en Midleton) es el máximo exponente de esta categoría.'
+                ],
+                sensory: 'Paladar cremoso, envolvente y estructurado, con notas de fruta madura, miel, frutos secos y un característico toque especiado.'
+            },
+            {
+                id: 'estilo-irish-malt-whiskey',
+                correctSlot: 6,
+                orderLabel: '6. Estilo Irlandés II',
+                title: 'Irish Malt Whiskey (100% Cebada Malteada)',
+                shortSubtitle: 'Triple destilación sin turba (y excepción ahumada Connemara)',
+                icon: 'fa-wheat-awn',
+                colorClass: 'bg-amber-600',
+                metrics: [
+                    { label: 'Ingrediente', value: '100% cebada malteada' },
+                    { label: 'Destilación', value: 'Triple Pot Still (generalmente)' },
+                    { label: 'Excepción Turba', value: 'Connemara (ahumado y 2x dest.)' }
+                ],
+                videoCaptions: [
+                    '1/3 • 100% Cebada Malteada: El Irish Malt Whiskey se elabora exclusivamente con cebada malteada en alambiques de cobre, resultando algo punzante en aroma y ligero en boca.',
+                    '2/3 • Expansión de Nuevas Destilerías: Es una categoría en fuerte crecimiento en Irlanda con numerosas destilerías artesanales jóvenes desarrollando nuevas expresiones.',
+                    '3/3 • La Excepción de Connemara (Cooley): Mientras la norma irlandesa evita la turba y destila tres veces, el Single Malt Connemara utiliza malta ahumada con turba y doble destilación.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#451a03" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fde047" font-size="12" font-weight="bold">IRISH MALT WHISKEY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">100% Cebada Malteada • Sin turba</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fde68a" font-size="8.5">Ligero y expresivo • Excepción ahumada: Connemara</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'Elaborado exclusivamente con 100% cebada malteada en alambiques de cobre (generalmente por triple destilación y sin turba), el Irish Malt Whiskey es una categoría en pleno auge con perfil frutal, ligero y expresivo.',
+                bullets: [
+                    'Perfil organoléptico: resulta algo punzante y aromático en nariz y ligero y limpio en boca.',
+                    'Excepción notable (Connemara Peated Malt): elaborado por la destilería independiente Cooley, rompe dos reglas tradicionales irlandesas al emplear malta ahumada con turba y doble destilación.',
+                    'Otros referentes destacados: Bushmills Single Malt (10, 16, 21 años), Tyrconnell y Locke’s.'
+                ],
+                sensory: 'Aromas frescos de manzana, pera, flores blancas y malta dulce; en el caso de Connemara, intenso humo de turba y notas terrosas.'
+            },
+            {
+                id: 'estilo-irish-blend-whiskey',
+                correctSlot: 7,
+                orderLabel: '7. Estilo Irlandés III',
+                title: 'Irish Blend Whiskey (Categoría Líder Mundial)',
+                shortSubtitle: 'Pot Still / Malt + Grain Whiskey (columna continua)',
+                icon: 'fa-blender',
+                colorClass: 'bg-stone-900',
+                metrics: [
+                    { label: 'Composición', value: 'Cebada malteada/cruda + otros granos' },
+                    { label: 'Sistemas', value: 'Triple Pot Still + Coffey Still' },
+                    { label: 'Marcas Líderes', value: 'Jameson, Tullamore D.E.W., Bushmills' }
+                ],
+                videoCaptions: [
+                    '1/3 • Ensamblaje de Tradición e Innovación: El Irish Blend Whiskey combina whiskies destilados tres veces en alambiques Pot Still con whiskies de grano (maíz/trigo) destilados en columnas Coffey Still.',
+                    '2/3 • Suavidad y Accesibilidad: Esta unión equilibra el cuerpo especiado del alambique tradicional con la ligereza limpia del destilado continuo.',
+                    '3/3 • Protagonistas Globales: Representa el mayor volumen de exportación de Irlanda con referentes como Jameson, Tullamore D.E.W., Black Bush, Powers y Paddy.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(160, 68)">
+                            <rect x="-112" y="-38" width="224" height="76" rx="12" fill="#1c1917" stroke="#fb923c" stroke-width="2"/>
+                            <text x="0" y="-14" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="bold">IRISH BLEND WHISKEY</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">3x Pot Still + Columna Continua (Coffey)</text>
+                            <text x="0" y="22" text-anchor="middle" fill="#fed7aa" font-size="8.5">Suave y equilibrado • Jameson, Tullamore D.E.W., Powers</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'El Irish Blend Whiskey es la categoría más difundida internacionalmente y combina whiskies elaborados en alambiques de cobre (cebada malteada y sin maltear) con whiskies de grano (principalmente maíz) destilados en columnas continuas.',
+                bullets: [
+                    'Complementariedad de sistemas: la triple destilación en Pot Still aporta carácter y untuosidad, mientras el destilado en columna continua suma suavidad y ligereza.',
+                    'Marcas emblemáticas: Jameson, Tullamore D.E.W., Black Bush, Bushmills Original, Powers, Paddy y Kilbeggan.'
+                ],
+                sensory: 'Extremadamente suave, redondo y accesible, con notas de vainilla, miel, caramelo ligero, manzana fresca y roble tostado.'
+            },
+            {
+                id: 'cortes-700-barricas-servicio-irlanda',
+                correctSlot: 8,
+                orderLabel: '8. Etapa Final',
+                title: 'Cortes de 700+ Barricas, Embotellado (≥40%) y Servicio',
+                shortSubtitle: 'Ensamblaje maestro, mínimo 40% alc. y servicio en sala',
+                icon: 'fa-wine-glass',
+                colorClass: 'bg-sky-800',
+                metrics: [
+                    { label: 'Escala de Corte', value: 'Mínimo 700 barricas distintas' },
+                    { label: 'Graduación Legal', value: 'No menos de 40% de alcohol' },
+                    { label: 'Servicio en Sala', value: 'Aperitivo frío/hielo o 16–18°C' }
+                ],
+                videoCaptions: [
+                    '1/3 • Cortes de al Menos 700 Barricas: Cuando el whiskey está maduro, se realizan ensamblajes de por lo menos 700 barricas distintas (de diferentes edades y maderas) para garantizar consistencia.',
+                    '2/3 • Concepto Irlandés de "Blend": En Irlanda también se denomina blend a la combinación de whiskeys de distintas edades procedentes de una misma destilería pero madurados en barricas de distinta procedencia.',
+                    '3/3 • Embotellado (≥40% vol.) y Servicio: Debe comercializarse con al menos 40% de alcohol; los suaves se sirven como aperitivo (solos, con hielo, agua o soda) y los añejos como digestivo a 16–18°C.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(105, 68)">
+                            <rect x="-22" y="-22" width="44" height="46" rx="4" fill="#b45309" stroke="#fbbf24" stroke-width="2"/>
+                            <text x="0" y="4" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="bold">≥ 40%</text>
+                            <text x="0" y="17" text-anchor="middle" fill="#fde68a" font-size="7.5">alc. vol.</text>
+                        </g>
+                        <g transform="translate(222, 68)">
+                            <rect x="-66" y="-34" width="132" height="68" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+                            <text x="0" y="-12" text-anchor="middle" fill="#bae6fd" font-size="9.5" font-weight="bold">CORTE Y SERVICIO</text>
+                            <text x="0" y="4" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Cortes de ≥700 barricas</text>
+                            <text x="0" y="18" text-anchor="middle" fill="#e0f2fe" font-size="8.5">• Aperitivo o 16–18°C digestivo</text>
+                        </g>
+                        <text x="160" y="130" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold">Base también de Irish Coffee, Irish Mist y Baileys Irish Cream</text>
+                    </svg>
+                `,
+                description: 'Al alcanzar la madurez óptima, el maestro mezclador realiza cortes ensamblando al menos 700 barricas distintas (de diferentes edades y procedencias de madera) y ajusta la graduación legal a no menos de 40% vol. antes del embotellado.',
+                bullets: [
+                    'Cortes de por lo menos 700 barricas: ¿Por qué se ensamblan tantas barricas? Para armonizar las variaciones naturales entre toneles ex-Bourbon, ex-Jerez y ex-Ron y asegurar una calidad invariable.',
+                    'Acepción irlandesa de "Blend": en Irlanda se llama también blend a la mezcla de whiskeys de distintas edades salidos de una misma destilería y madurados en barricas de distinta procedencia.',
+                    'Graduación mínima legal (≥40% vol.) y servicio: los más suaves funcionan como aperitivo (solos, con hielo, agua o soda), mientras que los de mayor crianza y carácter se disfrutan como digestivos entre 16° y 18°C.'
+                ],
+                sensory: 'Servido entre 16° y 18°C en copa Glencairn o tulipa despliega toda su cremosidad, notas de miel, frutos secos y especias; con hielo o agua abre su perfil frutal.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Cebada Malteada + Cruda (Pot Still)', hint: 'Ubicar estilo' },
+            { slotId: 6, phase: 2, title: '100% Cebada Malteada', hint: 'Ubicar estilo' },
+            { slotId: 7, phase: 2, title: 'Pot Still + Grano (Columna)', hint: 'Ubicar estilo' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // =========================================================================
+        // BASE DE DATOS COMPLETA DE ESTILOS, DESTILERÍAS Y MARCAS DE IRISH WHISKEY
+        // =========================================================================
+        const IRISH_WHISKEY_CLASSIFICATION_DATA = [
+            // EJE 1: ESTILOS OFICIALES
+            {
+                id: 'estilo-single-pot-still',
+                family: 'ESTILOS',
+                style: 'Single Pot Still Irish Whiskey',
+                brandsWorld: 'Redbreast (12, 15, 21 años), Green Spot, Powers John’s Lane',
+                origin: 'Irlanda • Estilo histórico exclusivo de la isla',
+                cepasCrianza: 'Cebada malteada (25–50%) + cebada sin maltear • Triple destilación Pot Still',
+                notes: 'Elaborado en una sola destilería combinando cebada malteada y cruda sin maltear en alambiques de cobre. Perfil cremoso, estructurado y especiado.'
+            },
+            {
+                id: 'estilo-irish-malt',
+                family: 'ESTILOS',
+                style: 'Irish Malt Whiskey (Single Malt)',
+                brandsWorld: 'Bushmills Single Malt, Tyrconnell, Locke’s Single Malt',
+                origin: 'Irlanda • Categoría en fuerte expansión',
+                cepasCrianza: '100% cebada malteada • Generalmente triple destilación y sin turba',
+                notes: 'Resulta algo punzante y expresivo en nariz y ligero y frutal en boca. Existen unas diez destilerías especializadas en constante crecimiento.'
+            },
+            {
+                id: 'estilo-irish-blend',
+                family: 'ESTILOS',
+                style: 'Irish Blend Whiskey',
+                brandsWorld: 'Jameson, Tullamore D.E.W., Black Bush, Powers Gold Label, Paddy, Kilbeggan',
+                origin: 'Irlanda • Mayor volumen de consumo y exportación',
+                cepasCrianza: 'Cebada malteada y sin maltear + granos (maíz) • 3x Pot Still + Coffey Still',
+                notes: 'Combina whiskies de alambique tradicional con whiskies de grano de columna continua, logrando suavidad, equilibrio y notas melosas.'
+            },
+            {
+                id: 'estilo-connemara-peated',
+                family: 'ESTILOS',
+                style: 'Connemara Peated Malt (Excepción Ahumada y Doble Destilación)',
+                brandsWorld: 'Connemara Peated Single Malt (Destilería Cooley)',
+                origin: 'Península de Cooley (Condado de Louth, Irlanda)',
+                cepasCrianza: '100% cebada malteada con turba • Doble destilación en Pot Still',
+                notes: 'Excepción notable dentro del panorama irlandés: utiliza malta secada con turba (ahumado) y doble destilación en lugar de triple sin turba.'
+            },
+            // EJE 2: DESTILERÍAS Y GRUPOS PRODUCTORES
+            {
+                id: 'grupo-irish-distillers-1966',
+                family: 'DESTILERIAS',
+                style: 'Grupo Irish Distillers (Fusión de 1966) y Planta de Midleton',
+                brandsWorld: 'Jameson, Powers, Cork Distillery Company, Tullamore y Redbreast',
+                origin: 'New Midleton Distillery (Condado de Cork, Irlanda)',
+                cepasCrianza: 'Triple destilación sin turba + columnas continuas en Midleton',
+                notes: 'Creado en 1966 tras la fusión de Jameson, Power, Cork Distillery Company y Tullamore. Construyó la gran planta de Midleton donde conviven alambiques gigantes y columnas continuas.'
+            },
+            {
+                id: 'destileria-old-bushmills',
+                family: 'DESTILERIAS',
+                style: 'Old Bushmills Distillery (Condado de Antrim)',
+                brandsWorld: 'Bushmills Original, Black Bush, Bushmills Single Malt (10, 16, 21 años)',
+                origin: 'Irlanda del Norte • Incorporada a Irish Distillers en 1972',
+                cepasCrianza: 'Triple destilación en alambiques de cobre sin turba',
+                notes: 'Considerada la destilería con licencia más antigua del mundo (1608); se unió al grupo Irish Distillers en 1972 aportando sus emblemáticos maltas y blends.'
+            },
+            {
+                id: 'destileria-cooley',
+                family: 'DESTILERIAS',
+                style: 'Cooley Distillery (Destilería Independiente)',
+                brandsWorld: 'Connemara, Tyrconnell, Kilbeggan, Locke’s',
+                origin: 'Condado de Louth (Irlanda)',
+                cepasCrianza: 'Doble y triple destilación • Uso de turba en marcas específicas (Connemara)',
+                notes: 'Rompió el monopolio histórico como destilería independiente, ampliando la diversidad estilística de Irlanda con whiskies turbados y doble destilación.'
+            },
+            {
+                id: 'hito-monasterios-aeneas-coffey',
+                family: 'DESTILERIAS',
+                style: 'Monasterios Irlandeses (Siglo XI) y Patente de Aeneas Coffey (1831)',
+                brandsWorld: 'Origen histórico del Uisce Beatha ("Agua de la Vida") y el alambique continuo',
+                origin: 'Irlanda (siglos VI–XI) y patente en Escocia (1831)',
+                cepasCrianza: 'Difusión monástica de la destilación + invención del Coffey Still',
+                notes: 'Los monjes irlandeses preservaron y difundieron el arte de destilar desde la Edad Media; en 1831 el irlandés Aeneas Coffey patentó el alambique continuo.'
+            },
+            // EJE 3: MARCAS Y DERIVADOS EMBLEMÁTICOS
+            {
+                id: 'marca-jameson-powers-paddy',
+                family: 'MARCAS',
+                style: 'Jameson, Powers y Paddy',
+                brandsWorld: 'Jameson • Powers • Paddy (producidos en Midleton)',
+                origin: 'Dublín y Cork (Irlanda)',
+                cepasCrianza: 'Triple destilación sin turba • Mínimo 3 años (habitual 5–7 años)',
+                notes: 'Trilogía clásica del whiskey irlandés: Jameson es el Irish Whiskey más vendido del mundo, mientras Powers y Paddy son referentes históricos del consumo local.'
+            },
+            {
+                id: 'marca-bushmills-black-bush',
+                family: 'MARCAS',
+                style: 'Bushmills y Black Bush',
+                brandsWorld: 'Bushmills • Black Bush (alta proporción de malta en barricas de Jerez)',
+                origin: 'Antrim (Irlanda del Norte)',
+                cepasCrianza: 'Triple destilación • Crianza en botas de Jerez y Bourbon',
+                notes: 'Black Bush destaca por su elevada proporción de whiskey de malta envejecido en botas de Oloroso de Jerez mezclado con un toque de grano dulce.'
+            },
+            {
+                id: 'marca-redbreast-tyrconnell-kilbeggan',
+                family: 'MARCAS',
+                style: 'Redbreast, Tyrconnell, Kilbeggan y Locke’s',
+                brandsWorld: 'Redbreast • Tyrconnell • Kilbeggan • Locke’s',
+                origin: 'Irlanda • Etiquetas de culto y destilerías históricas',
+                cepasCrianza: 'Single Pot Still (Redbreast) y Single Malt / Blend tradicionales',
+                notes: 'Representan la riqueza artesanal de Irlanda: Redbreast en el estilo Single Pot Still, y Tyrconnell, Kilbeggan y Locke’s en la tradición de Cooley.'
+            },
+            {
+                id: 'derivados-irish-mist-baileys',
+                family: 'MARCAS',
+                style: 'Tullamore D.E.W., Irish Mist y Baileys Irish Cream',
+                brandsWorld: 'Tullamore D.E.W. • Irish Mist (40° GL) • Baileys Irish Cream (17° GL)',
+                origin: 'Tullamore y Dublín (Irlanda) • Licores a base de Irish Whiskey',
+                cepasCrianza: 'Irish Mist: whiskey + miel de brezo y trébol + hierbas | Baileys: whiskey + crema + cacao',
+                notes: 'Además del whiskey puro, Irlanda elabora licores icónicos: Tullamore D.E.W. dio origen a Irish Mist (whiskey con miel de brezos y hierbas) y Baileys emulsiona Irish Whiskey con crema de leche y cacao.'
+            }
+        ];
+
+        // Estado de la aplicación
+        let placements = {}; // { slotId: stepId }
+        let selectedCardId = null;
+        let validationState = {}; // { slotId: 'correct' | 'incorrect' }
+        let shuffledCards = [];
+
+        // Estado de la práctica de Estilos, Destilerías y Marcas
+        let activeStyleCards = []; // Subconjunto de 12 fichas activas en la ronda
+        let stylePlacements = {}; // { styleId: 'ESTILOS' | 'DESTILERIAS' | 'MARCAS' }
+        let selectedStyleCardId = null;
+        let styleValidationState = {}; // { styleId: 'correct' | 'incorrect' }
+        let currentRefFilter = 'ALL';
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetStylesExercise(true);
+            renderStudyGuide();
+            renderStylesReferenceTable('ALL');
+            initVoiceIndicator();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre modo Práctica, Estilos y Guía de Estudio
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnStyles = document.getElementById('btn-mode-styles');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewStyles = document.getElementById('view-styles');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-700 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnStyles.className = (mode === 'styles') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewStyles.classList.toggle('hidden', mode !== 'styles');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE MINI-VIDEO CON LOCUCIÓN NEURONAL (GEMINI TTS + FALLBACK)
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°\s*GL/g, '$1 a $2 grados Gay-Lussac')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                        updateHeaderAudioBadge();
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        function initVoiceIndicator() {
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill && textEl && iconEl) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+                iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                textEl.textContent = 'Audio narrado listo';
+            }
+        }
+
+        function updateHeaderAudioBadge() {
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+            const readyCount = Object.keys(ttsAudioCache).length;
+            if (textEl && iconEl && readyCount > 0) {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                textEl.textContent = `Audios HD en caché (${readyCount}/24)`;
+            }
+        }
+
+        async function preloadStepScenes(step) {
+            if (!step) return;
+            for (let idx = 0; idx < step.videoCaptions.length; idx++) {
+                const cacheKey = `${step.id}_${idx}`;
+                if (!ttsAudioCache[cacheKey]) {
+                    const cleanText = cleanCaptionForSpeech(step.videoCaptions[idx]);
+                    await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+            }
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData) {
+                        const rateMatch = mimeType ? mimeType.match(/rate=(\d+)/) : null;
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete, reqId) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft')))
+                         || voices.find(v => v.lang.startsWith('es'));
+            if (esVoice) utterance.voice = esVoice;
+
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Narrando (voz local)...', 'speaking');
+                }
+            };
+            utterance.onend = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    setVoiceStatus('Audio listo');
+                    if (onComplete) onComplete();
+                }
+            };
+            utterance.onerror = () => {
+                if (!reqId || reqId === currentSpeechRequestId) {
+                    scheduleSilentSceneAdvance(cleanText, onComplete);
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Conectando audio HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+
+                    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('TIMEOUT'), 3500));
+                    const fetchResult = await Promise.race([
+                        getOrFetchTtsAudio(cacheKey, cleanText),
+                        timeoutPromise
+                    ]);
+
+                    if (fetchResult !== 'TIMEOUT') {
+                        audioUrl = fetchResult;
+                    }
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd, reqId);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+            preloadStepScenes(step);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-amber-700 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isVideoFullscreen) {
+                event.preventDefault();
+                event.stopPropagation();
+                exitVideoFullscreen();
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-800 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-500';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-600 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-800 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia de elaboración del Whiskey Irlandés 100% correcta',
+                    'Dominas todo el proceso del Irish Whiskey: Selección de granos (25–50% cebada malteada + cebada sin maltear) y secado sin turba → Triple destilación en grandes alambiques de cobre (85–90% vol.) y columnas en Midleton → Reducción a 63% vol. y barricas (Jerez, Bourbon, Ron o roble nuevo) → Añejamiento mínimo de 3 años (ideal 5–7 años) → Estilos (Single Pot Still, Irish Malt e Irish Blend) → Cortes de al menos 700 barricas y embotellado (≥40% vol.).'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda el flujo desde los granos sin turba y la triple destilación hasta la guarda en barricas, los tres estilos irlandeses y el corte final de 700 barricas.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-700 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE CLASIFICACIÓN DE ESTILOS, DESTILERÍAS Y MARCAS
+        // =========================================================================
+        function resetStylesExercise(reshuffleSample = true) {
+            stylePlacements = {};
+            selectedStyleCardId = null;
+            styleValidationState = {};
+            hideStylesFeedback();
+
+            if (reshuffleSample) {
+                const estilos = IRISH_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'ESTILOS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const destilerias = IRISH_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'DESTILERIAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                const marcas = IRISH_WHISKEY_CLASSIFICATION_DATA.filter(s => s.family === 'MARCAS').sort(() => Math.random() - 0.5).slice(0, 4);
+                activeStyleCards = [...estilos, ...destilerias, ...marcas].sort(() => Math.random() - 0.5);
+            } else {
+                activeStyleCards = [...activeStyleCards].sort(() => Math.random() - 0.5);
+            }
+
+            renderStylesAll();
+        }
+
+        function renderStylesAll() {
+            renderStylesPool();
+            renderStylesColumns();
+            updateStylesProgress();
+        }
+
+        function updateStylesProgress() {
+            const count = Object.keys(stylePlacements).length;
+            const total = activeStyleCards.length;
+            document.getElementById('styles-progress-badge').textContent = `${count} de ${total} fichas clasificadas`;
+            const hint = document.getElementById('styles-selected-hint');
+            if (selectedStyleCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderStylesPool() {
+            const poolEl = document.getElementById('styles-pool');
+            const available = activeStyleCards.filter(item => !stylePlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-900 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las muestras de Irish Whiskey! Pulsa <strong>"Verificar Clasificación"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedStyleCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleStyleDragStart(event, '${item.id}')"
+                        onclick="handleStyleCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-700 ring-2 ring-amber-500/40 bg-amber-50' : 'border-stone-200 hover:border-amber-500'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.style}</h4>
+                            <p class="text-xs text-stone-700 leading-snug mt-1">
+                                <span class="font-semibold text-stone-900">Referencias:</span> ${item.brandsWorld}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-stone-400 pt-1.5 border-t border-stone-100">
+                            <span class="truncate pr-1">${item.origin}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStylesColumns() {
+            const families = [
+                { key: 'ESTILOS', label: 'Estilos Oficiales' },
+                { key: 'DESTILERIAS', label: 'Destilerías y Grupos' },
+                { key: 'MARCAS', label: 'Marcas y Derivados' }
+            ];
+
+            families.forEach(famObj => {
+                const fam = famObj.key;
+                const container = document.getElementById(`items-family-${fam}`);
+                const countBadge = document.getElementById(`count-family-${fam}`);
+                const colBox = document.getElementById(`col-family-${fam}`);
+                const itemsInFam = activeStyleCards.filter(item => stylePlacements[item.id] === fam);
+
+                countBadge.textContent = itemsInFam.length;
+
+                if (selectedStyleCardId) {
+                    colBox.classList.add('bg-amber-50/40', 'cursor-pointer');
+                } else {
+                    colBox.classList.remove('bg-amber-50/40', 'cursor-pointer');
+                }
+
+                if (itemsInFam.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 p-4">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs">Ubicar fichas de <strong>${famObj.label}</strong></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const famShortName = {
+                    ESTILOS: 'Estilo Oficial',
+                    DESTILERIAS: 'Destilería / Grupo',
+                    MARCAS: 'Marca / Derivado'
+                };
+
+                container.innerHTML = itemsInFam.map(item => {
+                    const status = styleValidationState[item.id];
+                    let cardBorder = 'border-stone-200 bg-stone-50';
+                    let badgeHtml = '';
+
+                    if (status === 'correct') {
+                        cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                    } else if (status === 'incorrect') {
+                        cardBorder = 'border-rose-500 bg-rose-50/60';
+                        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${famShortName[item.family]}</span>`;
+                    }
+
+                    return `
+                        <div
+                            draggable="true"
+                            ondragstart="handleStyleDragStart(event, '${item.id}')"
+                            onclick="event.stopPropagation(); handleStyleCardClick('${item.id}')"
+                            class="rounded-xl p-3 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h4 class="font-bold text-xs sm:text-sm text-stone-900 leading-snug">${item.style}</h4>
+                                    ${badgeHtml}
+                                </div>
+                                <p class="text-[11px] text-stone-700 leading-snug mt-1">
+                                    <strong class="text-stone-900">Referencias:</strong> ${item.brandsWorld}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation(); removeStyleFromFamily('${item.id}')"
+                                title="Devolver al banco"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                            >
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function handleStyleCardClick(styleId) {
+            selectedStyleCardId = (selectedStyleCardId === styleId) ? null : styleId;
+            renderStylesAll();
+        }
+
+        function handleStyleColumnClick(family) {
+            if (!selectedStyleCardId) return;
+            assignStyleToFamily(selectedStyleCardId, family);
+        }
+
+        function handleStyleDragStart(event, styleId) {
+            event.dataTransfer.setData('text/style-id', styleId);
+            selectedStyleCardId = styleId;
+        }
+
+        function handleStyleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleStyleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleStyleDrop(event, family) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const styleId = event.dataTransfer.getData('text/style-id') || selectedStyleCardId;
+            if (styleId) {
+                assignStyleToFamily(styleId, family);
+            }
+        }
+
+        function assignStyleToFamily(styleId, family) {
+            stylePlacements[styleId] = family;
+            selectedStyleCardId = null;
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function removeStyleFromFamily(styleId) {
+            delete stylePlacements[styleId];
+            delete styleValidationState[styleId];
+            hideStylesFeedback();
+            renderStylesAll();
+        }
+
+        function verifyStyles() {
+            const total = activeStyleCards.length;
+            const placedCount = Object.keys(stylePlacements).length;
+
+            if (placedCount < total) {
+                showStylesFeedback(
+                    'warning',
+                    'Faltan fichas por clasificar',
+                    `Has ubicado ${placedCount} de ${total} muestras. Clasifica todas las tarjetas en Estilos Oficiales, Destilerías y Grupos o Marcas y Derivados antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            styleValidationState = {};
+
+            for (const item of activeStyleCards) {
+                if (stylePlacements[item.id] === item.family) {
+                    styleValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    styleValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderStylesColumns();
+
+            if (correct === total) {
+                showStylesFeedback(
+                    'success',
+                    '¡Clasificación impecable! 100% de aciertos en Irish Whiskey',
+                    'Has identificado correctamente los estilos irlandeses (Single Pot Still, Irish Malt, Irish Blend y Connemara Peated), los grupos productores (Irish Distillers y Cooley) y las marcas históricas.'
+                );
+            } else {
+                showStylesFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} fichas`,
+                    'Revisa las fichas marcadas en rojo donde se indica su eje correcto. Puedes pulsar "Ver Tabla Completa" para repasar cada estilo, destilería y marca.'
+                );
+            }
+        }
+
+        function showStylesFeedback(type, title, text) {
+            const banner = document.getElementById('styles-feedback-banner');
+            const iconBox = document.getElementById('styles-feedback-icon');
+            const titleEl = document.getElementById('styles-feedback-title');
+            const textEl = document.getElementById('styles-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideStylesFeedback() {
+            document.getElementById('styles-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleStylesReference() {
+            const panel = document.getElementById('styles-reference-panel');
+            const btn = document.getElementById('btn-toggle-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Tabla</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Tabla Completa</span>';
+            }
+        }
+
+        function filterReferenceTable(family) {
+            currentRefFilter = family;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                const btnFam = btn.getAttribute('data-filter');
+                const isMatch = (btnFam === family);
+                btn.className = isMatch
+                    ? 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white'
+                    : 'ref-filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 hover:bg-stone-200';
+            });
+            renderStylesReferenceTable(family);
+        }
+
+        function renderStylesReferenceTable(familyFilter) {
+            const tbody = document.getElementById('styles-reference-tbody');
+            const rows = (familyFilter === 'ALL')
+                ? IRISH_WHISKEY_CLASSIFICATION_DATA
+                : IRISH_WHISKEY_CLASSIFICATION_DATA.filter(item => item.family === familyFilter);
+
+            const famBadge = {
+                ESTILOS: { label: 'ESTILO OFICIAL', cls: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+                DESTILERIAS: { label: 'DESTILERÍA / GRUPO', cls: 'bg-amber-100 text-amber-900 border-amber-200' },
+                MARCAS: { label: 'MARCA / DERIVADO', cls: 'bg-stone-200 text-stone-900 border-stone-300' }
+            };
+
+            tbody.innerHTML = rows.map(item => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${famBadge[item.family].cls}">${famBadge[item.family].label}</span>
+                    </td>
+                    <td class="p-3 align-top font-bold text-stone-900">${item.style}</td>
+                    <td class="p-3 align-top text-stone-600">${item.origin}</td>
+                    <td class="p-3 align-top text-stone-700 font-medium">${item.cepasCrianza}</td>
+                    <td class="p-3 align-top text-stone-700 leading-relaxed max-w-md">${item.notes}</td>
+                    <td class="p-3 align-top space-y-1.5 text-xs">
+                        <div class="text-stone-800"><strong class="text-stone-950">Referencias:</strong> ${item.brandsWorld}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

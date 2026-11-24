@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scotch Whisky: Elaboración, Regiones y Estilos - Sommellerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8f5;
+            color: #1c1917;
+        }
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+        .card-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .slot-active {
+            border-color: #b45309 !important;
+            background-color: #fffbeb !important;
+            box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        /* Animaciones para los mini-videos vectoriales */
+        @keyframes bubbleRise {
+            0% { transform: translateY(0) scale(0.8); opacity: 0.2; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-42px) scale(1.15); opacity: 0; }
+        }
+        @keyframes smokeDrift {
+            0% { transform: translateY(0) scale(0.9); opacity: 0.25; }
+            50% { opacity: 0.75; }
+            100% { transform: translateY(-34px) scale(1.2); opacity: 0; }
+        }
+        @keyframes vaporFlow {
+            0% { stroke-dashoffset: 24; }
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes pulseHeat {
+            0%, 100% { opacity: 0.45; transform: scaleY(0.95); }
+            50% { opacity: 1; transform: scaleY(1.08); }
+        }
+        @keyframes floatGentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .anim-bubble-1 { animation: bubbleRise 2.2s infinite ease-in; }
+        .anim-bubble-2 { animation: bubbleRise 2.8s infinite ease-in 0.7s; }
+        .anim-bubble-3 { animation: bubbleRise 2.5s infinite ease-in 1.4s; }
+        .anim-smoke-1 { animation: smokeDrift 2.6s infinite ease-out; }
+        .anim-smoke-2 { animation: smokeDrift 3.1s infinite ease-out 0.9s; }
+        .anim-vapor { stroke-dasharray: 6 6; animation: vaporFlow 1.2s linear infinite; }
+        .anim-flame { transform-origin: bottom; animation: pulseHeat 1.2s infinite ease-in-out; }
+        .anim-float { animation: floatGentle 2.2s infinite ease-in-out; }
+        .video-paused * {
+            animation-play-state: paused !important;
+        }
+        /* Estilos para enlaces interactivos de botellas de whisky */
+        .whisky-bottle-link {
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 3px;
+            text-decoration-color: #d97706;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-radius: 4px;
+            padding: 0 2px;
+        }
+        .whisky-bottle-link:hover {
+            background-color: #fef3c7;
+            color: #92400e;
+            text-decoration-style: solid;
+        }
+        /* Estilos para modo Pantalla Completa del reproductor */
+        #video-player-container.video-fullscreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #0c0a09;
+        }
+        #video-player-container.video-fullscreen #video-stage {
+            flex-grow: 1;
+            height: auto;
+            padding: 1.5rem;
+        }
+        #video-player-container.video-fullscreen #video-stage svg {
+            max-width: 56rem;
+            max-height: 60vh;
+        }
+        #video-player-container.video-fullscreen #video-caption {
+            font-size: 1.125rem;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Académico -->
+    <header class="bg-stone-900 text-amber-50 border-b border-amber-800/40 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-amber-50 shadow-inner shrink-0">
+                    <i class="fa-solid fa-whiskey-glass text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold block">Sommellerie • Bebidas Espirituosas</span>
+                    <h1 class="font-serif-title text-xl sm:text-2xl font-bold text-white leading-tight">Scotch Whisky</h1>
+                </div>
+            </div>
+
+            <!-- Selector de Modo y Estado de Precarga HD -->
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <div id="audio-preload-pill" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-800/90 border border-stone-700 text-xs text-stone-300">
+                    <i id="audio-preload-icon" class="fa-solid fa-spinner fa-spin text-amber-400"></i>
+                    <span id="audio-preload-text">Preparando audios HD (0/24)...</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-stone-800 p-1 rounded-xl">
+                    <button id="btn-mode-practice" onclick="switchMode('practice')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-600 text-white shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>Proceso de Elaboración</span>
+                    </button>
+                    <button id="btn-mode-regions" onclick="switchMode('regions')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <span>Regiones y Destilerías</span>
+                    </button>
+                    <button id="btn-mode-study" onclick="switchMode('study')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Guía de Estudio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Banner de Consigna y Progreso (Proceso de Elaboración) -->
+        <section id="practice-header" class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        Actividad de Sommellerie
+                    </span>
+                    <span id="progress-badge" class="text-xs font-medium text-stone-500">0 de 8 etapas ubicadas</span>
+                </div>
+                <p class="text-sm text-stone-700 leading-relaxed">
+                    Ordena las <strong>8 etapas de elaboración del Scotch Whisky</strong>: comienza por la obtención del mosto de cebada malteada, identifica las <strong>2 rutas de destilación</strong> (Whisky de Malta vs. Whisky de Grano) y finaliza con la crianza legal y el ensamblaje. Pulsa <i class="fa-solid fa-circle-info text-amber-600"></i> en cada ficha para ver su mini-video y teoría completa.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button onclick="verifyOrder()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Verificar Orden</span>
+                </button>
+                <button onclick="resetExercise()" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Mensaje de Retroalimentación (Reemplaza alert()) -->
+        <div id="feedback-banner" class="hidden mb-6 rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <div id="feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                <div>
+                    <h3 id="feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                    <p id="feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="hideFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- VISTA 1: PROCESO DE ELABORACIÓN -->
+        <div id="view-practice" class="space-y-8">
+
+            <!-- Banco de Etapas Desordenadas -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Etapas Disponibles (Arrastra o selecciona una tarjeta y luego toca su casillero)</span>
+                    </h2>
+                    <span id="selected-hint" class="hidden text-xs font-semibold text-amber-700 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Tarjeta seleccionada: toca un casillero destino
+                    </span>
+                </div>
+
+                <div id="cards-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Las tarjetas desordenadas se renderizan aquí por JS -->
+                </div>
+            </section>
+
+            <!-- Diagrama de Flujo Secuencial y Ramificado -->
+            <section class="space-y-6">
+                <!-- Fase 1: Tronco Común de Malta (Pasos 1 al 4) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">I</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 1: Sacarificación, Braceo y Fermentación</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="slots-phase-1">
+                        <!-- Casilleros 1, 2, 3, 4 -->
+                    </div>
+                </div>
+
+                <!-- Conector Visual de Bifurcación -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-semibold">
+                        <i class="fa-solid fa-code-branch text-amber-700"></i>
+                        <span>Bifurcación según Materia Prima y Sistema de Destilación</span>
+                    </div>
+                </div>
+
+                <!-- Fase 2: Las 2 Rutas de Destilación (Slots 5 y 6) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-amber-700 text-white text-xs font-bold flex items-center justify-center">II</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 2: Rutas de Destilación Escocesa</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="slots-phase-2">
+                        <!-- Casilleros 5 (Alambique Discontinuo) y 6 (Columna Continua) -->
+                    </div>
+                </div>
+
+                <!-- Fase 3: Crianza y Ensamblaje (Slots 7 y 8) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-stone-800 text-white text-xs font-bold flex items-center justify-center">III</span>
+                        <h3 class="font-serif-title text-lg font-bold text-stone-800">Fase 3: Crianza en Roble y Ensamblaje Final</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="slots-phase-3">
+                        <!-- Casilleros 7 y 8 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA 2: GUÍA DE ESTUDIO COMPLETA -->
+        <div id="view-study" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+                <h2 class="font-serif-title text-xl font-bold text-stone-900 mb-1">Guía Técnica del Scotch Whisky</h2>
+                <p class="text-sm text-stone-600">
+                    Consulta el desarrollo completo de cada etapa, temperaturas críticas, graduaciones alcohólicas, tipificaciones de etiqueta y servicio. Pulsa en cualquier tarjeta para reproducir su mini-video explicativo.
+                </p>
+            </div>
+            <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fichas completas generadas dinámicamente -->
+            </div>
+
+            <!-- Glosario de Etiquetas de Scotch Whisky -->
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4">
+                <div class="border-b border-stone-200 pb-3">
+                    <h3 class="font-serif-title text-xl font-bold text-stone-900">Tipificaciones Frecuentes en Etiquetas</h3>
+                    <p class="text-xs text-stone-500">Términos técnicos clave que el sommelier debe interpretar en la botella.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Single Malt Scotch Whisky</span>
+                        <p class="text-stone-700 mt-1">Elaborado 100% con cebada malteada, destilado en alambiques discontinuos (pot still) dentro de una única destilería.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Blended Malt (Vatted / Pure Malt)</span>
+                        <p class="text-stone-700 mt-1">Corte exclusivo de whiskies de malta (100% cebada malteada) provenientes de diferentes destilerías escocesas.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Single Grain / Blended Grain</span>
+                        <p class="text-stone-700 mt-1">Whisky de cereales (trigo, maíz, cebada) destilado en columna continua; de una sola destilería (ej. Cameron Brig) o mezcla de varias (ej. Hedonism).</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Blended Scotch Whisky</span>
+                        <p class="text-stone-700 mt-1">Ensamblaje de whiskies de malta y whiskies de grano (habitualmente ~60% malta y ~40% grano). Es la categoría más consumida en el mundo.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Single Cask / Cask Strength</span>
+                        <p class="text-stone-700 mt-1"><strong>Single Cask:</strong> proviene de una única barrica. <strong>Cask Strength:</strong> embotellado directo de barrica a su graduación natural, sin diluir.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-amber-800 block uppercase">Peated / Unpeated / Non-Chill Filtered</span>
+                        <p class="text-stone-700 mt-1"><strong>Peated:</strong> con notas ahumadas de turba. <strong>Unpeated:</strong> sin turba. <strong>Non-Chill Filtered:</strong> sin filtrar en frío, conserva más aceites y textura.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 3: REGIONES Y DESTILERÍAS DE ESCOCIA -->
+        <div id="view-regions" class="hidden space-y-6 animate-fade-in">
+            <!-- Cabecera y Controles -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 border border-stone-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            Geografía del Whisky Escocés
+                        </span>
+                        <span id="regions-progress-badge" class="text-xs font-medium text-stone-500">0 de 12 destilerías ubicadas</span>
+                    </div>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        Clasifica cada <strong>destilería y su perfil sensorial</strong> dentro de su región productora oficial de Escocia: <strong>Highlands</strong>, <strong>Speyside</strong>, <strong>Islay</strong>, <strong>Islands</strong>, <strong>Lowlands</strong> o <strong>Campbeltown</strong>. Haz clic en cualquier marca subrayada para ver su botella y etiqueta en pantalla completa.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button onclick="verifyRegions()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span>Verificar Regiones</span>
+                    </button>
+                    <button onclick="resetRegionsExercise(true)" class="px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-900 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span>Nuevas Muestras</span>
+                    </button>
+                    <button onclick="toggleRegionsReference()" id="btn-toggle-reg-ref" class="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>Ver Cuadro Regional</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Retroalimentación Específica para Regiones -->
+            <div id="regions-feedback-banner" class="hidden rounded-2xl p-4 border shadow-sm animate-fade-in flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <div id="regions-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+                    <div>
+                        <h3 id="regions-feedback-title" class="font-bold text-sm sm:text-base"></h3>
+                        <p id="regions-feedback-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed"></p>
+                    </div>
+                </div>
+                <button onclick="hideRegionsFeedback()" class="text-stone-400 hover:text-stone-700 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Banco de Destilerías por Clasificar -->
+            <section class="bg-amber-50/70 rounded-2xl p-4 sm:p-5 border border-amber-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Destilerías y Perfiles Disponibles (Arrastra o toca una ficha y luego toca su región)</span>
+                    </h2>
+                    <span id="regions-selected-hint" class="hidden text-xs font-semibold text-amber-700 bg-amber-200/70 px-2.5 py-1 rounded-lg animate-pulse">
+                        Ficha seleccionada: toca la tarjeta de su región correspondiente
+                    </span>
+                </div>
+
+                <div id="regions-pool" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[76px]">
+                    <!-- Fichas generadas por JS -->
+                </div>
+            </section>
+
+            <!-- 6 Regiones de Escocia -->
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="regions-columns">
+                <!-- Generadas dinámicamente -->
+            </section>
+
+            <!-- Cuadro Comparativo Regional (Ocultable) -->
+            <section id="regions-reference-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-stone-200 shadow-sm space-y-4 animate-fade-in">
+                <div class="border-b border-stone-200 pb-3">
+                    <h3 class="font-serif-title text-xl font-bold text-stone-900">Atlas Técnico de las Regiones del Scotch Whisky</h3>
+                    <p class="text-xs text-stone-500">Características geográficas, uso de turba, destilación y destilerías emblemáticas de cada zona. Haz clic en cualquier marca para ver su botella.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700 uppercase text-[11px] tracking-wider">
+                                <th class="p-3 rounded-tl-xl">Región</th>
+                                <th class="p-3">Perfil Sensorial</th>
+                                <th class="p-3">Claves de Elaboración</th>
+                                <th class="p-3 rounded-tr-xl">Destilerías Representativas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="regions-reference-tbody" class="divide-y divide-stone-200">
+                            <!-- Filas generadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Modal de Detalle Técnico + Mini-Video por Etapa -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 animate-fade-in" onclick="event.stopPropagation()">
+            <!-- Cabecera Modal -->
+            <div id="modal-header" class="p-5 sm:p-6 bg-stone-900 text-white flex items-start justify-between gap-4 sticky top-0 z-10">
+                <div class="flex items-center gap-3.5">
+                    <div id="modal-icon-box" class="w-12 h-12 rounded-2xl bg-amber-600 flex items-center justify-center text-white text-xl shrink-0">
+                        <i id="modal-icon" class="fa-solid fa-wheat-awn"></i>
+                    </div>
+                    <div>
+                        <span id="modal-badge" class="text-xs font-bold uppercase tracking-wider text-amber-400 block"></span>
+                        <h3 id="modal-title" class="font-serif-title text-xl sm:text-2xl font-bold text-white"></h3>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cuerpo Modal -->
+            <div class="p-5 sm:p-6 space-y-5 text-sm text-stone-700 leading-relaxed">
+                <!-- Datos Clave de Sommellerie (Pills) -->
+                <div id="modal-metrics" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <!-- Métricas dinámicas -->
+                </div>
+
+                <!-- Mini-Video Didáctico Interactivo -->
+                <div id="video-player-container" class="bg-stone-900 rounded-2xl overflow-hidden border border-stone-700 shadow-lg text-white">
+                    <div class="px-4 py-2.5 bg-stone-950/60 border-b border-stone-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Mini-Video Explicativo</span>
+                            <span id="voice-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 font-medium">Voz HD lista</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span id="video-timer" class="text-[11px] font-mono text-stone-400">Escena 1 / 3</span>
+                            <button id="video-fs-header-btn" onclick="toggleVideoFullscreen()" class="px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5" title="Ver en pantalla completa">
+                                <i id="video-fs-header-icon" class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="video-fs-header-label">Pantalla completa</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lienzo visual SVG animado -->
+                    <div id="video-stage" class="relative w-full h-44 sm:h-48 bg-gradient-to-b from-stone-800 to-stone-900 flex items-center justify-center overflow-hidden">
+                        <!-- SVG inyectado dinámicamente según la etapa -->
+                    </div>
+
+                    <!-- Subtítulo sincronizado de la cápsula -->
+                    <div class="px-4 py-2.5 bg-stone-950/90 border-t border-stone-800 min-h-[54px] flex items-center justify-center text-center">
+                        <p id="video-caption" class="text-xs sm:text-sm text-amber-100 font-medium leading-snug"></p>
+                    </div>
+
+                    <!-- Barra de progreso y controles -->
+                    <div class="px-4 py-2.5 bg-stone-900 border-t border-stone-800 flex items-center gap-3">
+                        <button id="video-play-btn" onclick="toggleVideoPlay()" class="w-8 h-8 rounded-lg bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center transition shrink-0" title="Reproducir / Pausar">
+                            <i id="video-play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </button>
+                        <button onclick="restartVideo()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center transition shrink-0" title="Reiniciar cápsula">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button id="video-voice-btn" onclick="toggleVoiceOver()" class="px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold" title="Activar o silenciar voz en off">
+                            <i id="video-voice-icon" class="fa-solid fa-volume-high text-xs"></i>
+                            <span class="hidden sm:inline">Voz</span>
+                        </button>
+                        <div class="flex-grow bg-stone-800 h-2 rounded-full overflow-hidden cursor-pointer" onclick="seekVideo(event)" title="Haz clic para saltar de escena">
+                            <div id="video-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+                        </div>
+                        <button id="video-fs-btn" onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-300 hover:text-white flex items-center justify-center transition shrink-0" title="Pantalla completa / Salir (ESC)">
+                            <i id="video-fs-icon" class="fa-solid fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Explicación principal -->
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1.5">Descripción del Proceso</h4>
+                    <p id="modal-desc" class="text-stone-800"></p>
+                </div>
+
+                <!-- Puntos Técnicos Clave -->
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/70">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Puntos Clave del Proceso</span>
+                    </h4>
+                    <ul id="modal-bullets" class="space-y-2 text-stone-700 list-disc pl-5">
+                        <!-- Viñetas dinámicas -->
+                    </ul>
+                </div>
+
+                <!-- Impacto en Cata / Servicio -->
+                <div class="bg-stone-100 rounded-2xl p-4 border border-stone-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-stone-600 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass"></i>
+                        <span>Impacto Sensorial y Servicio</span>
+                    </h4>
+                    <p id="modal-sensory" class="text-stone-700 text-xs sm:text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Pie Modal -->
+            <div class="px-6 py-4 bg-stone-50 border-t border-stone-200 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold transition">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visor en Pantalla Completa de Botella y Etiqueta Real -->
+    <div id="bottle-fullscreen-modal" class="hidden fixed inset-0 z-[110] bg-stone-950/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fade-in">
+        <!-- Cabecera del Visor -->
+        <div class="max-w-6xl w-full mx-auto flex items-center justify-between gap-4 border-b border-stone-800 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-wine-bottle"></i>
+                </div>
+                <div>
+                    <span id="bottle-modal-region" class="text-xs font-bold uppercase tracking-wider text-amber-400 block">Single Malt Scotch Whisky</span>
+                    <h3 id="bottle-modal-title" class="font-serif-title text-lg sm:text-2xl font-bold text-white leading-tight">Botella y Etiqueta</h3>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <a id="bottle-external-search" href="#" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold transition border border-stone-700">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                    <span>Ver más fotos</span>
+                </a>
+                <button onclick="closeBottleModal()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Cerrar (ESC)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor Central de la Fotografía -->
+        <div class="flex-grow flex flex-col items-center justify-center my-4 overflow-hidden relative">
+            <div id="bottle-img-spinner" class="flex flex-col items-center gap-3 text-amber-300">
+                <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
+                <span class="text-xs font-medium tracking-wide">Buscando fotografía real en Wikimedia Commons...</span>
+            </div>
+
+            <div id="bottle-img-wrapper" class="hidden max-h-[66vh] max-w-full flex flex-col items-center justify-center gap-3">
+                <div class="bg-white/95 rounded-2xl p-4 sm:p-5 shadow-2xl border border-stone-700 flex items-center justify-center">
+                    <img id="bottle-modal-img" src="" alt="Botella de Scotch Whisky" class="max-h-[55vh] w-auto object-contain rounded-lg select-none" />
+                </div>
+                <div id="bottle-gallery-thumbs" class="hidden flex items-center gap-2 overflow-x-auto max-w-full py-1 px-2">
+                    <!-- Miniaturas de Wikimedia Commons -->
+                </div>
+            </div>
+
+            <div id="bottle-img-fallback" class="hidden max-w-md w-full bg-stone-900 border border-stone-700 rounded-2xl p-6 text-center space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-2xl">
+                    <i class="fa-solid fa-image"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 id="bottle-fallback-name" class="font-serif-title text-lg font-bold text-white"></h4>
+                    <p class="text-xs text-stone-400">No se pudo incrustar directamente la imagen externa por restricciones del servidor de origen.</p>
+                </div>
+                <a id="bottle-fallback-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold transition">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Abrir fotografía de la botella en pestaña nueva</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pie Informativo de Etiqueta -->
+        <div class="max-w-4xl w-full mx-auto bg-stone-900/90 border border-stone-800 rounded-2xl px-4 py-3 text-center">
+            <p id="bottle-modal-caption" class="text-xs sm:text-sm text-stone-300 leading-relaxed"></p>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 text-xs py-4 px-4 text-center mt-10 border-t border-stone-800">
+        Material didáctico de <span class="text-amber-400 font-medium">Bebidas Espirituosas y Coctelería</span> • Sommellerie
+    </footer>
+
+    <script>
+        // Base de datos estructurada sobre las 8 etapas del Scotch Whisky
+        const STEPS_DATA = [
+            {
+                id: 'malteado-turba',
+                correctSlot: 1,
+                orderLabel: '1. Sacarificación',
+                title: 'Malteado y Secado con Turba',
+                shortSubtitle: 'Germinación y ahumado en hornos Kiln',
+                icon: 'fa-wheat-awn',
+                colorClass: 'bg-amber-600',
+                metrics: [
+                    { label: 'Cereal Base', value: 'Cebada (ej. Golden Promise)' },
+                    { label: 'Enzimas Activas', value: 'Citasa y Diastasa' },
+                    { label: 'Horno Tradicional', value: 'Kiln con humo de turba' }
+                ],
+                videoCaptions: [
+                    '1/3 • Remojo y Germinación: Se humedece la cebada con el objetivo de despertar el embrión y activar las enzimas citasa y diastasa para convertir almidón en maltosa fermentable.',
+                    '2/3 • Secado en Horno Kiln: Se aplica calor para detener la germinación antes de que el brote consuma el azúcar generado, impregnando el grano con humo de turba.',
+                    '3/3 • Control del Ahumado: El objetivo de regular la turba (de algas o brezo) es definir desde la materia prima el perfil ahumado y medicinal del futuro whisky.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <g transform="translate(65, 72)">
+                            <ellipse cx="0" cy="0" rx="22" ry="13" fill="#d97706" stroke="#fbbf24" stroke-width="2"/>
+                            <path d="M20,-2 Q30,-11 34,-5" stroke="#84cc16" stroke-width="2.5" fill="none"/>
+                            <text x="0" y="30" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold">1. Malta Verde</text>
+                        </g>
+                        <path d="M105,72 L135,72" stroke="#78716c" stroke-width="2"/>
+                        <g transform="translate(215, 74)">
+                            <polygon points="-45,25 -32,-22 32,-22 45,25" fill="#292524" stroke="#a8a29e" stroke-width="2"/>
+                            <polygon points="-16,-22 0,-38 16,-22" fill="#44403c" stroke="#f59e0b" stroke-width="1.5"/>
+                            <line x1="-34" y1="4" x2="34" y2="4" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3 2"/>
+                            <path d="M-15,-4 Q-10,-16 -5,-4" stroke="#d6d3d1" stroke-width="2" fill="none" class="anim-smoke-1"/>
+                            <path d="M10,-4 Q15,-18 20,-4" stroke="#d6d3d1" stroke-width="2" fill="none" class="anim-smoke-2"/>
+                            <path d="M-18,22 L-9,14 L0,22 L9,14 L18,22" stroke="#f97316" stroke-width="2.5" fill="none" class="anim-flame"/>
+                            <text x="0" y="38" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="bold">2. Horno Kiln + Humo de Turba</text>
+                        </g>
+                    </svg>
+                `,
+                description: 'La cebada se humedece para provocar su germinación controlada y liberar enzimas (citasa y diastasa) que convierten el almidón en maltosa. Luego se detiene la germinación secando la "malta verde" en hornos llamados Kilns.',
+                bullets: [
+                    'Agua y Cebada: el agua escocesa de pH bajo (ácida por el paso sobre turba) facilita la fermentación. La cebada (como la histórica Golden Promise) se maltea y tritura en Escocia.',
+                    'Torres Kiln: antiguamente cada destilería secaba su malta en torres con techo en forma de pagoda sobre un piso perforado bajo el cual ardía turba.',
+                    'La Turba: combustible vegetal descompuesto (de hasta 15 m de espesor) cuyo humo impregna el grano. Si proviene de algas aporta notas medicinales/iodadas (Islay); si proviene de brezo aporta notas melosas (Orkney).'
+                ],
+                sensory: 'Define el carácter ahumado ("peated") o limpio ("unpeated") del destilado, además de otorgar el soporte de azúcares fermentables.'
+            },
+            {
+                id: 'molienda-braceo',
+                correctSlot: 2,
+                orderLabel: '2. Extracción Azucarada',
+                title: 'Molienda y Braceo (Mashing)',
+                shortSubtitle: 'Harina Grist + agua a 64°C y enfriado a 20°C',
+                icon: 'fa-temperature-half',
+                colorClass: 'bg-orange-600',
+                metrics: [
+                    { label: 'Proporción', value: '1 parte Grist : 4 de agua' },
+                    { label: 'Temperatura Braceo', value: '64°C durante 1 hora' },
+                    { label: 'Enfriado Posterior', value: 'Hasta 20°C' }
+                ],
+                videoCaptions: [
+                    '1/3 • Molienda (Grist): Se tritura la malta seca con el objetivo de exponer el interior del grano y facilitar la disolución rápida de sus azúcares.',
+                    '2/3 • Braceo a 64°C: Se mezcla 1 parte de grist con 4 de agua durante 1 hora para extraer todos los azúcares solubles sin destruir las enzimas por exceso de calor.',
+                    '3/3 • Filtrado y Enfriado a 20°C: Se separa el bagazo sólido y se baja la temperatura del mosto para evitar que el calor mate a las levaduras en la siguiente etapa.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="70" y="24" width="96" height="82" rx="10" fill="#44403c" stroke="#f59e0b" stroke-width="2"/>
+                        <rect x="74" y="44" width="88" height="58" rx="6" fill="#d97706" opacity="0.85"/>
+                        <text x="118" y="68" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">BRACEO 64°C</text>
+                        <text x="118" y="82" text-anchor="middle" fill="#fef3c7" font-size="8">1 Grist : 4 Agua (1h)</text>
+                        <path d="M166,72 L212,72" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                        <rect x="214" y="46" width="66" height="52" rx="8" fill="#164e63" stroke="#22d3ee" stroke-width="2"/>
+                        <text x="247" y="70" text-anchor="middle" fill="#a5f3fc" font-size="10" font-weight="bold">Enfriado</text>
+                        <text x="247" y="84" text-anchor="middle" fill="#67e8f9" font-size="10" font-weight="bold">a 20°C</text>
+                    </svg>
+                `,
+                description: 'La malta seca se tritura convirtiéndose en una harina denominada "grist", que luego se mezcla con agua caliente en la cuba de braceo (mash tun) para disolver los azúcares fermentables.',
+                bullets: [
+                    'Relación Grist / Agua: se mezcla una parte de harina de malta (grist) por cuatro partes de agua caliente.',
+                    'Control térmico exacto (64°C): temperatura ideal para disolver los azúcares contenidos en la harina sin detener ni destruir la acción enzimática residual. Dura aproximadamente 1 hora.',
+                    'Filtrado y enfriamiento: el caldo azucarado resultante (mosto o wort) se filtra para separar el bagazo y se refrigera hasta alcanzar los 20°C.'
+                ],
+                sensory: 'A diferencia de la cerveza, el mosto destinado a whisky NO lleva lúpulo, conservando pura la expresión dulce del cereal y el humo de la turba.'
+            },
+            {
+                id: 'fermentacion-wash',
+                correctSlot: 3,
+                orderLabel: '3. Conversión Alcohólica',
+                title: 'Fermentación (Obtención del Wash)',
+                shortSubtitle: 'Acción de levaduras a 33°C por 2 a 3 días',
+                icon: 'fa-flask-vial',
+                colorClass: 'bg-yellow-600',
+                metrics: [
+                    { label: 'Temperatura', value: '33°C (con agitadores CO₂)' },
+                    { label: 'Duración', value: '2 a 3 días (48–72 hs)' },
+                    { label: 'Caldo Resultante', value: 'Wash (~8% alc. / pH 4,5)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Inoculación de Levaduras: Se añaden levaduras al mosto frío con el objetivo de transformar los azúcares disueltos en alcohol etílico, gas carbónico y ésteres aromáticos.',
+                    '2/3 • Agitación a 33°C: Se activan agitadores internos para desalojar el exceso de dióxido de carbono y evitar que la espuma desborde mientras se consumen glucosa, fructosa y maltosa.',
+                    '3/3 • Obtención del Wash: Tras 2 a 3 días se logra un caldo fermentado de ~8 grados de alcohol y pH 4,5 listo para ingresar al alambique.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="105" y="22" width="110" height="90" rx="8" fill="#451a03" stroke="#eab308" stroke-width="2"/>
+                        <rect x="109" y="42" width="102" height="66" rx="4" fill="#ca8a04" opacity="0.85"/>
+                        <circle cx="135" cy="92" r="4" fill="#fef9c3" class="anim-bubble-1"/>
+                        <circle cx="160" cy="95" r="5" fill="#fef9c3" class="anim-bubble-2"/>
+                        <circle cx="185" cy="88" r="3.5" fill="#fef9c3" class="anim-bubble-3"/>
+                        <text x="160" y="66" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold">FERMENTACIÓN 33°C</text>
+                        <text x="160" y="80" text-anchor="middle" fill="#fef08a" font-size="8.5">2 a 3 días • Agitadores CO₂</text>
+                        <text x="160" y="128" text-anchor="middle" fill="#fde047" font-size="10" font-weight="bold">WASH (~8% GL • pH 4,5)</text>
+                    </svg>
+                `,
+                description: 'El mosto filtrado y enfriado se bombea a grandes cubas de fermentación (de madera o acero inoxidable) donde se inoculan levaduras para transformar los azúcares en alcohol, gas carbónico y compuestos aromáticos.',
+                bullets: [
+                    'Secuencia de azúcares: las levaduras fermentan primero los azúcares simples (glucosa y fructosa) y luego los más complejos (maltosa y maltotriosa).',
+                    'Agitadores internos: durante el proceso se activan agitadores dentro de los tanques para controlar la espuma y eliminar el exceso de gas carbónico (CO₂).',
+                    'Producto obtenido ("Wash"): al cabo de 2 a 3 días a 33°C se obtiene un líquido fermentado de alrededor de 8% de alcohol y pH 4,5, listo para destilar.'
+                ],
+                sensory: 'Fermentaciones más prolongadas generan mayor cantidad de ésteres frutales y florales (manzana, pera, plátano) que pasarán luego al destilado.'
+            },
+            {
+                id: 'sacarificacion-grano',
+                correctSlot: 4,
+                orderLabel: '4. Vía Alternativa de Cereal',
+                title: 'Cocción a Presión de Granos',
+                shortSubtitle: 'Vapor a presión (3,5 hs) + malta enzimática',
+                icon: 'fa-gears',
+                colorClass: 'bg-stone-700',
+                metrics: [
+                    { label: 'Cereales Crudos', value: 'Trigo, maíz, cebada sin maltear' },
+                    { label: 'Cocción Vapor', value: '~3 horas y media a presión' },
+                    { label: 'Destilerías Escocia', value: '7 plantas (mayoría Lowlands)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Cocción a Presión: Trigo, maíz y cebada sin maltear se someten a vapor por 3 horas y media con el objetivo de hacer estallar las células vegetales y liberar su almidón.',
+                    '2/3 • Sacarificación Enzimática: Se mezcla la masa cocida con cebada malteada para que su enzima diastasa transforme ese almidón liberado en maltosa fermentable.',
+                    '3/3 • Mosto para Columna: El objetivo de esta vía es obtener un mosto fluido y económico que, tras fermentar, alimente las columnas de destilación continua.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="55" y="34" width="90" height="68" rx="12" fill="#292524" stroke="#a8a29e" stroke-width="2"/>
+                        <text x="100" y="64" text-anchor="middle" fill="#f5f5f4" font-size="9.5" font-weight="bold">VAPOR PRESIÓN</text>
+                        <text x="100" y="78" text-anchor="middle" fill="#d6d3d1" font-size="8.5">Trigo / Maíz (3,5h)</text>
+                        <path d="M145,68 L175,68" stroke="#f59e0b" stroke-width="2.5"/>
+                        <rect x="175" y="34" width="95" height="68" rx="12" fill="#44403c" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="222" y="64" text-anchor="middle" fill="#fde68a" font-size="9.5" font-weight="bold">+ Cebada Malta</text>
+                        <text x="222" y="78" text-anchor="middle" fill="#fef3c7" font-size="8.5">Diastasa → Maltosa</text>
+                    </svg>
+                `,
+                description: 'Para elaborar Whisky de Grano (Grain Whisky), los cereales no malteados requieren una cocción previa bajo presión para romper sus células de almidón antes de la acción enzimática.',
+                bullets: [
+                    'Hidratación y estallido del almidón: granos crudos como trigo, maíz o cebada sin maltear se cocinan con vapor de agua a presión durante unas 3 horas y media.',
+                    'Aporte enzimático: se mezclan con una proporción de cebada malteada en agua caliente con agitadores para que la diastasa transforme el almidón en maltosa.',
+                    'Concentración geográfica: en Escocia existen siete destilerías de grano, ubicadas mayoritariamente en las Lowlands.'
+                ],
+                sensory: 'Produce un mosto más ligero y económico que, tras destilarse, aporta suavidad y textura sedosa a los Blended Scotch Whiskies.'
+            },
+            {
+                id: 'ruta-pot-still',
+                correctSlot: 5,
+                orderLabel: '5. Ruta Alambique Tradicional',
+                title: 'Ruta Whisky de Malta',
+                shortSubtitle: 'Doble destilación discontinua en Pot Still de cobre',
+                icon: 'fa-fire-flame-curved',
+                colorClass: 'bg-amber-700',
+                metrics: [
+                    { label: 'Sistema', value: 'Doble destilación (Pot Still)' },
+                    { label: '1ª Dest. (Wash Still)', value: 'Wash 8° → Low Wines ~25°' },
+                    { label: '2ª Dest. (Spirit Still)', value: 'Corazón a ~70° GL' }
+                ],
+                videoCaptions: [
+                    '1/3 • Primera Destilación (Wash Still): Se hierve el wash de 8 grados con el objetivo de separar el alcohol del agua y concentrarlo en flemas (low wines) de ~25 grados.',
+                    '2/3 • Segunda Destilación (Spirit Still): Se realiza el corte descartando cabezas tóxicas y colas pesadas para conservar solo el corazón puro y aromático a ~70 grados.',
+                    '3/3 • Contacto con Cobre: La forma y altura del cuello de cisne tienen como objetivo purificar los vapores sulfurados y definir el cuerpo y elegancia de cada destilería.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <!-- Alambique Pot Still -->
+                        <ellipse cx="115" cy="88" rx="34" ry="22" fill="#b45309" stroke="#fbbf24" stroke-width="2"/>
+                        <path d="M98,70 Q105,30 115,24 Q125,30 132,70" fill="#d97706" stroke="#fbbf24" stroke-width="2"/>
+                        <path d="M115,24 Q155,14 190,46" stroke="#fbbf24" stroke-width="4" fill="none" class="anim-vapor"/>
+                        <!-- Condensador -->
+                        <rect x="190" y="42" width="38" height="64" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                        <text x="209" y="76" text-anchor="middle" fill="#7dd3fc" font-size="8" font-weight="bold">FRÍO</text>
+                        <text x="160" y="128" text-anchor="middle" fill="#fcd34d" font-size="9.5" font-weight="bold">Pot Still Cobre • 2 Destilaciones → Corazón 70° GL</text>
+                    </svg>
+                `,
+                description: 'Los whiskies 100% de cebada malteada (Single Malt) se someten a una doble destilación discontinua en alambiques de cobre (Pot Stills) —con excepciones puntuales de triple destilación en Lowlands—.',
+                bullets: [
+                    '1ª Destilación (Wash Still): concentra el wash de 8% alc. en un destilado intermedio llamado "low wines" o flemas (~25° GL).',
+                    '2ª Destilación (Spirit Still): el maestro destilador separa los cortes descartando "cabezas" (metanol/volátiles) y "colas" (aceites pesados), conservando el "corazón" a ~70° GL.',
+                    'Identidad del alambique: la forma, altura y hasta las abolladuras del cobre influyen en el reflujo; al reemplazar uno roto se fabrica una réplica exacta.'
+                ],
+                sensory: 'Conserva abundante carga de congéneres aromáticos: notas de cereal malteado, frutas, flores, especias o turba intensa según la región.'
+            },
+            {
+                id: 'ruta-coffey-still',
+                correctSlot: 6,
+                orderLabel: '6. Ruta Destilación Continua',
+                title: 'Ruta Whisky de Grano',
+                shortSubtitle: 'Alambique de columnas continuas (Coffey / Patent Still)',
+                icon: 'fa-industry',
+                colorClass: 'bg-sky-700',
+                metrics: [
+                    { label: 'Inventor', value: 'Aeneas Coffey (1831, Escocia)' },
+                    { label: 'Sistema', value: '2 columnas (Analizadora + Rectificadora)' },
+                    { label: 'Perfil', value: 'Ligero, suave, alta eficiencia' }
+                ],
+                videoCaptions: [
+                    '1/3 • Destilación Continua (1831): El alambique Coffey opera sin detenerse con el objetivo de destilar grandes volúmenes de mosto de grano de manera continua y eficiente.',
+                    '2/3 • Intercambio en Placas: El mosto desciende cruzándose con vapor ascendente para rectificar el grado alcohólico y eliminar impurezas pesadas en un solo ciclo.',
+                    '3/3 • Destilado Ligero: El objetivo es obtener un whisky de grano suave y sedoso que equilibre y redondee a las maltas intensas en los ensamblajes.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="95" y="22" width="40" height="88" rx="4" fill="#334155" stroke="#38bdf8" stroke-width="2"/>
+                        <line x1="95" y1="42" x2="135" y2="42" stroke="#94a3b8" stroke-dasharray="3 2"/>
+                        <line x1="95" y1="62" x2="135" y2="62" stroke="#94a3b8" stroke-dasharray="3 2"/>
+                        <line x1="95" y1="82" x2="135" y2="82" stroke="#94a3b8" stroke-dasharray="3 2"/>
+                        <path d="M135,28 L175,28" stroke="#38bdf8" stroke-width="3" class="anim-vapor"/>
+                        <rect x="175" y="22" width="40" height="88" rx="4" fill="#1e293b" stroke="#22d3ee" stroke-width="2"/>
+                        <text x="155" y="128" text-anchor="middle" fill="#7dd3fc" font-size="9.5" font-weight="bold">Coffey Still (Columnas) • Destilación Continua</text>
+                    </svg>
+                `,
+                description: 'Patentado en Escocia en 1831 por el irlandés Aeneas Coffey, el alambique continuo permite destilar grandes volúmenes de mosto de cereales sin interrupciones entre tandas.',
+                bullets: [
+                    'Funcionamiento en dos columnas: el líquido fermentado precalentado cae por placas perforadas en la columna analizadora encontrándose con vapor ascendente, y luego se rectifica en la segunda columna.',
+                    'Carácter controlado: aunque posee menos congéneres que un Single Malt, en el Scotch Grain Whisky no se rectifica hasta volverlo neutro como un vodka.',
+                    'Rol en la industria: constituye la base estructural que aporta ligereza y redondez a los Blended Scotch Whiskies.'
+                ],
+                sensory: 'Perfil sutil, dulce de cereal, vainilla ligera y textura sedosa; suaviza la potencia aromática de las maltas en los cortes.'
+            },
+            {
+                id: 'crianza-barrica',
+                correctSlot: 7,
+                orderLabel: '7. Maduración Legal',
+                title: 'Crianza en Barricas de Roble',
+                shortSubtitle: 'Mínimo legal de 3 años en Escocia (Ex-Bourbon / Jerez)',
+                icon: 'fa-wine-bottle',
+                colorClass: 'bg-amber-800',
+                metrics: [
+                    { label: 'Mínimo Legal Escocia', value: '3 años en barrica de roble' },
+                    { label: 'Graduación de Llenado', value: 'Rebajado de 70° a ~65° GL' },
+                    { label: 'Aporte Aromático', value: '50% a 60% proviene de la madera' }
+                ],
+                videoCaptions: [
+                    '1/3 • Dilución Previa: El destilado incoloro de 70 grados se rebaja con agua pura a ~65 grados con el objetivo de favorecer la extracción equilibrada de compuestos de la madera.',
+                    '2/3 • Guarda Legal Mínima de 3 Años: Se madura en barricas ex-Bourbon o ex-Jerez para suavizar el alcohol por oxidación lenta y aportar entre el 50% y 60% de los aromas.',
+                    '3/3 • Influencia del Microclima: La evaporación (part des anges) y el aire marino concentran el destilado y le otorgan su color ámbar y carácter regional.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <ellipse cx="160" cy="70" rx="52" ry="34" fill="#78350f" stroke="#d97706" stroke-width="2.5"/>
+                        <line x1="132" y1="39" x2="132" y2="101" stroke="#a8a29e" stroke-width="2"/>
+                        <line x1="188" y1="39" x2="188" y2="101" stroke="#a8a29e" stroke-width="2"/>
+                        <text x="160" y="67" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="bold">MÍNIMO 3 AÑOS</text>
+                        <text x="160" y="81" text-anchor="middle" fill="#fcd34d" font-size="8.5">Ex-Bourbon / Ex-Jerez</text>
+                        <path d="M145,32 Q160,16 175,32" stroke="#bae6fd" stroke-width="1.5" fill="none" class="anim-smoke-1"/>
+                        <text x="160" y="126" text-anchor="middle" fill="#fde68a" font-size="9.5" font-weight="bold">50–60% de los aromas provienen de la madera</text>
+                    </svg>
+                `,
+                description: 'Por ley, ningún destilado puede denominarse Scotch Whisky sin haber madurado al menos tres años en barricas de roble en depósitos aduaneros dentro de Escocia.',
+                bullets: [
+                    '4 Factores de la Madera: 1) Origen previo (ex-Bourbon aporta vainilla/coco; ex-Jerez aporta frutos secos/especias); 2) Usos (barricas rellenadas 2 a 4 veces); 3) Tiempo (evaporación o "part des anges" y oxidación lenta); 4) Clima (aire salino junto al mar).',
+                    'Ajuste de graduación: el destilado recién salido (70° GL, incoloro) se diluye con agua pura hasta ~65° GL antes de llenar la barrica.',
+                    'Coloración: el roble aporta su color ámbar natural; solo se permite añadir pequeñas dosis de caramelo (E150a) para uniformar el tono entre lotes sin alterar el sabor.'
+                ],
+                sensory: 'Entre el 50% y el 60% de la complejidad aromática final proviene de la madera, aportando suavidad, bouquet y notas de vainilla, miel, especias y frutos secos.'
+            },
+            {
+                id: 'ensamblaje-embotellado',
+                correctSlot: 8,
+                orderLabel: '8. Corte y Servicio',
+                title: 'Ensamblaje (Blending) y Embotellado',
+                shortSubtitle: 'Corte del Master Blender (~60% malta / ~40% grano)',
+                icon: 'fa-champagne-glasses',
+                colorClass: 'bg-emerald-700',
+                metrics: [
+                    { label: 'Proporción Blended', value: '~60% Malta + ~40% Grano' },
+                    { label: 'Graduación Mínima', value: 'Mínimo 40% ABV (40° GL)' },
+                    { label: 'Servicio Cata', value: 'Copa Glencairn (16°C – 18°C)' }
+                ],
+                videoCaptions: [
+                    '1/3 • Ensamblaje (Blending): El Master Blender combina ~60% de maltas con ~40% de grano con el objetivo de unir carácter complejo y suavidad en un estilo constante.',
+                    '2/3 • Ajuste y Declaración de Edad: Se ajusta la graduación a un mínimo legal de 40 grados, declarando en etiqueta siempre la edad del whisky más joven del corte.',
+                    '3/3 • Servicio en Copa Glencairn: Su base ancha y boca estrecha tienen como objetivo concentrar los vapores aromáticos para una cata precisa entre 16°C y 18°C.'
+                ],
+                videoSvg: `
+                    <svg viewBox="0 0 320 140" class="w-full h-full max-w-md">
+                        <rect x="45" y="28" width="68" height="32" rx="6" fill="#b45309" stroke="#fbbf24" stroke-width="1.5"/>
+                        <text x="79" y="48" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="bold">MALTAS (60%)</text>
+                        <rect x="45" y="72" width="68" height="32" rx="6" fill="#0369a1" stroke="#38bdf8" stroke-width="1.5"/>
+                        <text x="79" y="92" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="bold">GRANO (40%)</text>
+                        <path d="M115,44 L152,66 M115,88 L152,66" stroke="#d6d3d1" stroke-width="2"/>
+                        <rect x="155" y="42" width="118" height="48" rx="10" fill="#065f46" stroke="#34d399" stroke-width="2"/>
+                        <text x="214" y="64" text-anchor="middle" fill="#ecfdf5" font-size="9.5" font-weight="bold">BLENDED SCOTCH</text>
+                        <text x="214" y="79" text-anchor="middle" fill="#a7f3d0" font-size="8.5">Mín. 40° GL • Copa Glencairn</text>
+                    </svg>
+                `,
+                description: 'Tras la maduración en barrica, los whiskies pueden embotellarse como Single Malt, Single Grain, Blended Malt o integrarse en un Blended Scotch Whisky bajo la dirección del Master Blender.',
+                bullets: [
+                    'Equilibrio del Blend: habitualmente combina un 60% de whiskies de malta (carácter, cuerpo y complejidad regional) con un 40% de whiskies de grano (suavidad y armonía).',
+                    'Declaración de edad: la edad indicada en la etiqueta corresponde obligatoriamente al componente más joven que participa en la mezcla.',
+                    'Servicio profesional: en copa Glencairn o copita de cata (base ancha y boca estrecha para concentrar aromas) a 16°C–18°C, solo ("neat"), con unas gotas de agua pura o en cócteles clásicos (Rob Roy, Rusty Nail, Penicillin).'
+                ],
+                sensory: 'Permite mantener un estilo consistente año tras año o expresar la singularidad pura de una sola destilería y barrica.'
+            }
+        ];
+
+        // Configuración de los 8 casilleros del diagrama
+        const SLOTS_CONFIG = [
+            { slotId: 1, phase: 1, title: 'Paso 1', hint: 'Ubicar etapa' },
+            { slotId: 2, phase: 1, title: 'Paso 2', hint: 'Ubicar etapa' },
+            { slotId: 3, phase: 1, title: 'Paso 3', hint: 'Ubicar etapa' },
+            { slotId: 4, phase: 1, title: 'Paso 4', hint: 'Ubicar etapa' },
+            { slotId: 5, phase: 2, title: 'Doble Destilación Discontinua (Pot Still)', hint: 'Ubicar ruta' },
+            { slotId: 6, phase: 2, title: 'Destilación Continua en Columnas (Coffey Still)', hint: 'Ubicar ruta' },
+            { slotId: 7, phase: 3, title: 'Paso 7', hint: 'Ubicar etapa' },
+            { slotId: 8, phase: 3, title: 'Paso Final', hint: 'Ubicar etapa' }
+        ];
+
+        // Regiones oficiales del Scotch Whisky
+        const SCOTCH_REGIONS_META = [
+            {
+                id: 'SPEYSIDE',
+                name: 'Speyside',
+                subtitle: 'Rivera del río Spey y valle de Glenlivet',
+                color: 'amber',
+                badgeClass: 'bg-amber-100 text-amber-900 border-amber-200',
+                headerBg: 'bg-amber-700',
+                profile: 'Dulces, claros, sutiles y elegantes, con marcadas notas frutales y melosas (manzana, pera, miel, vainilla y especias).',
+                details: 'Concentra la mayor cantidad de destilerías de malta de Escocia. Uso frecuente de barricas ex-Jerez y aguas puras del río Spey y Livet.',
+                distilleriesList: 'The Glenlivet (12/15/Founder’s Reserve), Glenfiddich (12/15/18), The Macallan (12 Double Cask/Sherry Oak), The Balvenie (DoubleWood 12), Cardhu (12), Cragganmore (12), Knockando, Glenfarclas (10/15), Tamdhu'
+            },
+            {
+                id: 'HIGHLANDS',
+                name: 'Highlands',
+                subtitle: 'Región geográfica más extensa de Escocia',
+                color: 'emerald',
+                badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                headerBg: 'bg-emerald-700',
+                profile: 'Gran diversidad de estilos: desde maltas fragantes y florales hasta expresiones ricas, texturadas, especiadas y con leve toque marítimo.',
+                details: 'Paisaje variado de montañas, páramos y litoral. Ríos de aguas muy blandas y puras como el Livet.',
+                distilleriesList: 'Glenmorangie (The Original 10 / Lasanta), The Dalmore (12/15), Oban (14), Clynelish (14), GlenDronach (12), Aberfeldy (12), Royal Lochnagar'
+            },
+            {
+                id: 'ISLAY',
+                name: 'Islay (Hébridas)',
+                subtitle: 'Isla turbosa al sur de las Hébridas',
+                color: 'slate',
+                badgeClass: 'bg-slate-200 text-slate-900 border-slate-300',
+                headerBg: 'bg-slate-800',
+                profile: 'Aroma dominante a yodo, algas marinas y humo intenso de turba; secos, medicinales y de pronunciado carácter.',
+                details: 'Recubierta de turba rica en residuos marinos y algas. Cuenta con 8 destilerías emblemáticas.',
+                distilleriesList: 'Laphroaig (10 / Quarter Cask), Lagavulin (16 / 8), Ardbeg (10 / Uigeadail), Caol Ila (12), Bowmore (12/15), Bruichladdich (The Classic Laddie / Octomore), Bunnahabhain (12), Kilchoman (Machir Bay)'
+            },
+            {
+                id: 'ISLANDS',
+                name: 'Islands',
+                subtitle: 'Skye, Orkney (Orcadas), Jura y Mull',
+                color: 'sky',
+                badgeClass: 'bg-sky-100 text-sky-900 border-sky-200',
+                headerBg: 'bg-sky-700',
+                profile: 'Sabor y aroma ahumado (menos iodado que Islay), paladar oleoso, influencia salina y notas de brezo o pimienta.',
+                details: 'Skye aporta perfil iodado/pimienta (Talisker); Orkney usa turba de brezo con notas a miel (Highland Park).',
+                distilleriesList: 'Talisker (10 / Skye / Storm —Isla de Skye—), Highland Park (12 Viking Honour / 18), Scapa (Skiren —Orkney—), Isle of Jura (10 / Seven Wood), Tobermory (12) y Ledaig (10 —Mull—)'
+            },
+            {
+                id: 'LOWLANDS',
+                name: 'Lowlands',
+                subtitle: 'Tierras bajas fértiles del sur',
+                color: 'lime',
+                badgeClass: 'bg-lime-100 text-lime-900 border-lime-200',
+                headerBg: 'bg-lime-700',
+                profile: 'Maltas suaves, ligeras, secas, algo frutadas/herbáceas y sin turba (se secaba con carbón a falta de turba).',
+                details: 'Es habitual el uso de triple destilación (ej. Auchentoshan) y concentra la mayoría de destilerías de grano.',
+                distilleriesList: 'Glenkinchie (12), Auchentoshan (12 / Three Wood / American Oak —triple destilación—), Bladnoch (11), Rosebank'
+            },
+            {
+                id: 'CAMPBELTOWN',
+                name: 'Campbeltown',
+                subtitle: 'Península estrecha expuesta al mar',
+                color: 'indigo',
+                badgeClass: 'bg-indigo-100 text-indigo-900 border-indigo-200',
+                headerBg: 'bg-indigo-700',
+                profile: 'Aroma y paladar frescos, robustos y complejos, con marcados matices salados y de niebla marina.',
+                details: 'Antigua capital histórica del whisky en el siglo XIX; hoy mantiene activa su tradición con destilerías icónicas.',
+                distilleriesList: 'Springbank (10 / 15 / Longrow / Hazelburn), Glen Scotia (Double Cask / 15 / Victoriana)'
+            }
+        ];
+
+        // Tarjetas de destilerías y perfiles para clasificar por región
+        const SCOTCH_DISTILLERY_CARDS = [
+            { id: 'd-glenlivet', name: 'The Glenlivet', brands: 'The Glenlivet 12 / Founder’s Reserve', region: 'SPEYSIDE', clue: 'Pionera del valle de Livet; perfil delicado, floral, manzana verde y miel.' },
+            { id: 'd-macallan', name: 'The Macallan y Glenfiddich', brands: 'The Macallan 12 Sherry Oak / Double Cask, Glenfiddich 12 / 15 Solera', region: 'SPEYSIDE', clue: 'Referentes de Speyside: dulzor frutal, pera, vainilla y crianza en barricas de Jerez.' },
+            { id: 'd-balvenie', name: 'The Balvenie y Cardhu', brands: 'The Balvenie DoubleWood 12, Cardhu 12', region: 'SPEYSIDE', clue: 'Maltas melosas, sedosas y elegantes elaboradas en la ribera del río Spey.' },
+            { id: 'd-glenmorangie', name: 'Glenmorangie y The Dalmore', brands: 'Glenmorangie The Original 10 / Lasanta, The Dalmore 12 / 15', region: 'HIGHLANDS', clue: 'Maltas de las Tierras Altas del norte: desde fragantes y cítricas hasta ricas y especiadas.' },
+            { id: 'd-oban', name: 'Oban y Clynelish', brands: 'Oban 14, Clynelish 14', region: 'HIGHLANDS', clue: 'Destilerías costeras de Highlands que combinan notas frutales con brisa marina.' },
+            { id: 'd-laphroaig', name: 'Laphroaig y Lagavulin', brands: 'Laphroaig 10, Lagavulin 16', region: 'ISLAY', clue: 'Intenso aroma dominante a yodo, algas marinas, humo medicinal de turba y final seco.' },
+            { id: 'd-ardbeg', name: 'Ardbeg, Caol Ila y Bowmore', brands: 'Ardbeg 10 / Uigeadail, Caol Ila 12, Bowmore 12 / 15', region: 'ISLAY', clue: 'Clásicas de la isla turbosa más fértil de las Hébridas, frente a Irlanda del Norte.' },
+            { id: 'd-talisker', name: 'Talisker (Isla de Skye)', brands: 'Talisker 10, Talisker Skye, Talisker Storm', region: 'ISLANDS', clue: 'Barricas maduradas junto al mar; perfil salino, pimienta negra y humo sin llegar al yodo de Islay.' },
+            { id: 'd-highlandpark', name: 'Highland Park y Scapa (Orkney)', brands: 'Highland Park 12 Viking Honour / 18, Scapa Skiren', region: 'ISLANDS', clue: 'Islas Orcadas en el extremo norte; turba de brezo que aporta un peculiar sabor a miel.' },
+            { id: 'd-auchentoshan', name: 'Auchentoshan', brands: 'Auchentoshan 12 / Three Wood', region: 'LOWLANDS', clue: 'Aplica triple destilación; malta suave, ligera, cítrica y sin turba de las Tierras Bajas.' },
+            { id: 'd-glenkinchie', name: 'Glenkinchie y Bladnoch', brands: 'Glenkinchie 12, Bladnoch 11', region: 'LOWLANDS', clue: 'Maltas suaves, secas y florales del sur fértil de Escocia.' },
+            { id: 'd-springbank', name: 'Springbank y Glen Scotia', brands: 'Springbank 10 / 15, Longrow, Glen Scotia Double Cask / 15', region: 'CAMPBELTOWN', clue: 'Península estrecha expuesta al Atlántico; matices salados y niebla marina.' }
+        ];
+
+        // Catálogo de botellas reales con consultas verificadas para Wikimedia Commons
+        const WHISKY_BOTTLES_DB = [
+            {
+                key: 'glenlivet',
+                patterns: ['The Glenlivet (12/15/Founder’s Reserve)', 'The Glenlivet 12 / Founder’s Reserve', 'The Glenlivet'],
+                fullName: 'The Glenlivet 12 Year Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Glenlivet whisky bottle',
+                caption: 'Botella y etiqueta clásica de The Glenlivet 12 (Speyside): destaca la mención "Single Malt Scotch Whisky", la declaración de edad (12 años) y el origen en el valle de Livet.'
+            },
+            {
+                key: 'glenfiddich',
+                patterns: ['Glenfiddich (12/15/18)', 'Glenfiddich 12 / 15 Solera', 'Glenfiddich'],
+                fullName: 'Glenfiddich 12 Year Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Glenfiddich bottle',
+                caption: 'Icónica botella triangular de Glenfiddich 12 (Dufftown, Speyside) con el emblema del ciervo ("Valley of the Deer") y maduración en roble americano y europeo.'
+            },
+            {
+                key: 'macallan',
+                patterns: ['The Macallan (12 Double Cask/Sherry Oak)', 'The Macallan 12 Sherry Oak / Double Cask', 'The Macallan', 'Macallan'],
+                fullName: 'The Macallan 12 Years Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Macallan whisky bottle',
+                caption: 'Etiqueta de The Macallan (Craigellachie, Speyside): especifica el tipo de barrica ("Sherry Oak" o "Double Cask") y la casa histórica Easter Elchies.'
+            },
+            {
+                key: 'balvenie',
+                patterns: ['The Balvenie (DoubleWood 12)', 'The Balvenie DoubleWood 12', 'The Balvenie', 'Balvenie'],
+                fullName: 'The Balvenie DoubleWood 12 Year Old Single Malt',
+                region: 'Speyside',
+                commonsQuery: 'Balvenie whisky bottle',
+                caption: 'Etiqueta de The Balvenie DoubleWood 12 (Speyside): indica su doble crianza consecutiva en barricas de roble tradicional y botas de Jerez Oloroso.'
+            },
+            {
+                key: 'cardhu',
+                patterns: ['Cardhu (12)', 'Cardhu 12', 'Cardhu'],
+                fullName: 'Cardhu 12 Year Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Cardhu whisky',
+                caption: 'Botella y etiqueta de Cardhu 12 (Speyside), malta fundamental en el corazón de los ensamblajes de Johnnie Walker.'
+            },
+            {
+                key: 'cragganmore',
+                patterns: ['Cragganmore (12)', 'Cragganmore 12', 'Cragganmore'],
+                fullName: 'Cragganmore 12 Years Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Cragganmore whisky',
+                caption: 'Etiqueta de Cragganmore 12 (Ballindalloch, Speyside), perteneciente a la serie Classic Malts of Scotland.'
+            },
+            {
+                key: 'glenfarclas',
+                patterns: ['Glenfarclas (10/15)', 'Glenfarclas 10 / 15', 'Glenfarclas'],
+                fullName: 'Glenfarclas Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Glenfarclas whisky',
+                caption: 'Etiqueta tradicional de Glenfarclas (Ballindalloch, Speyside), destilería familiar reconocida por su crianza en barricas ex-Jerez.'
+            },
+            {
+                key: 'knockando',
+                patterns: ['Knockando'],
+                fullName: 'Knockando 12 Years Old Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Knockando whisky',
+                caption: 'Etiqueta de Knockando (Speyside): destaca tradicionalmente el año de destilación ("Season") junto al año de embotellado.'
+            },
+            {
+                key: 'tamdhu',
+                patterns: ['Tamdhu'],
+                fullName: 'Tamdhu Single Malt Scotch Whisky',
+                region: 'Speyside',
+                commonsQuery: 'Tamdhu whisky',
+                caption: 'Botella y etiqueta de Tamdhu (Knockando, Speyside), madurado íntegramente en barricas sazonadas con Jerez Oloroso.'
+            },
+            {
+                key: 'glenmorangie',
+                patterns: ['Glenmorangie (The Original 10 / Lasanta)', 'Glenmorangie The Original 10 / Lasanta', 'Glenmorangie'],
+                fullName: 'Glenmorangie The Original 10 Years Old',
+                region: 'Highlands',
+                commonsQuery: 'Glenmorangie bottle',
+                caption: 'Etiqueta de Glenmorangie (Tain, Northern Highlands): elaborada en los alambiques de cuello más alto de Escocia para un perfil floral y delicado.'
+            },
+            {
+                key: 'dalmore',
+                patterns: ['The Dalmore (12/15)', 'The Dalmore 12 / 15', 'The Dalmore', 'Dalmore'],
+                fullName: 'The Dalmore 12 Years Old Highland Single Malt',
+                region: 'Highlands',
+                commonsQuery: 'Dalmore whisky',
+                caption: 'Botella de The Dalmore (Alness, Highlands) con el emblema plateado del ciervo de 12 puntas del clan Mackenzie.'
+            },
+            {
+                key: 'oban',
+                patterns: ['Oban (14)', 'Oban 14', 'Oban'],
+                fullName: 'Oban 14 Years Old West Highland Single Malt',
+                region: 'Highlands',
+                commonsQuery: 'Oban whisky bottle',
+                caption: 'Etiqueta de Oban 14 (West Highlands): refleja el equilibrio entre el estilo frutal de las Highlands y la brisa marina de la costa oeste.'
+            },
+            {
+                key: 'clynelish',
+                patterns: ['Clynelish (14)', 'Clynelish 14', 'Clynelish'],
+                fullName: 'Clynelish 14 Years Old Highland Single Malt',
+                region: 'Highlands',
+                commonsQuery: 'Clynelish whisky',
+                caption: 'Etiqueta de Clynelish 14 (Brora, Highlands) con el gato montés escocés, famosa por su textura cerosa y notas marítimas.'
+            },
+            {
+                key: 'glendronach',
+                patterns: ['GlenDronach (12)', 'GlenDronach'],
+                fullName: 'The GlenDronach Original 12 Years Old',
+                region: 'Highlands',
+                commonsQuery: 'Glendronach whisky',
+                caption: 'Etiqueta de The GlenDronach 12 (East Highlands), referente de maduración en barricas españolas de Pedro Ximénez y Oloroso.'
+            },
+            {
+                key: 'aberfeldy',
+                patterns: ['Aberfeldy (12)', 'Aberfeldy 12', 'Aberfeldy'],
+                fullName: 'Aberfeldy 12 Years Old Highland Single Malt',
+                region: 'Highlands',
+                commonsQuery: 'Aberfeldy whisky',
+                caption: 'Etiqueta de Aberfeldy 12 (Perthshire, Highlands), conocida como "The Golden Dram" y corazón de los blends Dewar’s.'
+            },
+            {
+                key: 'royal-lochnagar',
+                patterns: ['Royal Lochnagar'],
+                fullName: 'Royal Lochnagar 12 Years Old Highland Single Malt',
+                region: 'Highlands',
+                commonsQuery: 'Royal Lochnagar whisky',
+                caption: 'Etiqueta de Royal Lochnagar 12 (Deeside, Highlands), ubicada junto al castillo de Balmoral.'
+            },
+            {
+                key: 'laphroaig',
+                patterns: ['Laphroaig (10 / Quarter Cask)', 'Laphroaig 10', 'Laphroaig'],
+                fullName: 'Laphroaig 10 Year Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Laphroaig bottle',
+                caption: 'Etiqueta blanca clásica de Laphroaig 10 (Islay): exhibe la cresta real británica y su inconfundible carácter a turba, yodo y algas marinas.'
+            },
+            {
+                key: 'lagavulin',
+                patterns: ['Lagavulin (16 / 8)', 'Lagavulin 16', 'Lagavulin'],
+                fullName: 'Lagavulin 16 Years Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Lagavulin bottle',
+                caption: 'Etiqueta de Lagavulin 16 (Port Ellen, Islay): destaca su crianza prolongada de 16 años que redondea el humo denso de turba.'
+            },
+            {
+                key: 'ardbeg',
+                patterns: ['Ardbeg (10 / Uigeadail)', 'Ardbeg 10 / Uigeadail', 'Ardbeg'],
+                fullName: 'Ardbeg Ten Years Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Ardbeg bottle',
+                caption: 'Botella verde oscuro y etiqueta celta de Ardbeg 10 (Islay), embotellado a 46% ABV y sin filtrar en frío (Non-Chill Filtered).'
+            },
+            {
+                key: 'caol-ila',
+                patterns: ['Caol Ila (12)', 'Caol Ila 12', 'Caol Ila'],
+                fullName: 'Caol Ila 12 Years Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Caol Ila whisky',
+                caption: 'Etiqueta de Caol Ila 12 (Sound of Islay): expresa notas limpias de humo de turba, brisa marina y cítricos.'
+            },
+            {
+                key: 'bowmore',
+                patterns: ['Bowmore (12/15)', 'Bowmore 12 / 15', 'Bowmore'],
+                fullName: 'Bowmore 12 Years Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Bowmore whisky bottle',
+                caption: 'Etiqueta de Bowmore 12 (Loch Indaal, Islay), la destilería más antigua de la isla (fundada en 1779).'
+            },
+            {
+                key: 'bruichladdich',
+                patterns: ['Bruichladdich (The Classic Laddie / Octomore)', 'Bruichladdich The Classic Laddie', 'Bruichladdich'],
+                fullName: 'Bruichladdich The Classic Laddie Scottish Barley',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Bruichladdich bottle',
+                caption: 'Botella turquesa característica de Bruichladdich The Classic Laddie (Islay): expresión sin turba (unpeated) embotellada a 50% ABV.'
+            },
+            {
+                key: 'bunnahabhain',
+                patterns: ['Bunnahabhain (12)', 'Bunnahabhain'],
+                fullName: 'Bunnahabhain 12 Years Old Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Bunnahabhain whisky',
+                caption: 'Etiqueta de Bunnahabhain 12 (noreste de Islay), conocida por su estilo marítimo mayormente sin turba y crianza en Jerez.'
+            },
+            {
+                key: 'kilchoman',
+                patterns: ['Kilchoman (Machir Bay)', 'Kilchoman'],
+                fullName: 'Kilchoman Machir Bay Islay Single Malt',
+                region: 'Islay (Hébridas)',
+                commonsQuery: 'Kilchoman whisky',
+                caption: 'Etiqueta de Kilchoman Machir Bay, destilería agrícola ("farm distillery") en la costa occidental de Islay.'
+            },
+            {
+                key: 'talisker',
+                patterns: ['Talisker (10 / Skye / Storm —Isla de Skye—)', 'Talisker 10, Talisker Skye, Talisker Storm', 'Talisker'],
+                fullName: 'Talisker 10 Years Old Isle of Skye Single Malt',
+                region: 'Islands (Isla de Skye)',
+                commonsQuery: 'Talisker bottle',
+                caption: 'Etiqueta de Talisker 10 ("Made by the Sea", Isla de Skye): muestra su graduación clásica de 45,8% ABV y carácter salino, pimienta negra y humo.'
+            },
+            {
+                key: 'highland-park',
+                patterns: ['Highland Park (12 Viking Honour / 18)', 'Highland Park 12 Viking Honour / 18', 'Highland Park'],
+                fullName: 'Highland Park 12 Years Old Viking Honour',
+                region: 'Islands (Orkney)',
+                commonsQuery: 'Highland Park whisky bottle',
+                caption: 'Botella y etiqueta de Highland Park 12 (Kirkwall, Islas Orcadas): perfil equilibrado entre humo aromático de turba de brezo y dulzor meloso.'
+            },
+            {
+                key: 'scapa',
+                patterns: ['Scapa (Skiren —Orkney—)', 'Scapa Skiren', 'Scapa'],
+                fullName: 'Scapa Skiren The Orcadian Single Malt',
+                region: 'Islands (Orkney)',
+                commonsQuery: 'Scapa whisky',
+                caption: 'Etiqueta de Scapa (Islas Orcadas): malta isleña sin turba madurada en barricas de roble americano de primer llenado.'
+            },
+            {
+                key: 'jura',
+                patterns: ['Isle of Jura (10 / Seven Wood)', 'Isle of Jura'],
+                fullName: 'Isle of Jura 10 Years Old Single Malt',
+                region: 'Islands (Jura)',
+                commonsQuery: 'Isle of Jura whisky',
+                caption: 'Botella de cuello alargado y hombros redondeados distintiva de Isle of Jura (Hébridas).'
+            },
+            {
+                key: 'tobermory',
+                patterns: ['Tobermory (12) y Ledaig (10 —Mull—)', 'Tobermory 12, Ledaig 10', 'Tobermory', 'Ledaig'],
+                fullName: 'Tobermory 12 / Ledaig 10 Isle of Mull',
+                region: 'Islands (Mull)',
+                commonsQuery: 'Tobermory whisky',
+                caption: 'Etiqueta de la única destilería de la Isla de Mull: elabora Tobermory (sin turba) y Ledaig (con turba).'
+            },
+            {
+                key: 'glenkinchie',
+                patterns: ['Glenkinchie (12)', 'Glenkinchie 12', 'Glenkinchie'],
+                fullName: 'Glenkinchie 12 Years Old Lowland Single Malt',
+                region: 'Lowlands',
+                commonsQuery: 'Glenkinchie whisky',
+                caption: 'Etiqueta de Glenkinchie 12 ("The Edinburgh Malt", Lowlands): perfil ligero, floral y herbáceo sin turba.'
+            },
+            {
+                key: 'auchentoshan',
+                patterns: ['Auchentoshan (12 / Three Wood / American Oak —triple destilación—)', 'Auchentoshan 12 / Three Wood', 'Auchentoshan'],
+                fullName: 'Auchentoshan 12 Years Old Triple Distilled',
+                region: 'Lowlands',
+                commonsQuery: 'Auchentoshan bottle',
+                caption: 'Etiqueta de Auchentoshan (cerca de Glasgow, Lowlands): destaca en el frente la mención "Triple Distilled" que le otorga suavidad extrema.'
+            },
+            {
+                key: 'bladnoch',
+                patterns: ['Bladnoch (11)', 'Bladnoch'],
+                fullName: 'Bladnoch 11 Years Old Lowland Single Malt',
+                region: 'Lowlands',
+                commonsQuery: 'Bladnoch whisky',
+                caption: 'Botella de Bladnoch, la destilería más meridional de Escocia en las Lowlands.'
+            },
+            {
+                key: 'springbank',
+                patterns: ['Springbank (10 / 15 / Longrow / Hazelburn)', 'Springbank 10 / 15, Longrow', 'Springbank'],
+                fullName: 'Springbank 10 Years Old Campbeltown Single Malt',
+                region: 'Campbeltown',
+                commonsQuery: 'Springbank whisky bottle',
+                caption: 'Etiqueta de Springbank 10 (Campbeltown): realiza el 100% del proceso en la propia destilería y embotella a 46% ABV sin filtrar en frío.'
+            },
+            {
+                key: 'glen-scotia',
+                patterns: ['Glen Scotia (Double Cask / 15 / Victoriana)', 'Glen Scotia Double Cask / 15', 'Glen Scotia'],
+                fullName: 'Glen Scotia Double Cask Campbeltown Single Malt',
+                region: 'Campbeltown',
+                commonsQuery: 'Glen Scotia whisky',
+                caption: 'Etiqueta de Glen Scotia Double Cask (Campbeltown), fiel al estilo marítimo y especiado de la península de Kintyre.'
+            },
+            {
+                key: 'johnnie-walker',
+                patterns: ['Johnnie Walker'],
+                fullName: 'Johnnie Walker Black Label 12 Years Blended Scotch',
+                region: 'Blended Scotch Whisky',
+                commonsQuery: 'Johnnie Walker Black Label bottle',
+                caption: 'Botella cuadrada con etiqueta inclinada a 24° de Johnnie Walker Black Label, ensamblaje de maltas de Highlands, Speyside e Islay con whisky de grano.'
+            },
+            {
+                key: 'dewars',
+                patterns: ['Dewar’s'],
+                fullName: 'Dewar’s 12 Years Old Blended Scotch Whisky',
+                region: 'Blended Scotch Whisky',
+                commonsQuery: 'Dewars whisky bottle',
+                caption: 'Etiqueta de Dewar’s Blended Scotch Whisky, cuyo corazón de malta proviene de la destilería Aberfeldy en las Highlands.'
+            }
+        ];
+
+        const commonsImagesCache = {};
+
+        async function fetchWikimediaCommonsImages(query) {
+            if (commonsImagesCache[query]) {
+                return commonsImagesCache[query];
+            }
+            const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query + ' filetype:bitmap')}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=800&format=json&origin=*`;
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error('Wikimedia API error');
+            const data = await response.json();
+            const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
+
+            const results = pages
+                .map(p => {
+                    const info = p.imageinfo?.[0];
+                    if (!info) return null;
+                    const thumb = info.thumburl || info.url;
+                    const full = info.url || thumb;
+                    const title = p.title ? p.title.replace(/^File:/i, '').replace(/\.[^.]+$/, '') : '';
+                    if (!thumb || /\.(svg|pdf|tif|tiff)$/i.test(full)) return null;
+                    return { thumb, full, title };
+                })
+                .filter(Boolean);
+
+            // Priorizar fotos que mencionen bottle, label o whisky en su nombre de archivo
+            results.sort((a, b) => {
+                const score = (str) => (/bottle|label|whisky|scotch|malt/i.test(str) ? 2 : 0) - (/distillery|building|map|logo/i.test(str) ? 1 : 0);
+                return score(b.title) - score(a.title);
+            });
+
+            if (results.length > 0) {
+                commonsImagesCache[query] = results;
+            }
+            return results;
+        }
+
+        // Convierte automáticamente los nombres de whiskies en enlaces interactivos
+        function linkifyWhiskyBrands(text) {
+            if (!text) return '';
+            const patternMap = [];
+            for (const entry of WHISKY_BOTTLES_DB) {
+                for (const pat of entry.patterns) {
+                    patternMap.push({ pat, key: entry.key });
+                }
+            }
+            // Ordenar por longitud descendente para coincidir primero frases largas
+            patternMap.sort((a, b) => b.pat.length - a.pat.length);
+
+            const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const combinedRegex = new RegExp(`(${patternMap.map(p => escapeRegex(p.pat)).join('|')})`, 'g');
+
+            return text.replace(combinedRegex, (match) => {
+                const found = patternMap.find(p => p.pat === match);
+                if (!found) return match;
+                return `<span role="button" tabindex="0" onclick="event.stopPropagation(); openBottleModal('${found.key}')" onkeydown="if(event.key==='Enter'){event.stopPropagation(); openBottleModal('${found.key}')}" class="whisky-bottle-link font-semibold text-amber-800" title="Ver botella y etiqueta en pantalla completa">${match}</span>`;
+            });
+        }
+
+        function setSelectedBottlePhoto(url, title) {
+            const imgEl = document.getElementById('bottle-modal-img');
+            imgEl.alt = title || 'Botella de Scotch Whisky';
+            imgEl.src = url;
+        }
+
+        async function openBottleModal(bottleKey) {
+            const bottle = WHISKY_BOTTLES_DB.find(b => b.key === bottleKey);
+            if (!bottle) return;
+
+            const modal = document.getElementById('bottle-fullscreen-modal');
+            const titleEl = document.getElementById('bottle-modal-title');
+            const regionEl = document.getElementById('bottle-modal-region');
+            const captionEl = document.getElementById('bottle-modal-caption');
+            const spinnerEl = document.getElementById('bottle-img-spinner');
+            const wrapperEl = document.getElementById('bottle-img-wrapper');
+            const thumbsEl = document.getElementById('bottle-gallery-thumbs');
+            const fallbackEl = document.getElementById('bottle-img-fallback');
+            const fallbackNameEl = document.getElementById('bottle-fallback-name');
+            const fallbackLinkEl = document.getElementById('bottle-fallback-link');
+            const extSearchEl = document.getElementById('bottle-external-search');
+            const imgEl = document.getElementById('bottle-modal-img');
+
+            const commonsSearchUrl = `https://commons.wikimedia.org/w/index.php?search=${encodeURIComponent(bottle.commonsQuery)}&title=Special:MediaSearch&type=image`;
+
+            titleEl.textContent = bottle.fullName;
+            regionEl.textContent = `Región / Estilo: ${bottle.region}`;
+            captionEl.textContent = bottle.caption;
+            fallbackNameEl.textContent = bottle.fullName;
+            fallbackLinkEl.href = commonsSearchUrl;
+            extSearchEl.href = commonsSearchUrl;
+
+            spinnerEl.classList.remove('hidden');
+            wrapperEl.classList.add('hidden');
+            thumbsEl.classList.add('hidden');
+            thumbsEl.innerHTML = '';
+            fallbackEl.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+
+            if (modal.requestFullscreen) {
+                modal.requestFullscreen().catch(() => {});
+            } else if (modal.webkitRequestFullscreen) {
+                modal.webkitRequestFullscreen();
+            }
+
+            try {
+                let images = await fetchWikimediaCommonsImages(bottle.commonsQuery);
+                if (!images || images.length === 0) {
+                    // Búsqueda secundaria más amplia por nombre de destilería
+                    images = await fetchWikimediaCommonsImages(`${bottle.key.replace('-', ' ')} whisky`);
+                }
+
+                if (images && images.length > 0) {
+                    imgEl.onload = () => {
+                        spinnerEl.classList.add('hidden');
+                        wrapperEl.classList.remove('hidden');
+                    };
+                    imgEl.onerror = () => {
+                        spinnerEl.classList.add('hidden');
+                        fallbackEl.classList.remove('hidden');
+                    };
+                    setSelectedBottlePhoto(images[0].thumb, images[0].title);
+
+                    if (images.length > 1) {
+                        thumbsEl.classList.remove('hidden');
+                        thumbsEl.innerHTML = images.slice(0, 5).map((img, idx) => `
+                            <button
+                                type="button"
+                                onclick="setSelectedBottlePhoto('${img.thumb.replace(/'/g, "\\'")}', '${img.title.replace(/'/g, "\\'")}')"
+                                class="w-12 h-12 rounded-lg bg-white p-1 border-2 ${idx === 0 ? 'border-amber-500' : 'border-stone-700 hover:border-amber-400'} shrink-0 overflow-hidden transition"
+                                title="${img.title}"
+                            >
+                                <img src="${img.thumb}" alt="${img.title}" class="w-full h-full object-contain" />
+                            </button>
+                        `).join('');
+                    }
+                } else {
+                    spinnerEl.classList.add('hidden');
+                    fallbackEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                spinnerEl.classList.add('hidden');
+                fallbackEl.classList.remove('hidden');
+            }
+        }
+
+        function closeBottleModal() {
+            const modal = document.getElementById('bottle-fullscreen-modal');
+            if (!modal || modal.classList.contains('hidden')) return;
+
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            modal.classList.add('hidden');
+        }
+
+        // Estado de la aplicación
+        let placements = {};
+        let selectedCardId = null;
+        let validationState = {};
+        let shuffledCards = [];
+
+        // Estado de Regiones y Destilerías
+        let activeRegionCards = [];
+        let regionPlacements = {};
+        let selectedRegionCardId = null;
+        let regionValidationState = {};
+
+        // Inicialización
+        window.onload = function () {
+            resetExercise();
+            resetRegionsExercise(true);
+            renderStudyGuide();
+            renderRegionsReferenceTable();
+            preloadAllTtsAudios();
+        };
+
+        // Reiniciar y mezclar tarjetas
+        function resetExercise() {
+            placements = {};
+            selectedCardId = null;
+            validationState = {};
+            shuffledCards = [...STEPS_DATA].sort(() => Math.random() - 0.5);
+            hideFeedback();
+            renderAll();
+        }
+
+        // Cambiar entre pestañas
+        function switchMode(mode) {
+            const btnPractice = document.getElementById('btn-mode-practice');
+            const btnRegions = document.getElementById('btn-mode-regions');
+            const btnStudy = document.getElementById('btn-mode-study');
+            const viewPractice = document.getElementById('view-practice');
+            const viewRegions = document.getElementById('view-regions');
+            const viewStudy = document.getElementById('view-study');
+            const practiceHeader = document.getElementById('practice-header');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-amber-600 text-white shadow transition flex items-center gap-2';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-stone-300 hover:text-white transition flex items-center gap-2';
+
+            btnPractice.className = (mode === 'practice') ? activeClass : inactiveClass;
+            btnRegions.className = (mode === 'regions') ? activeClass : inactiveClass;
+            btnStudy.className = (mode === 'study') ? activeClass : inactiveClass;
+
+            viewPractice.classList.toggle('hidden', mode !== 'practice');
+            practiceHeader.classList.toggle('hidden', mode !== 'practice');
+            viewRegions.classList.toggle('hidden', mode !== 'regions');
+            viewStudy.classList.toggle('hidden', mode !== 'study');
+
+            if (mode !== 'practice') {
+                hideFeedback();
+            }
+        }
+
+        // =========================================================================
+        // MOTOR DE LOCUCIÓN NEURONAL HD (GEMINI TTS) Y MINI-VIDEOS
+        // =========================================================================
+        const apiKey = "";
+        let activeVideoStep = null;
+        let currentSceneIdx = 0;
+        let isVideoPlaying = true;
+        let isVoiceEnabled = true;
+        let sceneProgressTimer = null;
+        let sceneFallbackTimer = null;
+        let sceneStartTime = 0;
+        let expectedSceneDurationMs = 7000;
+        let currentAudioElement = null;
+        let currentSpeechRequestId = 0;
+        const ttsAudioCache = {};
+        const ttsInFlightRequests = {};
+
+        function cleanCaptionForSpeech(rawText) {
+            return rawText
+                .replace(/^\d+\/\d+\s*•\s*/, '')
+                .replace(/•/g, ',')
+                .replace(/→/g, ' hacia ')
+                .replace(/<=/g, ' menor o igual a ')
+                .replace(/>=/g, ' mayor o igual a ')
+                .replace(/</g, ' menor a ')
+                .replace(/>/g, ' más de ')
+                .replace(/=/g, ' equivale a ')
+                .replace(/~(\d+)/g, 'aproximadamente $1')
+                .replace(/(\d+)\s*[–-]\s*(\d+)\s*°C/g, '$1 a $2 grados centígrados')
+                .replace(/°C/g, ' grados centígrados')
+                .replace(/°\s*GL/g, ' grados Gay-Lussac')
+                .replace(/°/g, ' grados');
+        }
+
+        function getOrFetchTtsAudio(cacheKey, cleanText) {
+            if (ttsAudioCache[cacheKey]) {
+                return Promise.resolve(ttsAudioCache[cacheKey]);
+            }
+            if (ttsInFlightRequests[cacheKey]) {
+                return ttsInFlightRequests[cacheKey];
+            }
+            const reqPromise = fetchGeminiTtsUrl(cleanText)
+                .then(url => {
+                    if (url) {
+                        ttsAudioCache[cacheKey] = url;
+                    }
+                    delete ttsInFlightRequests[cacheKey];
+                    return url;
+                })
+                .catch(() => {
+                    delete ttsInFlightRequests[cacheKey];
+                    return null;
+                });
+            ttsInFlightRequests[cacheKey] = reqPromise;
+            return reqPromise;
+        }
+
+        async function preloadAllTtsAudios() {
+            const queue = [];
+            for (const step of STEPS_DATA) {
+                step.videoCaptions.forEach((rawText, idx) => {
+                    queue.push({
+                        cacheKey: `${step.id}_${idx}`,
+                        cleanText: cleanCaptionForSpeech(rawText)
+                    });
+                });
+            }
+
+            const total = queue.length;
+            let completed = 0;
+            const pill = document.getElementById('audio-preload-pill');
+            const textEl = document.getElementById('audio-preload-text');
+            const iconEl = document.getElementById('audio-preload-icon');
+
+            if (pill) {
+                pill.classList.remove('hidden');
+                pill.classList.add('flex');
+            }
+
+            const updatePreloadUI = () => {
+                if (!textEl || !iconEl) return;
+                if (completed < total) {
+                    textEl.textContent = `Preparando audios HD (${completed}/${total})...`;
+                } else {
+                    const readyCount = Object.keys(ttsAudioCache).length;
+                    if (readyCount > 0) {
+                        iconEl.className = 'fa-solid fa-circle-check text-emerald-400';
+                        textEl.textContent = `Audios HD listos (${readyCount}/${total})`;
+                    } else {
+                        iconEl.className = 'fa-solid fa-volume-high text-amber-400';
+                        textEl.textContent = 'Voz local lista';
+                    }
+                }
+            };
+
+            updatePreloadUI();
+
+            const CONCURRENCY = 3;
+            let cursor = 0;
+
+            async function worker() {
+                while (cursor < queue.length) {
+                    const item = queue[cursor++];
+                    await getOrFetchTtsAudio(item.cacheKey, item.cleanText);
+                    completed++;
+                    updatePreloadUI();
+                }
+            }
+
+            const workers = Array.from({ length: CONCURRENCY }, () => worker());
+            await Promise.all(workers);
+        }
+
+        function setVoiceStatus(text, state = 'idle') {
+            const badge = document.getElementById('voice-status-badge');
+            if (!badge) return;
+            badge.textContent = text;
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium transition ';
+            if (state === 'speaking') {
+                badge.className += 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse';
+            } else if (state === 'loading') {
+                badge.className += 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+            } else {
+                badge.className += 'bg-stone-800 text-stone-300';
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchGeminiTtsUrl(cleanText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz cálida, clara y didáctica de profesor de sommellerie en español: ${cleanText}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        return URL.createObjectURL(wavBlob);
+                    }
+                } catch (err) {
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakBrowserFallback(cleanText, onComplete) {
+            if (!('speechSynthesis' in window)) {
+                setVoiceStatus('Sin soporte de audio');
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.96;
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 75);
+            sceneStartTime = Date.now();
+            utterance.onstart = () => setVoiceStatus('Narrando (local)...', 'speaking');
+            utterance.onend = () => {
+                setVoiceStatus('Voz activa');
+                if (onComplete) onComplete();
+            };
+            utterance.onerror = () => {
+                scheduleSilentSceneAdvance(cleanText, onComplete);
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function scheduleSilentSceneAdvance(cleanText, onComplete) {
+            clearTimeout(sceneFallbackTimer);
+            expectedSceneDurationMs = Math.max(4500, cleanText.length * 72);
+            sceneStartTime = Date.now();
+            sceneFallbackTimer = setTimeout(() => {
+                if (isVideoPlaying && onComplete) onComplete();
+            }, expectedSceneDurationMs);
+        }
+
+        function advanceToNextScene() {
+            if (!isVideoPlaying || !activeVideoStep) return;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            currentSceneIdx = (currentSceneIdx + 1) % totalScenes;
+            playScene(currentSceneIdx);
+        }
+
+        async function playScene(idx) {
+            if (!activeVideoStep) return;
+            currentSceneIdx = idx;
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const rawText = activeVideoStep.videoCaptions[idx];
+            const cacheKey = `${activeVideoStep.id}_${idx}`;
+
+            document.getElementById('video-caption').textContent = rawText;
+            document.getElementById('video-timer').textContent = `Escena ${idx + 1} / ${totalScenes}`;
+            document.getElementById('video-play-icon').className = isVideoPlaying ? 'fa-solid fa-pause text-xs' : 'fa-solid fa-play text-xs';
+
+            const basePct = (idx / totalScenes) * 100;
+            document.getElementById('video-progress-bar').style.width = `${basePct}%`;
+
+            stopVoice(false);
+            clearTimeout(sceneFallbackTimer);
+            const reqId = ++currentSpeechRequestId;
+
+            const cleanText = cleanCaptionForSpeech(rawText);
+
+            if (!isVideoPlaying) return;
+
+            const handleSceneEnd = () => {
+                if (reqId !== currentSpeechRequestId || !isVideoPlaying) return;
+                document.getElementById('video-progress-bar').style.width = `${((idx + 1) / totalScenes) * 100}%`;
+                sceneFallbackTimer = setTimeout(() => {
+                    if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                        advanceToNextScene();
+                    }
+                }, 450);
+            };
+
+            if (!isVoiceEnabled) {
+                setVoiceStatus('Voz silenciada');
+                scheduleSilentSceneAdvance(cleanText, handleSceneEnd);
+                return;
+            }
+
+            try {
+                let audioUrl = ttsAudioCache[cacheKey];
+                if (!audioUrl) {
+                    setVoiceStatus('Cargando voz HD...', 'loading');
+                    expectedSceneDurationMs = 9000;
+                    sceneStartTime = Date.now();
+                    audioUrl = await getOrFetchTtsAudio(cacheKey, cleanText);
+                }
+
+                if (reqId !== currentSpeechRequestId || !isVoiceEnabled || !isVideoPlaying) return;
+
+                if (audioUrl) {
+                    const audio = new Audio(audioUrl);
+                    currentAudioElement = audio;
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                            sceneStartTime = Date.now();
+                        }
+                    };
+                    audio.onplay = () => {
+                        sceneStartTime = Date.now();
+                        if (audio.duration && isFinite(audio.duration)) {
+                            expectedSceneDurationMs = audio.duration * 1000;
+                        }
+                        setVoiceStatus('Narrando (Voz HD)...', 'speaking');
+                    };
+                    audio.onended = () => {
+                        if (currentAudioElement === audio) {
+                            setVoiceStatus('Voz HD lista');
+                            handleSceneEnd();
+                        }
+                    };
+                    audio.onerror = () => speakBrowserFallback(cleanText, handleSceneEnd);
+                    await audio.play();
+                } else {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            } catch (e) {
+                if (reqId === currentSpeechRequestId && isVideoPlaying) {
+                    speakBrowserFallback(cleanText, handleSceneEnd);
+                }
+            }
+        }
+
+        function stopVoice(updateBadge = true) {
+            currentSpeechRequestId++;
+            clearTimeout(sceneFallbackTimer);
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+                currentAudioElement = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            if (updateBadge) {
+                setVoiceStatus(isVoiceEnabled ? 'Voz en pausa' : 'Voz silenciada');
+            }
+        }
+
+        function toggleVoiceOver() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('video-voice-btn');
+            const icon = document.getElementById('video-voice-icon');
+
+            if (isVoiceEnabled) {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                } else {
+                    setVoiceStatus('Voz HD lista');
+                }
+            } else {
+                btn.className = 'px-2.5 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 flex items-center gap-1.5 transition shrink-0 text-xs font-semibold';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                stopVoice(true);
+                if (isVideoPlaying && activeVideoStep) {
+                    playScene(currentSceneIdx);
+                }
+            }
+        }
+
+        function startVideoPlayer(step) {
+            stopVideoPlayer();
+            activeVideoStep = step;
+            currentSceneIdx = 0;
+            isVideoPlaying = true;
+            
+            const stage = document.getElementById('video-stage');
+            stage.classList.remove('video-paused');
+            stage.innerHTML = step.videoSvg;
+            
+            playScene(0);
+
+            sceneProgressTimer = setInterval(() => {
+                if (!isVideoPlaying || !activeVideoStep) return;
+                const totalScenes = activeVideoStep.videoCaptions.length;
+                const basePct = (currentSceneIdx / totalScenes) * 100;
+                const slicePct = 100 / totalScenes;
+                
+                let ratio = 0;
+                if (currentAudioElement && currentAudioElement.duration && isFinite(currentAudioElement.duration)) {
+                    ratio = Math.min(1, currentAudioElement.currentTime / currentAudioElement.duration);
+                } else {
+                    ratio = Math.min(0.95, (Date.now() - sceneStartTime) / expectedSceneDurationMs);
+                }
+                document.getElementById('video-progress-bar').style.width = `${basePct + ratio * slicePct}%`;
+            }, 120);
+        }
+
+        function stopVideoPlayer() {
+            exitVideoFullscreen();
+            if (sceneProgressTimer) {
+                clearInterval(sceneProgressTimer);
+                sceneProgressTimer = null;
+            }
+            clearTimeout(sceneFallbackTimer);
+            isVideoPlaying = false;
+            stopVoice(true);
+        }
+
+        let isVideoFullscreen = false;
+
+        function updateFullscreenUI(active) {
+            isVideoFullscreen = active;
+            const container = document.getElementById('video-player-container');
+            const iconBottom = document.getElementById('video-fs-icon');
+            const iconHeader = document.getElementById('video-fs-header-icon');
+            const labelHeader = document.getElementById('video-fs-header-label');
+            const headerBtn = document.getElementById('video-fs-header-btn');
+
+            if (!container) return;
+
+            if (active) {
+                container.classList.add('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-compress text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-compress text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Salir (ESC)';
+                if (headerBtn) headerBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            } else {
+                container.classList.remove('video-fullscreen');
+                if (iconBottom) iconBottom.className = 'fa-solid fa-expand text-xs';
+                if (iconHeader) iconHeader.className = 'fa-solid fa-expand text-[10px]';
+                if (labelHeader) labelHeader.textContent = 'Pantalla completa';
+                if (headerBtn) headerBtn.className = 'px-2 py-1 rounded-lg bg-stone-800 hover:bg-amber-600 text-stone-200 hover:text-white text-[11px] font-semibold transition flex items-center gap-1.5';
+            }
+        }
+
+        function toggleVideoFullscreen() {
+            const container = document.getElementById('video-player-container');
+            if (!container) return;
+
+            if (!isVideoFullscreen) {
+                updateFullscreenUI(true);
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                }
+            } else {
+                exitVideoFullscreen();
+            }
+        }
+
+        function exitVideoFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            updateFullscreenUI(false);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isVideoFullscreen) {
+                updateFullscreenUI(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const bottleModal = document.getElementById('bottle-fullscreen-modal');
+                if (bottleModal && !bottleModal.classList.contains('hidden')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    closeBottleModal();
+                    return;
+                }
+                if (isVideoFullscreen) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    exitVideoFullscreen();
+                }
+            }
+        });
+
+        function toggleVideoPlay() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = !isVideoPlaying;
+            const stage = document.getElementById('video-stage');
+            const icon = document.getElementById('video-play-icon');
+
+            if (isVideoPlaying) {
+                stage.classList.remove('video-paused');
+                icon.className = 'fa-solid fa-pause text-xs';
+                playScene(currentSceneIdx);
+            } else {
+                stage.classList.add('video-paused');
+                icon.className = 'fa-solid fa-play text-xs';
+                stopVoice(true);
+            }
+        }
+
+        function restartVideo() {
+            if (!activeVideoStep) return;
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(0);
+        }
+
+        function seekVideo(event) {
+            if (!activeVideoStep) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(0.99, (event.clientX - rect.left) / rect.width));
+            const totalScenes = activeVideoStep.videoCaptions.length;
+            const targetIdx = Math.floor(ratio * totalScenes);
+            isVideoPlaying = true;
+            document.getElementById('video-stage').classList.remove('video-paused');
+            document.getElementById('video-play-icon').className = 'fa-solid fa-pause text-xs';
+            playScene(targetIdx);
+        }
+
+        // =========================================================================
+        // RENDERIZADO DEL DIAGRAMA DE ELABORACIÓN
+        // =========================================================================
+        function renderAll() {
+            renderPool();
+            renderSlots();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const placedCount = Object.keys(placements).length;
+            document.getElementById('progress-badge').textContent = `${placedCount} de 8 etapas ubicadas`;
+            const hint = document.getElementById('selected-hint');
+            if (selectedCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderPool() {
+            const poolEl = document.getElementById('cards-pool');
+            const placedStepIds = new Set(Object.values(placements));
+            const availableSteps = shuffledCards.filter(step => !placedStepIds.has(step.id));
+
+            if (availableSteps.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-800 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Todas las etapas han sido ubicadas! Pulsa <strong>"Verificar Orden"</strong> para comprobar tu respuesta.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = availableSteps.map(step => {
+                const isSelected = selectedCardId === step.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${step.id}')"
+                        onclick="handleCardClick('${step.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-600 ring-2 ring-amber-400/50 bg-amber-50' : 'border-stone-200 hover:border-amber-400'} shadow-xs flex items-center justify-between gap-2.5"
+                    >
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid ${step.icon} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                <p class="text-xs text-stone-500 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="event.stopPropagation(); openModal('${step.id}')"
+                            title="Ver ficha técnica y mini-video"
+                            class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-700 flex items-center justify-center shrink-0 transition"
+                        >
+                            <i class="fa-solid fa-circle-info text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSlots() {
+            const p1 = document.getElementById('slots-phase-1');
+            const p2 = document.getElementById('slots-phase-2');
+            const p3 = document.getElementById('slots-phase-3');
+
+            p1.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 1).map(renderSingleSlot).join('');
+            p2.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 2).map(renderSingleSlot).join('');
+            p3.innerHTML = SLOTS_CONFIG.filter(s => s.phase === 3).map(renderSingleSlot).join('');
+        }
+
+        function renderSingleSlot(slot) {
+            const placedStepId = placements[slot.slotId];
+            const step = placedStepId ? STEPS_DATA.find(s => s.id === placedStepId) : null;
+            const status = validationState[slot.slotId];
+
+            let borderStyle = 'border-dashed border-stone-300 bg-white/80 hover:border-amber-400';
+            let statusBadge = '';
+
+            if (step) {
+                borderStyle = 'border-solid border-stone-300 bg-white shadow-sm';
+                if (status === 'correct') {
+                    borderStyle = 'border-solid border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                } else if (status === 'incorrect') {
+                    borderStyle = 'border-solid border-rose-500 bg-rose-50/40 ring-2 ring-rose-500/20';
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Revisar</span>`;
+                }
+            } else if (selectedCardId) {
+                borderStyle = 'border-dashed border-amber-500 bg-amber-50/50 cursor-pointer';
+            }
+
+            return `
+                <div
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, ${slot.slotId})"
+                    onclick="handleSlotClick(${slot.slotId})"
+                    class="rounded-2xl p-3.5 border-2 transition-all min-h-[124px] flex flex-col justify-between ${borderStyle}"
+                >
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-stone-500">${slot.title}</span>
+                        ${statusBadge}
+                    </div>
+
+                    ${step ? `
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 flex items-center justify-between gap-2 animate-fade-in">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg ${step.colorClass} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${step.icon} text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-stone-900 leading-snug">${step.title}</h4>
+                                    <p class="text-xs text-stone-600 leading-snug mt-0.5">${step.shortSubtitle}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); openModal('${step.id}')"
+                                    title="Ver ficha técnica y mini-video"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-amber-100 text-stone-600 hover:text-amber-700 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-circle-info text-xs"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeFromSlot(${slot.slotId})"
+                                    title="Devolver al banco"
+                                    class="w-7 h-7 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition"
+                                >
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="flex-grow flex flex-col items-center justify-center text-center py-2 text-stone-400">
+                            <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                            <span class="text-xs leading-snug">${slot.hint}</span>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function handleCardClick(stepId) {
+            selectedCardId = (selectedCardId === stepId) ? null : stepId;
+            renderAll();
+        }
+
+        function handleSlotClick(slotId) {
+            if (!selectedCardId) {
+                if (placements[slotId]) {
+                    openModal(placements[slotId]);
+                }
+                return;
+            }
+            assignCardToSlot(selectedCardId, slotId);
+        }
+
+        function handleDragStart(event, stepId) {
+            event.dataTransfer.setData('text/plain', stepId);
+            selectedCardId = stepId;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleDrop(event, slotId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const stepId = event.dataTransfer.getData('text/plain') || selectedCardId;
+            if (stepId) {
+                assignCardToSlot(stepId, slotId);
+            }
+        }
+
+        function assignCardToSlot(stepId, slotId) {
+            for (const [key, val] of Object.entries(placements)) {
+                if (val === stepId) {
+                    delete placements[key];
+                }
+            }
+            placements[slotId] = stepId;
+            selectedCardId = null;
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function removeFromSlot(slotId) {
+            delete placements[slotId];
+            delete validationState[slotId];
+            hideFeedback();
+            renderAll();
+        }
+
+        function verifyOrder() {
+            const totalPlaced = Object.keys(placements).length;
+            if (totalPlaced < 8) {
+                showFeedback(
+                    'warning',
+                    'Faltan etapas por ubicar',
+                    `Has ubicado ${totalPlaced} de 8 etapas. Completa todos los casilleros antes de verificar.`
+                );
+                return;
+            }
+
+            let correctCount = 0;
+            validationState = {};
+
+            for (const slot of SLOTS_CONFIG) {
+                const placedStepId = placements[slot.slotId];
+                const step = STEPS_DATA.find(s => s.id === placedStepId);
+                if (step && step.correctSlot === slot.slotId) {
+                    validationState[slot.slotId] = 'correct';
+                    correctCount++;
+                } else {
+                    validationState[slot.slotId] = 'incorrect';
+                }
+            }
+
+            renderSlots();
+
+            if (correctCount === 8) {
+                showFeedback(
+                    'success',
+                    '¡Excelente trabajo! Secuencia 100% correcta',
+                    'Dominas el flujo del Scotch Whisky: Malteado con turba → Molienda y braceo (64°C) → Fermentación (wash) y cocción a presión de granos → Destilación en Pot Still vs. Coffey Still → Crianza mínima de 3 años → Ensamblaje y embotellado.'
+                );
+            } else {
+                showFeedback(
+                    'error',
+                    `Tienes ${correctCount} de 8 etapas en la posición correcta`,
+                    'Revisa los casilleros marcados en rojo. Recuerda la secuencia de obtención del mosto, las dos vías de destilación y los 3 años mínimos de barrica.'
+                );
+            }
+        }
+
+        function showFeedback(type, title, text) {
+            const banner = document.getElementById('feedback-banner');
+            const iconBox = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideFeedback() {
+            document.getElementById('feedback-banner').classList.add('hidden');
+        }
+
+        // =========================================================================
+        // GUÍA DE ESTUDIO Y MODAL
+        // =========================================================================
+        function renderStudyGuide() {
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = STEPS_DATA.map(step => `
+                <article onclick="openModal('${step.id}')" class="card-hover cursor-pointer bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-amber-400 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl ${step.colorClass} text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <i class="fa-solid ${step.icon} text-base"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 block">${step.orderLabel}</span>
+                                    <h3 class="font-serif-title text-lg font-bold text-stone-900">${step.title}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-stone-900 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px] text-amber-400"></i> Ver mini-video
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-700 leading-relaxed mb-4">${step.description}</p>
+                        
+                        <div class="bg-amber-50/60 rounded-xl p-3.5 border border-amber-200/70 mb-4">
+                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-900 mb-2">Puntos Clave del Proceso</h4>
+                            <ul class="space-y-1.5 text-xs text-stone-700 list-disc pl-4 leading-relaxed">
+                                ${step.bullets.map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/80 mb-4">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-600 block mb-1">Impacto Sensorial y Servicio</span>
+                            <p class="text-xs text-stone-700 leading-relaxed">${step.sensory}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-stone-100">
+                        ${step.metrics.map(m => `
+                            <div class="bg-stone-50 rounded-lg p-2.5 border border-stone-100">
+                                <span class="text-[10px] text-stone-400 block uppercase font-semibold">${m.label}</span>
+                                <span class="text-xs font-bold text-stone-800 leading-snug block mt-0.5">${m.value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openModal(stepId) {
+            const step = STEPS_DATA.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('modal-badge').textContent = `Ficha Técnica • ${step.orderLabel}`;
+            document.getElementById('modal-title').textContent = step.title;
+            document.getElementById('modal-icon').className = `fa-solid ${step.icon}`;
+            document.getElementById('modal-icon-box').className = `w-12 h-12 rounded-2xl ${step.colorClass} flex items-center justify-center text-white text-xl shrink-0`;
+            document.getElementById('modal-desc').textContent = step.description;
+            document.getElementById('modal-sensory').textContent = step.sensory;
+
+            document.getElementById('modal-metrics').innerHTML = step.metrics.map(m => `
+                <div class="bg-stone-50 border border-stone-200 rounded-xl p-2.5">
+                    <span class="text-[10px] uppercase font-bold text-stone-400 block">${m.label}</span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-900">${m.value}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-bullets').innerHTML = step.bullets.map(b => `<li>${b}</li>`).join('');
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            startVideoPlayer(step);
+        }
+
+        function closeModal() {
+            stopVideoPlayer();
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'detail-modal') {
+                closeModal();
+            }
+        }
+
+        // =========================================================================
+        // MÓDULO DE REGIONES Y DESTILERÍAS DE ESCOCIA
+        // =========================================================================
+        function resetRegionsExercise(reshuffle = true) {
+            regionPlacements = {};
+            selectedRegionCardId = null;
+            regionValidationState = {};
+            hideRegionsFeedback();
+            activeRegionCards = reshuffle
+                ? [...SCOTCH_DISTILLERY_CARDS].sort(() => Math.random() - 0.5)
+                : [...activeRegionCards].sort(() => Math.random() - 0.5);
+            renderRegionsAll();
+        }
+
+        function renderRegionsAll() {
+            renderRegionsPool();
+            renderRegionsColumns();
+            updateRegionsProgress();
+        }
+
+        function updateRegionsProgress() {
+            const count = Object.keys(regionPlacements).length;
+            const total = activeRegionCards.length;
+            document.getElementById('regions-progress-badge').textContent = `${count} de ${total} destilerías ubicadas`;
+            const hint = document.getElementById('regions-selected-hint');
+            if (selectedRegionCardId) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function renderRegionsPool() {
+            const poolEl = document.getElementById('regions-pool');
+            const available = activeRegionCards.filter(item => !regionPlacements[item.id]);
+
+            if (available.length === 0) {
+                poolEl.innerHTML = `
+                    <div class="col-span-full py-5 text-center text-sm text-amber-800 font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>¡Has clasificado todas las destilerías! Pulsa <strong>"Verificar Regiones"</strong> para comprobar tus respuestas.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            poolEl.innerHTML = available.map(item => {
+                const isSelected = selectedRegionCardId === item.id;
+                return `
+                    <div
+                        draggable="true"
+                        ondragstart="handleRegionDragStart(event, '${item.id}')"
+                        onclick="handleRegionCardClick('${item.id}')"
+                        class="card-hover cursor-pointer select-none bg-white rounded-xl p-3.5 border-2 ${isSelected ? 'border-amber-600 ring-2 ring-amber-400/50 bg-amber-50' : 'border-stone-200 hover:border-amber-400'} shadow-xs flex flex-col justify-between gap-1.5"
+                    >
+                        <div>
+                            <h4 class="font-bold text-sm text-stone-900 leading-snug">${item.name}</h4>
+                            <p class="text-[11px] font-semibold text-amber-800 leading-snug mt-1">
+                                <i class="fa-solid fa-bottle-droplet text-[10px] mr-1"></i>${linkifyWhiskyBrands(item.brands)}
+                            </p>
+                        </div>
+                        <p class="text-xs text-stone-600 leading-snug pt-1 border-t border-stone-100">${item.clue}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRegionsColumns() {
+            const grid = document.getElementById('regions-columns');
+            grid.innerHTML = SCOTCH_REGIONS_META.map(reg => {
+                const itemsInReg = activeRegionCards.filter(item => regionPlacements[item.id] === reg.id);
+                const highlight = selectedRegionCardId ? 'bg-amber-50/40 cursor-pointer border-amber-400' : 'bg-white/90 border-stone-300';
+
+                return `
+                    <div
+                        ondragover="handleRegionDragOver(event)"
+                        ondragleave="handleRegionDragLeave(event)"
+                        ondrop="handleRegionDrop(event, '${reg.id}')"
+                        onclick="handleRegionColumnClick('${reg.id}')"
+                        class="rounded-2xl border-2 border-dashed ${highlight} p-4 flex flex-col min-h-[210px] transition-all"
+                    >
+                        <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg ${reg.headerBg} text-white flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-location-dot text-xs"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-serif-title text-base font-bold text-stone-900 leading-tight">${reg.name}</h3>
+                                    <span class="text-[11px] text-stone-500 block leading-tight">${reg.subtitle}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-800">${itemsInReg.length}</span>
+                        </div>
+
+                        <div class="space-y-2 flex-grow">
+                            ${itemsInReg.length === 0 ? `
+                                <div class="h-full min-h-[115px] flex flex-col items-center justify-center text-center text-stone-400 p-2">
+                                    <i class="fa-solid fa-plus text-xs mb-1 opacity-60"></i>
+                                    <span class="text-xs">Ubicar destilerías de <strong>${reg.name}</strong></span>
+                                </div>
+                            ` : itemsInReg.map(item => {
+                                const status = regionValidationState[item.id];
+                                const realReg = SCOTCH_REGIONS_META.find(r => r.id === item.region);
+                                let cardBorder = 'border-stone-200 bg-stone-50';
+                                let badgeHtml = '';
+
+                                if (status === 'correct') {
+                                    cardBorder = 'border-emerald-500 bg-emerald-50/60';
+                                    badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Correcto</span>`;
+                                } else if (status === 'incorrect') {
+                                    cardBorder = 'border-rose-500 bg-rose-50/60';
+                                    badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark"></i> Es ${realReg ? realReg.name : item.region}</span>`;
+                                }
+
+                                return `
+                                    <div
+                                        draggable="true"
+                                        ondragstart="handleRegionDragStart(event, '${item.id}')"
+                                        onclick="event.stopPropagation(); handleRegionCardClick('${item.id}')"
+                                        class="rounded-xl p-2.5 border ${cardBorder} flex items-start justify-between gap-2 animate-fade-in cursor-pointer"
+                                    >
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                <h4 class="font-bold text-xs text-stone-900 leading-snug">${item.name}</h4>
+                                                ${badgeHtml}
+                                            </div>
+                                            <p class="text-[11px] font-semibold text-amber-800 leading-snug mt-0.5">${linkifyWhiskyBrands(item.brands)}</p>
+                                            <p class="text-[11px] text-stone-600 leading-snug mt-0.5">${item.clue}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onclick="event.stopPropagation(); removeRegionFromColumn('${item.id}')"
+                                            title="Devolver al banco"
+                                            class="w-6 h-6 rounded-lg bg-white hover:bg-rose-100 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center shrink-0 transition"
+                                        >
+                                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleRegionCardClick(cardId) {
+            selectedRegionCardId = (selectedRegionCardId === cardId) ? null : cardId;
+            renderRegionsAll();
+        }
+
+        function handleRegionColumnClick(regionId) {
+            if (!selectedRegionCardId) return;
+            assignCardToRegion(selectedRegionCardId, regionId);
+        }
+
+        function handleRegionDragStart(event, cardId) {
+            event.dataTransfer.setData('text/region-card-id', cardId);
+            selectedRegionCardId = cardId;
+        }
+
+        function handleRegionDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('slot-active');
+        }
+
+        function handleRegionDragLeave(event) {
+            event.currentTarget.classList.remove('slot-active');
+        }
+
+        function handleRegionDrop(event, regionId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('slot-active');
+            const cardId = event.dataTransfer.getData('text/region-card-id') || selectedRegionCardId;
+            if (cardId) {
+                assignCardToRegion(cardId, regionId);
+            }
+        }
+
+        function assignCardToRegion(cardId, regionId) {
+            regionPlacements[cardId] = regionId;
+            selectedRegionCardId = null;
+            delete regionValidationState[cardId];
+            hideRegionsFeedback();
+            renderRegionsAll();
+        }
+
+        function removeRegionFromColumn(cardId) {
+            delete regionPlacements[cardId];
+            delete regionValidationState[cardId];
+            hideRegionsFeedback();
+            renderRegionsAll();
+        }
+
+        function verifyRegions() {
+            const total = activeRegionCards.length;
+            const placedCount = Object.keys(regionPlacements).length;
+
+            if (placedCount < total) {
+                showRegionsFeedback(
+                    'warning',
+                    'Faltan destilerías por ubicar',
+                    `Has clasificado ${placedCount} de ${total} muestras. Completa las 6 regiones antes de verificar.`
+                );
+                return;
+            }
+
+            let correct = 0;
+            regionValidationState = {};
+
+            for (const item of activeRegionCards) {
+                if (regionPlacements[item.id] === item.region) {
+                    regionValidationState[item.id] = 'correct';
+                    correct++;
+                } else {
+                    regionValidationState[item.id] = 'incorrect';
+                }
+            }
+
+            renderRegionsColumns();
+
+            if (correct === total) {
+                showRegionsFeedback(
+                    'success',
+                    '¡Excelente dominio geográfico! 100% de aciertos',
+                    'Has ubicado correctamente todas las destilerías y perfiles sensoriales en Highlands, Speyside, Islay, Islands, Lowlands y Campbeltown.'
+                );
+            } else {
+                showRegionsFeedback(
+                    'error',
+                    `Has acertado ${correct} de ${total} muestras`,
+                    'Revisa las tarjetas marcadas en rojo donde se indica su región correcta. Puedes abrir el "Cuadro Regional" para repasar.'
+                );
+            }
+        }
+
+        function showRegionsFeedback(type, title, text) {
+            const banner = document.getElementById('regions-feedback-banner');
+            const iconBox = document.getElementById('regions-feedback-icon');
+            const titleEl = document.getElementById('regions-feedback-title');
+            const textEl = document.getElementById('regions-feedback-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-amber-50', 'border-amber-200', 'text-amber-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+            if (type === 'success') {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-award"></i>';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+                iconBox.className = 'w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            }
+
+            titleEl.textContent = title;
+            textEl.textContent = text;
+        }
+
+        function hideRegionsFeedback() {
+            document.getElementById('regions-feedback-banner').classList.add('hidden');
+        }
+
+        function toggleRegionsReference() {
+            const panel = document.getElementById('regions-reference-panel');
+            const btn = document.getElementById('btn-toggle-reg-ref');
+            const isHidden = panel.classList.contains('hidden');
+
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Ocultar Cuadro</span>';
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-table-list"></i><span>Ver Cuadro Regional</span>';
+            }
+        }
+
+        function renderRegionsReferenceTable() {
+            const tbody = document.getElementById('regions-reference-tbody');
+            tbody.innerHTML = SCOTCH_REGIONS_META.map(reg => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="p-3 align-top">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${reg.badgeClass}">${reg.name}</span>
+                        <span class="block text-[11px] text-stone-500 mt-1">${reg.subtitle}</span>
+                    </td>
+                    <td class="p-3 align-top text-stone-800 leading-relaxed">${reg.profile}</td>
+                    <td class="p-3 align-top text-stone-600 leading-relaxed">${reg.details}</td>
+                    <td class="p-3 align-top font-semibold text-stone-900 text-xs">${linkifyWhiskyBrands(reg.distilleriesList)}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
