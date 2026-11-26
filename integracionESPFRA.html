@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sommelier Lab: Francia & España</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        wine: {
+                            50: '#fdf2f4',
+                            100: '#fce7eb',
+                            200: '#f9d0d9',
+                            300: '#f4a9ba',
+                            400: '#ec7996',
+                            500: '#df4c73',
+                            600: '#cb2d5a',
+                            700: '#ab2049',
+                            800: '#8f1d41',
+                            900: '#7a1c3c',
+                            950: '#450a1d',
+                        },
+                        gold: {
+                            50: '#fbf9f1',
+                            100: '#f5f0dc',
+                            200: '#ebe0b8',
+                            300: '#dec78b',
+                            400: '#d0ab5d',
+                            500: '#c5933c',
+                            600: '#b17930',
+                            700: '#915c29',
+                            800: '#774b27',
+                            900: '#623e24',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased h-screen overflow-hidden flex flex-col">
+
+    <!-- Barra Superior -->
+    <header class="bg-wine-950 text-white shadow-md shrink-0 z-30 border-b border-wine-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-wine-600 to-wine-800 flex items-center justify-center shadow-inner border border-wine-500/30 shrink-0">
+                    <i data-lucide="wine" class="w-5 h-5 text-gold-300"></i>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="font-serif text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                        Sommelier Lab <span class="text-gold-300 font-normal italic">FR · ES</span>
+                    </h1>
+                    <p class="text-xs text-wine-200 tracking-wide uppercase font-medium">
+                        AOC de Francia & DO / DOCa de España
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navegación entre modos de estudio -->
+            <nav class="flex items-center gap-1.5 bg-wine-900/70 p-1 rounded-xl border border-wine-800 shrink-0">
+                <button onclick="switchTab('explorer')" id="tab-explorer" class="tab-btn active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-wine-950 shadow-xs flex items-center gap-1.5">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                    <span>Explorador & Reflexión</span>
+                </button>
+                <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-wine-100 hover:text-white flex items-center gap-1.5">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Flashcards</span>
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-wine-100 hover:text-white flex items-center gap-1.5">
+                    <i data-lucide="award" class="w-4 h-4"></i>
+                    <span>Desafío Sommelier</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal Estático -->
+    <main class="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 py-3 flex flex-col overflow-hidden">
+
+        <!-- ========================================================= -->
+        <!-- VISTA 1: EXPLORADOR & REFLEXIÓN                           -->
+        <!-- ========================================================= -->
+        <section id="view-explorer" class="view-section flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+            <!-- Barra de filtros -->
+            <div class="bg-white rounded-2xl shadow-xs border border-stone-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+                <div class="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl">
+                    <button onclick="setColorFilter('all')" id="color-all" class="color-filter-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-wine-900 text-white transition">
+                        Todos (14)
+                    </button>
+                    <button onclick="setColorFilter('blanco')" id="color-blanco" class="color-filter-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                        <span>Blancos (7)</span>
+                    </button>
+                    <button onclick="setColorFilter('tinto')" id="color-tinto" class="color-filter-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-wine-700"></span>
+                        <span>Tintos (7)</span>
+                    </button>
+                </div>
+
+                <div class="relative flex-1 min-w-[220px] max-w-md">
+                    <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="explorerSearch" oninput="filterExplorer()" placeholder="Buscar estilo, AOC, DO, región o cepa..." class="w-full pl-9 pr-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-wine-600/30 focus:border-wine-600">
+                </div>
+            </div>
+
+            <!-- Cuadrícula Estática de Estilos -->
+            <div id="explorerGrid" class="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 overflow-hidden">
+                <!-- Se puebla dinámicamente -->
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 2: FLASHCARDS INTERACTIVAS                          -->
+        <!-- ========================================================= -->
+        <section id="view-flashcards" class="view-section hidden flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-xs border border-stone-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl">
+                    <button onclick="setFlashcardDeck('all')" id="deck-all" class="deck-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-wine-900 text-white transition">
+                        Francia + España
+                    </button>
+                    <button onclick="setFlashcardDeck('france')" id="deck-france" class="deck-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition">
+                        🇫🇷 Solo Francia
+                    </button>
+                    <button onclick="setFlashcardDeck('spain')" id="deck-spain" class="deck-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition">
+                        🇪🇸 Solo España
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <span id="flashcardCounter" class="text-xs sm:text-sm font-bold text-stone-600 bg-stone-100 px-3 py-1 rounded-lg">
+                        Tarjeta 1 de 1
+                    </span>
+                    <button onclick="shuffleFlashcards()" class="px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-xs sm:text-sm font-semibold text-stone-700 flex items-center gap-1.5 transition">
+                        <i data-lucide="shuffle" class="w-4 h-4"></i>
+                        <span>Mezclar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjeta 3D -->
+            <div class="flex-1 min-h-0 flex flex-col items-center justify-center py-1">
+                <div class="w-full max-w-2xl h-full max-h-[360px] perspective-1000 cursor-pointer" onclick="flipFlashcard()">
+                    <div id="flashcardInner" class="relative w-full h-full transition-transform duration-500 transform-style-3d">
+                        <!-- Frente -->
+                        <div class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-md border border-stone-200 p-6 flex flex-col justify-between">
+                            <div class="flex items-center justify-between gap-2">
+                                <span id="fcCountryBadge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-wine-50 text-wine-900">
+                                    🇫🇷 Francia
+                                </span>
+                                <span id="fcRegionBadge" class="text-xs sm:text-sm font-semibold text-stone-500">
+                                    Región
+                                </span>
+                            </div>
+
+                            <div class="text-center my-auto px-2">
+                                <p class="text-xs font-bold uppercase tracking-widest text-gold-700 mb-2">Denominación de Origen</p>
+                                <h2 id="fcAocTitle" class="font-serif text-3xl sm:text-4xl font-bold text-stone-900 leading-tight break-words">
+                                    AOC Chablis
+                                </h2>
+                            </div>
+
+                            <div class="text-center text-xs sm:text-sm text-stone-400 font-medium flex items-center justify-center gap-1.5">
+                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                                <span>Haz clic en la tarjeta para ver estilo y cepas</span>
+                            </div>
+                        </div>
+
+                        <!-- Dorso -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 bg-wine-950 text-white rounded-3xl shadow-md border border-wine-800 p-6 flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-widest text-gold-300">Ficha Técnica</span>
+                                <span id="fcColorTag" class="px-3 py-1 rounded-full text-xs font-bold bg-wine-800 text-wine-100">
+                                    Vino Blanco
+                                </span>
+                            </div>
+
+                            <div class="space-y-4 my-auto">
+                                <div class="bg-wine-900/60 p-4 rounded-2xl border border-wine-800">
+                                    <p class="text-xs uppercase tracking-wider text-wine-300 font-bold mb-1">Estilo de Vino</p>
+                                    <p id="fcStyleText" class="text-base sm:text-lg font-bold text-white leading-snug break-words">
+                                        Blancos frescos de acento ácido
+                                    </p>
+                                </div>
+                                <div class="bg-wine-900/60 p-4 rounded-2xl border border-wine-800">
+                                    <p class="text-xs uppercase tracking-wider text-wine-300 font-bold mb-1">Cepa(s) Principales</p>
+                                    <p id="fcGrapesText" class="text-base sm:text-lg font-semibold text-gold-200 leading-snug break-words">
+                                        Chardonnay
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="text-center text-xs text-wine-300">
+                                Haz clic para volver al frente
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles Navegación Flashcards -->
+            <div class="flex items-center justify-center gap-3 shrink-0 pb-1">
+                <button onclick="prevFlashcard()" class="px-5 py-2 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5 shadow-xs transition">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    <span>Anterior</span>
+                </button>
+                <button onclick="flipFlashcard()" class="px-5 py-2 rounded-xl bg-wine-900 hover:bg-wine-800 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs transition">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span>Voltear</span>
+                </button>
+                <button onclick="nextFlashcard()" class="px-5 py-2 rounded-xl bg-white border border-stone-200 hover:bg-stone-100 text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5 shadow-xs transition">
+                    <span>Siguiente</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VISTA 3: DESAFÍO SOMMELIER (2 COLUMNAS EN PARALELO + VIDEO) -->
+        <!-- ========================================================= -->
+        <section id="view-quiz" class="view-section hidden flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+
+            <!-- Cabecera compacta de puntuación y denominación -->
+            <div class="bg-white rounded-2xl shadow-xs border border-stone-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <span id="quizRegionTag" class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-gold-100 text-gold-900 shrink-0">
+                        🇫🇷 Región
+                    </span>
+                    <div class="min-w-0">
+                        <h2 id="quizAocTitle" class="font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug break-words">
+                            AOC Châteauneuf-du-Pape
+                        </h2>
+                        <p class="text-xs sm:text-sm text-stone-500">Evalúa cada columna por separado (1 punto por acierto).</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="flex items-center gap-3 bg-stone-50 px-3 py-1.5 rounded-xl border border-stone-200 text-xs sm:text-sm">
+                        <span class="font-semibold text-stone-600">Puntos: <strong id="quizScore" class="text-wine-900">0</strong>/<span id="quizTotal">0</span></span>
+                        <span class="text-stone-300">|</span>
+                        <span class="font-semibold text-stone-600">Racha: <strong id="quizStreak" class="text-emerald-700">0</strong></span>
+                    </div>
+
+                    <button id="watchVideoBtn" onclick="openVideoLessonModal()" class="hidden px-3.5 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs sm:text-sm hover:bg-amber-400 transition flex items-center gap-1.5 shadow-xs">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i>
+                        <span>Video-Cápsula</span>
+                    </button>
+
+                    <button id="nextQuestionBtn" onclick="startNewQuiz()" class="hidden px-4 py-2 rounded-xl bg-wine-900 text-white font-semibold text-xs sm:text-sm hover:bg-wine-800 transition flex items-center gap-1.5 shadow-xs">
+                        <span>Siguiente</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dos Columnas Paralelas: Paso 1 (Uvas) y Paso 2 (Estilo) -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 gap-3 overflow-hidden">
+                <!-- Columna 1: Cepas -->
+                <div class="bg-white rounded-2xl shadow-xs border border-stone-200 p-4 flex flex-col justify-between min-h-0 overflow-hidden">
+                    <div class="flex items-center justify-between gap-2 pb-2 border-b border-stone-100 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-wine-900 text-white text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                            <h3 class="text-sm sm:text-base font-bold text-stone-900">¿Qué cepa(s) se utilizan?</h3>
+                        </div>
+                        <span id="grapeStepBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 shrink-0">1 punto</span>
+                    </div>
+
+                    <div id="quizGrapeOptions" class="my-auto py-2 grid grid-cols-1 gap-2">
+                        <!-- 4 opciones de cepas -->
+                    </div>
+
+                    <div id="grapeFeedbackBanner" class="hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0"></div>
+                </div>
+
+                <!-- Columna 2: Estilo -->
+                <div class="bg-white rounded-2xl shadow-xs border border-stone-200 p-4 flex flex-col justify-between min-h-0 overflow-hidden">
+                    <div class="flex items-center justify-between gap-2 pb-2 border-b border-stone-100 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-gold-600 text-white text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                            <h3 class="text-sm sm:text-base font-bold text-stone-900">¿Qué estilo de vino se elabora?</h3>
+                        </div>
+                        <span id="styleStepBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 shrink-0">1 punto</span>
+                    </div>
+
+                    <div id="quizStyleOptions" class="my-auto py-2 grid grid-cols-1 gap-2">
+                        <!-- 4 opciones de estilo -->
+                    </div>
+
+                    <div id="styleFeedbackBanner" class="hidden px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium shrink-0"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- MODAL POP-UP DETALLE DE ESTILO + VIDEO COMPARATIVO        -->
+    <!-- ========================================================= -->
+    <div id="styleDetailModal" class="hidden fixed inset-0 z-50 bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5" onclick="if(event.target === this) closeStyleModal()">
+        <div class="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Cabecera Modal -->
+            <div class="px-5 py-3.5 bg-wine-950 text-white flex items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span id="modalColorBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-400 text-stone-950 shrink-0">
+                        Blanco
+                    </span>
+                    <h3 id="modalStyleTitle" class="font-serif text-lg sm:text-xl font-bold text-white leading-snug break-words">
+                        Estilo de Vino
+                    </h3>
+                </div>
+                <button onclick="closeStyleModal()" class="p-1.5 rounded-lg bg-wine-900 hover:bg-wine-800 text-wine-100 transition shrink-0">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Zona Superior: Video Explicativo Comparativo con Voz en Off -->
+            <div class="bg-stone-900 text-white px-5 py-3.5 border-b border-stone-800 shrink-0">
+                <div class="relative rounded-xl bg-stone-950 border border-stone-800 p-3.5 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-500 text-stone-950">
+                                Síntesis Comparativa FR · ES
+                            </span>
+                            <div id="styleAudioWave" class="flex items-center gap-1 h-4">
+                                <span class="w-1 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+                                <span class="w-1 h-3.5 bg-amber-400 rounded-full animate-pulse"></span>
+                                <span class="w-1 h-2.5 bg-amber-400 rounded-full animate-pulse"></span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <button id="styleVideoPlayBtn" onclick="toggleStyleVideoPlay()" class="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold flex items-center gap-1 transition disabled:opacity-50">
+                                <i id="styleVideoPlayIcon" data-lucide="pause" class="w-3.5 h-3.5"></i>
+                                <span id="styleVideoPlayText">Pausar</span>
+                            </button>
+                            <button onclick="restartStyleVideo()" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition" title="Reiniciar audio">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="toggleStyleVideoMute()" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition" title="Silenciar">
+                                <i id="styleVideoMuteIcon" data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-400"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Indicador visual de Carga de Audio -->
+                    <div id="styleLoadingBadge" class="hidden flex items-center gap-2 text-xs font-semibold text-amber-300 py-1">
+                        <div class="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Cargando narración de voz en off...</span>
+                    </div>
+
+                    <p id="styleVideoCaption" class="text-xs sm:text-sm text-stone-200 leading-relaxed">
+                        Preparando síntesis comparativa...
+                    </p>
+
+                    <div class="w-full bg-stone-800 h-1 rounded-full overflow-hidden">
+                        <div id="styleVideoProgress" class="bg-amber-500 h-full transition-all duration-150" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columnas Comparativas Francia vs España -->
+            <div class="flex-1 min-h-0 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-4 bg-stone-50">
+                <!-- Columna Francia -->
+                <div class="bg-white rounded-xl border border-stone-200 p-4 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                        <h4 class="font-bold text-base text-stone-900 flex items-center gap-2">
+                            <span>🇫🇷</span>
+                            <span>Francia (AOC)</span>
+                        </h4>
+                        <span id="modalFranceCount" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800">0</span>
+                    </div>
+                    <ul id="modalFranceList" class="space-y-2.5"></ul>
+                </div>
+
+                <!-- Columna España -->
+                <div class="bg-white rounded-xl border border-stone-200 p-4 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                        <h4 class="font-bold text-base text-stone-900 flex items-center gap-2">
+                            <span>🇪🇸</span>
+                            <span>España (DO / DOCa)</span>
+                        </h4>
+                        <span id="modalSpainCount" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900">0</span>
+                    </div>
+                    <ul id="modalSpainList" class="space-y-2.5"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL POP-UP VIDEO-CÁPSULA DE REFUERZO (DESAFÍO SOMMELIER) -->
+    <!-- ========================================================= -->
+    <div id="videoLessonModal" class="hidden fixed inset-0 z-50 bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5" onclick="if(event.target === this) closeVideoLessonModal()">
+        <div class="bg-stone-900 text-white rounded-2xl shadow-2xl border border-stone-700 w-full max-w-3xl overflow-hidden flex flex-col">
+            <!-- Cabecera del Modal de Video -->
+            <div class="px-5 py-3 bg-stone-950 border-b border-stone-800 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500 text-stone-950 shrink-0">
+                        Cápsula de Refuerzo
+                    </span>
+                    <h3 id="videoModalTitle" class="font-serif text-base sm:text-lg font-bold text-white leading-snug break-words">
+                        AOC / DO — Repaso Guiado
+                    </h3>
+                </div>
+                <button onclick="closeVideoLessonModal()" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition shrink-0" title="Cerrar video">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Pantalla Animada del Video -->
+            <div class="relative bg-stone-950 w-full h-60 sm:h-68 flex items-center justify-center overflow-hidden">
+                <canvas id="lessonCanvas" class="w-full h-full block"></canvas>
+
+                <!-- Indicador visual de Carga de Audio -->
+                <div id="lessonLoadingOverlay" class="hidden absolute inset-0 bg-stone-950/85 backdrop-blur-xs flex flex-col items-center justify-center gap-2.5 z-10">
+                    <div class="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs sm:text-sm font-semibold text-amber-200 tracking-wide">Cargando narración de audio...</span>
+                </div>
+
+                <!-- Indicadores de capítulo superior -->
+                <div class="absolute top-3 left-4 right-4 flex items-center gap-2">
+                    <button onclick="jumpToLessonSlide(0)" id="slidePill-0" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-500 text-stone-950 transition text-center">
+                        1. Clima & Suelo
+                    </button>
+                    <button onclick="jumpToLessonSlide(1)" id="slidePill-1" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-stone-800/90 text-stone-300 transition text-center">
+                        2. Cepas
+                    </button>
+                    <button onclick="jumpToLessonSlide(2)" id="slidePill-2" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-stone-800/90 text-stone-300 transition text-center">
+                        3. Estilo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subtítulos y Barra de Progreso -->
+            <div class="px-5 py-3.5 bg-stone-900 border-t border-stone-800 space-y-3">
+                <p id="lessonSubtitleText" class="text-sm sm:text-base text-stone-100 leading-relaxed min-h-[3.2rem] flex items-center justify-center text-center">
+                    Cargando explicación...
+                </p>
+
+                <!-- Barra de tiempo -->
+                <div class="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="lessonProgressBar" class="bg-amber-500 h-full transition-all duration-150" style="width: 0%"></div>
+                </div>
+
+                <!-- Controles de reproducción -->
+                <div class="flex items-center justify-between pt-1">
+                    <div class="flex items-center gap-2">
+                        <button id="lessonPlayPauseBtn" onclick="toggleLessonPlayPause()" class="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i id="lessonPlayIcon" data-lucide="pause" class="w-4 h-4"></i>
+                            <span id="lessonPlayText">Pausar</span>
+                        </button>
+                        <button onclick="restartLessonVideo()" class="px-3.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>Reiniciar</span>
+                        </button>
+                        <button id="lessonMuteBtn" onclick="toggleLessonVoice()" class="p-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition" title="Activar/Silenciar voz">
+                            <i id="lessonVoiceIcon" data-lucide="volume-2" class="w-4 h-4 text-amber-400"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="closeVideoLessonAndNext()" class="px-4 py-1.5 rounded-lg bg-wine-700 hover:bg-wine-600 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+                        <span>Continuar al siguiente</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página compacto -->
+    <footer class="bg-white border-t border-stone-200 py-1.5 px-4 shrink-0">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-1">
+            <span>Fuente: Cuadro Comparativo de Estilos de Vinos — Francia (AOC) & España (DO / DOCa)</span>
+            <span>Herramienta de Estudio para Sommellerie</span>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================================================
+        // BASE DE DATOS MAESTRA DEL CUADRO COMPARATIVO Y FUENTES DE ESTUDIO
+        // =========================================================================
+        const wineData = [
+            {
+                id: 'blancos-aromaticos',
+                style: 'Blancos aromáticos',
+                color: 'blanco',
+                reflection: 'Compara los perfiles terpénicos y tiólicos de ambos países: en Francia destacan Alsacia (Riesling, Gewürztraminer, Muscat), el Loira central con Sauvignon Blanc (Sancerre, Pouilly-Fumé) y el Ródano norte con Viognier (Condrieu). En España aparecen las variedades aromáticas atlánticas y continentales como Albariño y Treixadura (Rías Baixas), Verdejo (Rueda), Gewürztraminer en Somontano y Moscatel en Penedès.',
+                france: [
+                    { aoc: 'AOC Alsace Grand Cru', region: 'Alsacia', grapes: 'Riesling, Muscat, Pinot Gris, Gewürztraminer' },
+                    { aoc: 'AOC Sancerre', region: 'Valle del Loira / Centro', grapes: 'Sauvignon Blanc' },
+                    { aoc: 'AOC Condrieu', region: 'Valle del Ródano Septentrional', grapes: 'Viognier' },
+                    { aoc: 'AOC Pouilly-Fumé', region: 'Valle del Loira / Centro', grapes: 'Sauvignon Blanc' },
+                    { aoc: 'AOC Bellet', region: 'Provenza', grapes: 'Rolle, Chardonnay' }
+                ],
+                spain: [
+                    { aoc: 'DO Rías Baixas', region: 'Galicia', grapes: 'Albariño, Treixadura, Loureira' },
+                    { aoc: 'DO Rueda', region: 'Castilla y León', grapes: 'Verdejo, Sauvignon Blanc' },
+                    { aoc: 'DO Somontano', region: 'Aragón', grapes: 'Gewürztraminer, Chardonnay, Macabeo' },
+                    { aoc: 'DO Penedès', region: 'Cataluña', grapes: 'Moscatel de grano pequeño, Sauvignon Blanc, Xarel-lo' },
+                    { aoc: 'DO Valdepeñas', region: 'Castilla-La Mancha', grapes: 'Airén, Macabeo' }
+                ]
+            },
+            {
+                id: 'blancos-frescos-acidos',
+                style: 'Blancos frescos de acento ácido',
+                color: 'blanco',
+                reflection: 'Vinos blancos marcados por climas fríos, influencia marítima o altitud que preservan el ácido málico y tartárico. En Francia van desde la mineralidad calcárea de Chablis y la frescura atlántica del Muscadet sobre lías hasta el litoral mediterráneo de Picpoul de Pinet y los Alpes de Saboya. En España sobresale la cornisa cantábrica y atlántica con los Chacolíes vascos (Hondarribi Zuri) y el Albariño gallego.',
+                france: [
+                    { aoc: 'AOC Chablis', region: 'Borgoña', grapes: 'Chardonnay' },
+                    { aoc: 'AOC Muscadet', region: 'Valle del Loira / Pays Nantais', grapes: 'Melon de Bourgogne' },
+                    { aoc: 'AOC Picpoul de Pinet', region: 'Languedoc', grapes: 'Picpoul' },
+                    { aoc: 'AOC Savoie', region: 'Saboya', grapes: 'Jacquère, Altesse' },
+                    { aoc: 'AOC Bourgogne Aligoté', region: 'Borgoña', grapes: 'Aligoté' }
+                ],
+                spain: [
+                    { aoc: 'DO Rías Baixas', region: 'Galicia', grapes: 'Albariño' },
+                    { aoc: 'DO Chacolí de Guetaria', region: 'País Vasco', grapes: 'Hondarribi Zuri' },
+                    { aoc: 'DO Chacolí de Bizkaia', region: 'País Vasco', grapes: 'Hondarribi Zuri, Folle Blanche' },
+                    { aoc: 'DO Condado de Huelva', region: 'Andalucía', grapes: 'Zalema' },
+                    { aoc: 'DO Plà de Bagés', region: 'Cataluña', grapes: 'Picapoll, Macabeo, Parellada' }
+                ]
+            },
+            {
+                id: 'blancos-guarda-sin-madera',
+                style: 'Blancos de guarda con acidez alta sin madera',
+                color: 'blanco',
+                reflection: 'Demuestra que la capacidad de guarda en un blanco no depende del roble, sino de la estructura ácida, el extracto seco y el trabajo sobre lías. Francia ofrece ejemplos icónicos con Chardonnay en Chablis Grand Cru y Chenin Blanc en Savennières y Jasnières. España responde con cepas autóctonas de gran tensión como Viura en Rioja Alavesa, Pansá Blanca en Alella y los Gran Vino de Rueda de Verdejo.',
+                france: [
+                    { aoc: 'AOC Chablis Grand Cru', region: 'Borgoña', grapes: 'Chardonnay' },
+                    { aoc: 'AOC Savennières', region: 'Valle del Loira / Anjou', grapes: 'Chenin Blanc' },
+                    { aoc: 'AOC Jasnières', region: 'Valle del Loira / Touraine', grapes: 'Chenin Blanc' },
+                    { aoc: 'AOC Château-Grillet', region: 'Valle del Ródano Septentrional', grapes: 'Viognier' }
+                ],
+                spain: [
+                    { aoc: 'DOCa Rioja', region: 'La Rioja / Rioja Alavesa', grapes: 'Viura' },
+                    { aoc: 'DO Costers del Segre', region: 'Cataluña', grapes: 'Macabeo, Parellada, Riesling' },
+                    { aoc: 'DO Alella', region: 'Cataluña', grapes: 'Pansá Blanca / Xarel-lo' },
+                    { aoc: 'DO Rueda — Gran Vino de Rueda', region: 'Castilla y León', grapes: 'Verdejo' }
+                ]
+            },
+            {
+                id: 'blancos-dulces-cosecha-tardia',
+                style: 'Blancos dulces de cosecha tardía',
+                color: 'blanco',
+                reflection: 'Concentración natural de azúcares por sobremaduración en planta (passerillage) o pasificación sin adición de alcohol vínico. En Francia destaca el Sudoeste pirenaico con Petit y Gros Manseng (Jurançon, Pacherenc), Chenin Blanc en Coteaux du Layon, Alsacia VT y los Vin de Paille del Jura. En España sobresalen el Tostado de Ribeiro, las Malvasías volcánicas de La Palma y los dulces naturales sin encabezar de Málaga y Montilla-Moriles.',
+                france: [
+                    { aoc: 'AOC Coteaux du Layon', region: 'Valle del Loira / Anjou', grapes: 'Chenin Blanc' },
+                    { aoc: 'AOC Jurançon', region: 'Sudoeste / País Vasco', grapes: 'Petit Manseng, Gros Manseng' },
+                    { aoc: 'AOC Alsace (mención VT)', region: 'Alsacia', grapes: 'Riesling, Gewürztraminer, Pinot Gris, Muscat' },
+                    { aoc: 'AOC Pacherenc du Vic-Bilh', region: 'Sudoeste / País Vasco', grapes: 'Petit Manseng, Courbu, Arrufiac' },
+                    { aoc: 'AOC Vin de Paille (Arbois / Côtes du Jura)', region: 'Jura', grapes: 'Savagnin, Chardonnay (pasificados)' }
+                ],
+                spain: [
+                    { aoc: 'DO Ribeiro — Tostado', region: 'Galicia', grapes: 'Treixadura, Torrontés, Lado (pasificados)' },
+                    { aoc: 'DO Málaga — Vino Naturalmente Dulce', region: 'Andalucía', grapes: 'Pedro Ximénez, Moscatel' },
+                    { aoc: 'DO La Palma', region: 'Islas Canarias', grapes: 'Malvasía (parcialmente pasificadas)' },
+                    { aoc: 'DO Montilla-Moriles — Dulces sin encabezado', region: 'Andalucía', grapes: 'Pedro Ximénez, Moscatel' }
+                ]
+            },
+            {
+                id: 'blancos-botritizados',
+                style: 'Blancos botritizados',
+                color: 'blanco',
+                reflection: 'Uno de los mayores contrastes del programa: Francia posee microclimas fluviales con nieblas matinales y tardes soleadas ideales para la podredumbre noble (Botrytis cinerea) en Sauternes, Barsac, Monbazillac, Quarts de Chaume y Alsacia SGN. En España, en cambio, el clima seco impide la tradición de botrytis y los dulces se logran por asoleo, sobremaduración o encabezado.',
+                france: [
+                    { aoc: 'AOC Sauternes', region: 'Burdeos / Graves', grapes: 'Sémillon, Sauvignon Blanc, Muscadelle' },
+                    { aoc: 'AOC Monbazillac', region: 'Sudoeste / Bergerac', grapes: 'Sémillon, Sauvignon Blanc, Muscadelle' },
+                    { aoc: 'AOC Quarts de Chaume Grand Cru / Bonnezeaux', region: 'Valle del Loira / Anjou', grapes: 'Chenin Blanc' },
+                    { aoc: 'AOC Barsac / Cérons', region: 'Burdeos / Graves', grapes: 'Sémillon, Sauvignon Blanc, Muscadelle' },
+                    { aoc: 'AOC Alsace (mención SGN)', region: 'Alsacia', grapes: 'Riesling, Gewürztraminer, Pinot Gris, Muscat' },
+                    { aoc: 'AOC Sainte-Croix-du-Mont / Loupiac / Cadillac', region: 'Burdeos', grapes: 'Sémillon, Sauvignon Blanc' }
+                ],
+                spain: [
+                    { aoc: 'DO Penedès (referencia comparativa sin botrytis)', region: 'Cataluña', grapes: 'Macabeo, Xarel-lo, Parellada' },
+                    { aoc: 'DO Tarragona (referencia comparativa sin botrytis)', region: 'Cataluña', grapes: 'Macabeo, Garnacha Blanca' }
+                ]
+            },
+            {
+                id: 'blancos-fortificados-dulces',
+                style: 'Blancos fortificados dulces',
+                color: 'blanco',
+                reflection: 'Vinos encabezados con alcohol vínico (VDN si se detiene la fermentación o VDL si se añade al mosto). En Francia el protagonismo absoluto es del Moscatel de grano pequeño en el arco mediterráneo (Frontignan, Beaumes-de-Venise, Rivesaltes, Cap Corse), más el Macvin du Jura. En España se suma la técnica del asoleo previo en Pedro Ximénez y Moscatel en Jerez, Montilla-Moriles y Málaga.',
+                france: [
+                    { aoc: 'AOC Muscat de Frontignan', region: 'Languedoc', grapes: 'Moscatel de grano pequeño' },
+                    { aoc: 'AOC Muscat de Beaumes-de-Venise', region: 'Valle del Ródano Meridional', grapes: 'Moscatel de grano pequeño' },
+                    { aoc: 'AOC Muscat de Rivesaltes', region: 'Roussillon', grapes: 'Moscatel de Alejandría, Moscatel de grano pequeño' },
+                    { aoc: 'AOC Muscat de St-Jean-de-Minervois / Lunel / Mireval', region: 'Languedoc', grapes: 'Moscatel de grano pequeño' },
+                    { aoc: 'AOC Muscat du Cap Corse', region: 'Córcega', grapes: 'Moscatel de grano pequeño' },
+                    { aoc: 'AOC Macvin du Jura', region: 'Jura', grapes: 'Savagnin, Chardonnay (VDL)' }
+                ],
+                spain: [
+                    { aoc: 'DO Jerez-Xérès-Sherry — PX, Moscatel, Cream', region: 'Andalucía', grapes: 'Pedro Ximénez, Moscatel' },
+                    { aoc: 'DO Málaga — VDL / VDN', region: 'Andalucía', grapes: 'Pedro Ximénez, Moscatel' },
+                    { aoc: 'DO Montilla-Moriles — Pedro Ximénez VDN', region: 'Andalucía', grapes: 'Pedro Ximénez' },
+                    { aoc: 'DO Valencia — VDL Moscatel Romano', region: 'Comunidad Valenciana', grapes: 'Moscatel de Alejandría' },
+                    { aoc: 'DO Navarra — VDN de Moscatel', region: 'Navarra', grapes: 'Moscatel' }
+                ]
+            },
+            {
+                id: 'blancos-secos-oxidativa',
+                style: 'Blancos secos de crianza oxidativa',
+                color: 'blanco',
+                reflection: 'Puente técnico fascinante: el Vin Jaune del Jura (Savagnin criado más de 6 años bajo velo de levaduras sin rellenar barricas, sin encabezar) frente a los generosos andaluces de Palomino o Pedro Ximénez (Amontillado, Oloroso, Palo Cortado en Jerez y Montilla-Moriles), además de los rancios secos mediterráneos en Roussillon, Languedoc, Terra Alta y Rueda Dorado.',
+                france: [
+                    { aoc: 'AOC Château-Chalon', region: 'Jura', grapes: 'Savagnin (Vin Jaune)' },
+                    { aoc: 'AOC Arbois / Côtes du Jura / L\'Étoile', region: 'Jura', grapes: 'Savagnin (Vin Jaune)' },
+                    { aoc: 'AOC Clairette du Languedoc / Adissan', region: 'Languedoc', grapes: 'Clairette (Rancio seco)' },
+                    { aoc: 'AOC Rivesaltes Rancio', region: 'Roussillon', grapes: 'Grenache Blanc/Gris, Macabeo' }
+                ],
+                spain: [
+                    { aoc: 'DO Jerez-Xérès-Sherry — Amontillado, Oloroso, Palo Cortado', region: 'Andalucía', grapes: 'Palomino' },
+                    { aoc: 'DO Manzanilla de Sanlúcar de Barrameda — Manzanilla Pasada / Olorosa', region: 'Andalucía', grapes: 'Palomino' },
+                    { aoc: 'DO Rueda — Rueda Dorado', region: 'Castilla y León', grapes: 'Palomino Fino, Verdejo' },
+                    { aoc: 'DO Montilla-Moriles — Amontillado, Oloroso, Palo Cortado', region: 'Andalucía', grapes: 'Pedro Ximénez' },
+                    { aoc: 'DO Condado de Huelva — Condado Viejo', region: 'Andalucía', grapes: 'Zalema, Palomino, Garrido Fino' },
+                    { aoc: 'DO Terra Alta — Vino Rancio Seco', region: 'Cataluña', grapes: 'Garnacha Blanca' }
+                ]
+            },
+            {
+                id: 'tintos-maceracion-carbonica',
+                style: 'Tintos de maceración carbónica',
+                color: 'tinto',
+                reflection: 'Fermentación intracelular de racimos enteros en atmósfera rica en CO2 para extraer color y aromas explosivos a fruta roja fresca con taninos muy suaves. En Francia es emblemática en Beaujolais con Gamay y en el Midi con Carignan (Minervois, Saint-Chinian). En España es tradición histórica en Rioja Alavesa y Rioja Alta joven (Tempranillo) y en las Islas Canarias con Listán Negro.',
+                france: [
+                    { aoc: 'AOC Beaujolais / Beaujolais Nouveau / Villages', region: 'Borgoña', grapes: 'Gamay' },
+                    { aoc: 'AOC Côtes Roannaise', region: 'Valle del Loira Meridional', grapes: 'Gamay' },
+                    { aoc: 'AOC Minervois', region: 'Languedoc', grapes: 'Carignan' },
+                    { aoc: 'AOC Côtes du Rhône — Primeur', region: 'Valle del Ródano Meridional', grapes: 'Grenache' },
+                    { aoc: 'AOC Saint-Chinian', region: 'Languedoc', grapes: 'Carignan, Grenache, Syrah' }
+                ],
+                spain: [
+                    { aoc: 'DO Tacoronte-Acentejo', region: 'Islas Canarias', grapes: 'Listán Negro, Negramoll' },
+                    { aoc: 'DOCa Rioja — Rioja Alavesa / Rioja Alta joven', region: 'La Rioja / País Vasco', grapes: 'Tempranillo, Garnacha' },
+                    { aoc: 'DO Valle de Güímar', region: 'Islas Canarias', grapes: 'Listán Negro' }
+                ]
+            },
+            {
+                id: 'tintos-ligeros',
+                style: 'Tintos ligeros',
+                color: 'tinto',
+                reflection: 'Tintos de capa media-baja, acidez vibrante, tanino fino y gran frescura. En Francia dominan los Crus florales de Beaujolais (Fleurie, Chiroubles, Brouilly), el Pinot Noir de Sancerre e Irancy, y el Cabernet Franc fresco de Saint-Nicolas-de-Bourgueil. En España este perfil atlántico y volcánico lo lideran la Mencía de Ribeira Sacra y Rías Baixas, junto al Listán Negro de Tenerife.',
+                france: [
+                    { aoc: 'AOC Brouilly / Chiroubles / Fleurie', region: 'Borgoña / Beaujolais', grapes: 'Gamay' },
+                    { aoc: 'AOC Irancy', region: 'Borgoña / Yonne', grapes: 'Pinot Noir, César, Tressot' },
+                    { aoc: 'AOC Sancerre / Menetou-Salon / Reuilly', region: 'Valle del Loira / Centro', grapes: 'Pinot Noir' },
+                    { aoc: 'AOC Saint-Nicolas-de-Bourgueil', region: 'Valle del Loira / Touraine', grapes: 'Cabernet Franc' },
+                    { aoc: 'AOC Coteaux du Lyonnais', region: 'Valle del Ródano Septentrional', grapes: 'Gamay' },
+                    { aoc: 'AOC Savoie', region: 'Saboya', grapes: 'Mondeuse, Gamay' }
+                ],
+                spain: [
+                    { aoc: 'DO Rías Baixas', region: 'Galicia', grapes: 'Mencía, Espadeiro, Caíño Tinto' },
+                    { aoc: 'DO Ribeira Sacra', region: 'Galicia', grapes: 'Mencía, Brancellao, Merenzao' },
+                    { aoc: 'DO Tacoronte-Acentejo', region: 'Islas Canarias', grapes: 'Listán Negro, Negramoll' },
+                    { aoc: 'DO Ycoden-Daute-Isora', region: 'Islas Canarias', grapes: 'Listán Negro' },
+                    { aoc: 'DO Vinos de Madrid — Navalcarnero', region: 'Madrid', grapes: 'Garnacha Tinta, Tinto Fino' }
+                ]
+            },
+            {
+                id: 'tintos-frutados-cuerpo-medio',
+                style: 'Tintos frutados de cuerpo medio',
+                color: 'tinto',
+                reflection: 'Equilibrio entre expresión frutal primaria, estructura media y crianza moderada. Francia presenta los Crus más estructurados de Beaujolais (Morgon, Moulin-à-Vent), Cabernet Franc del Loira (Chinon, Saumur-Champigny), Crozes-Hermitage y Côtes du Rhône Villages. España contrapone Tempranillos jóvenes y roble de Rioja y Ribera del Duero, Mencía de Bierzo y Garnachas aragonesas.',
+                france: [
+                    { aoc: 'AOC Morgon / Moulin-à-Vent / Juliénas', region: 'Borgoña / Beaujolais', grapes: 'Gamay' },
+                    { aoc: 'AOC Chinon / Bourgueil / Saumur-Champigny', region: 'Valle del Loira', grapes: 'Cabernet Franc' },
+                    { aoc: 'AOC Crozes-Hermitage', region: 'Valle del Ródano Septentrional', grapes: 'Syrah' },
+                    { aoc: 'AOC Côtes du Rhône Villages', region: 'Valle del Ródano Meridional', grapes: 'Grenache, Syrah, Mourvèdre' },
+                    { aoc: 'AOC Mercurey / Givry', region: 'Borgoña / Côte Chalonnaise', grapes: 'Pinot Noir' }
+                ],
+                spain: [
+                    { aoc: 'DOCa Rioja', region: 'La Rioja', grapes: 'Tempranillo, Garnacha' },
+                    { aoc: 'DO Ribera del Duero — Joven / Roble', region: 'Castilla y León', grapes: 'Tempranillo' },
+                    { aoc: 'DO Bierzo', region: 'Castilla y León', grapes: 'Mencía' },
+                    { aoc: 'DO Navarra', region: 'Navarra', grapes: 'Garnacha, Tempranillo' },
+                    { aoc: 'DO Campo de Borja / Calatayud', region: 'Aragón', grapes: 'Garnacha' },
+                    { aoc: 'DO Bullas', region: 'Murcia', grapes: 'Monastrell' }
+                ]
+            },
+            {
+                id: 'tintos-elegantes-complejidad',
+                style: 'Tintos elegantes con cierta complejidad',
+                color: 'tinto',
+                reflection: 'Vinos con mayor profundidad aromática, integración de crianza en roble y taninos pulidos. En Francia destacan las comunas de Côte de Beaune (Volnay, Pommard), Burdeos (Saint-Julien, Margaux, Saint-Émilion, Pessac-Léognan) y Côte-Rôtie. En España sobresalen los Crianza y Reserva de DOCa Rioja, junto con Priorat, Montsant, Cigales y Manto Negro de Mallorca.',
+                france: [
+                    { aoc: 'AOC Volnay / Pommard / Beaune', region: 'Borgoña / Côte de Beaune', grapes: 'Pinot Noir' },
+                    { aoc: 'AOC Saint-Julien / Margaux', region: 'Burdeos / Médoc', grapes: 'Cabernet Sauvignon, Merlot, Cabernet Franc' },
+                    { aoc: 'AOC Côte-Rôtie', region: 'Valle del Ródano Septentrional', grapes: 'Syrah, Viognier' },
+                    { aoc: 'AOC Saint-Émilion', region: 'Burdeos / Libournais', grapes: 'Merlot, Cabernet Franc' },
+                    { aoc: 'AOC Pessac-Léognan', region: 'Burdeos / Graves', grapes: 'Cabernet Sauvignon, Merlot' }
+                ],
+                spain: [
+                    { aoc: 'DOCa Rioja — Crianza / Reserva', region: 'La Rioja', grapes: 'Tempranillo, Graciano, Mazuelo' },
+                    { aoc: 'DOCa Priorat', region: 'Cataluña', grapes: 'Garnacha, Cariñena' },
+                    { aoc: 'DO Montsant', region: 'Cataluña', grapes: 'Garnacha, Cariñena' },
+                    { aoc: 'DO Cigales', region: 'Castilla y León', grapes: 'Tempranillo, Cabernet Sauvignon' },
+                    { aoc: 'DO Binissalem Mallorca', region: 'Islas Baleares', grapes: 'Manto Negro, Cabernet Sauvignon, Syrah' }
+                ]
+            },
+            {
+                id: 'tintos-elegantes-guarda',
+                style: 'Tintos elegantes con mucho potencial de guarda y complejidad',
+                color: 'tinto',
+                reflection: 'La cúspide de la longevidad y el refinamiento tánico en ambos países. Francia reúne la Côte de Nuits (Gevrey-Chambertin, Vosne-Romanée), los grandes pagos del Médoc (Pauillac, Saint-Estèphe), Pomerol y Châteauneuf-du-Pape. España compite al más alto nivel con los Reserva y Gran Reserva de Ribera del Duero, Gran Reserva y Viñedo Singular de Rioja, Priorat y Dominio de Valdepusa.',
+                france: [
+                    { aoc: 'AOC Gevrey-Chambertin / Vosne-Romanée / Chambolle-Musigny', region: 'Borgoña / Côte de Nuits', grapes: 'Pinot Noir' },
+                    { aoc: 'AOC Pauillac / Saint-Estèphe', region: 'Burdeos / Médoc', grapes: 'Cabernet Sauvignon, Merlot' },
+                    { aoc: 'AOC Pomerol', region: 'Burdeos / Libournais', grapes: 'Merlot, Cabernet Franc' },
+                    { aoc: 'AOC Châteauneuf-du-Pape', region: 'Valle del Ródano Meridional', grapes: 'Grenache, Mourvèdre, Syrah' },
+                    { aoc: 'AOC Pécharmant', region: 'Sudoeste / Bergerac', grapes: 'Cabernet Sauvignon, Cabernet Franc, Merlot, Malbec' }
+                ],
+                spain: [
+                    { aoc: 'DO Ribera del Duero — Reserva / Gran Reserva', region: 'Castilla y León', grapes: 'Tinta del País / Tempranillo' },
+                    { aoc: 'DOCa Rioja — Gran Reserva / Viñedo Singular', region: 'La Rioja', grapes: 'Tempranillo, Graciano' },
+                    { aoc: 'DOCa Priorat', region: 'Cataluña', grapes: 'Garnacha, Cariñena, Cabernet Sauvignon, Syrah' },
+                    { aoc: 'DO Dominio de Valdepusa', region: 'Castilla-La Mancha / Vino de Pago', grapes: 'Syrah, Cabernet Sauvignon, Petit Verdot, Graciano' }
+                ]
+            },
+            {
+                id: 'tintos-cuerpo-madera',
+                style: 'Tintos con mucho cuerpo, paso por madera y potencial de guarda',
+                color: 'tinto',
+                reflection: 'Vinos de gran concentración polifenólica, color profundo y estructura tánica potente. En Francia destacan el Ródano norte (Hermitage, Cornas), las cepas tánicas del Sudoeste (Tannat en Madiran y Malbec en Cahors), Bandol y Gigondas. En España se reflejan en la Tinta de Toro de ciclo largo y la Monastrell mediterránea de Jumilla, Alicante y Yecla.',
+                france: [
+                    { aoc: 'AOC Hermitage / Cornas', region: 'Valle del Ródano Septentrional', grapes: 'Syrah' },
+                    { aoc: 'AOC Madiran', region: 'Sudoeste / País Vasco', grapes: 'Tannat, Cabernet Sauvignon, Cabernet Franc' },
+                    { aoc: 'AOC Cahors', region: 'Sudoeste', grapes: 'Malbec / Côt, Tannat, Merlot' },
+                    { aoc: 'AOC Bandol', region: 'Provenza', grapes: 'Mourvèdre, Grenache, Cinsault' },
+                    { aoc: 'AOC Gigondas / Vacqueyras', region: 'Valle del Ródano Meridional', grapes: 'Grenache, Syrah, Mourvèdre' }
+                ],
+                spain: [
+                    { aoc: 'DO Toro', region: 'Castilla y León', grapes: 'Tinta de Toro / Tempranillo' },
+                    { aoc: 'DO Jumilla', region: 'Murcia / Castilla-La Mancha', grapes: 'Monastrell' },
+                    { aoc: 'DO Alicante', region: 'Comunidad Valenciana', grapes: 'Monastrell' },
+                    { aoc: 'DO Yecla — Reserva / Gran Reserva', region: 'Murcia', grapes: 'Monastrell, Tempranillo' },
+                    { aoc: 'DO La Mancha / Almansa', region: 'Castilla-La Mancha', grapes: 'Cencibel, Monastrell, Garnacha Tintorera' }
+                ]
+            },
+            {
+                id: 'tintos-fortificados-dulces',
+                style: 'Tintos fortificados dulces',
+                color: 'tinto',
+                reflection: 'Vinos tintos encabezados (mutage) que conservan azúcar residual y desarrollan notas de fruta confitada, cacao y crianza oxidativa. Francia domina en Roussillon con Banyuls, Maury y Rivesaltes (Grenache Noir) y en Rasteau. España responde con Garnacha Tinta en Tarragona y Empordà, Romé en Málaga y Monastrell encabezado en Yecla y Alicante (distinguiéndose del Fondillón, que se elabora sin encabezado).',
+                france: [
+                    { aoc: 'AOC Banyuls / Banyuls Grand Cru', region: 'Roussillon', grapes: 'Grenache Noir' },
+                    { aoc: 'AOC Maury', region: 'Roussillon', grapes: 'Grenache Noir, Carignan, Syrah' },
+                    { aoc: 'AOC Rasteau', region: 'Valle del Ródano Meridional', grapes: 'Grenache Noir' },
+                    { aoc: 'AOC Rivesaltes / Grand Roussillon', region: 'Roussillon', grapes: 'Grenache Noir, Carignan' }
+                ],
+                spain: [
+                    { aoc: 'DO Málaga — con uva tinta Romé', region: 'Andalucía', grapes: 'Romé' },
+                    { aoc: 'DO Tarragona — Tarragona Clásico / Dulces encabezados', region: 'Cataluña', grapes: 'Garnacha Tinta' },
+                    { aoc: 'DO Empordà-Costa Brava — Garnatxa d\'Empordà', region: 'Cataluña', grapes: 'Garnacha Tinta' },
+                    { aoc: 'DO Yecla — VDL de Monastrell tardía', region: 'Murcia', grapes: 'Monastrell' },
+                    { aoc: 'DO Alicante — Tintos dulces encabezados', region: 'Comunidad Valenciana', grapes: 'Monastrell' }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // ESTADO GLOBAL Y MOTOR DE AUDIO NEURONAL CON REINTENTOS EXPONENCIALES
+        // =========================================================================
+        const apiKey = "";
+        let currentColorFilter = 'all';
+        let flashcardDeck = [];
+        let currentFlashcardIdx = 0;
+
+        let currentQuizCard = null;
+        let quizScore = 0;
+        let quizTotal = 0;
+        let quizStreak = 0;
+        let grapeStepAnswered = false;
+        let styleStepAnswered = false;
+        let grapeStepCorrect = false;
+        let styleStepCorrect = false;
+
+        let lessonSlides = [];
+        let lessonAudioCache = {};
+        let lessonAudioPromises = {};
+        let currentSlideIndex = 0;
+        let lessonElapsed = 0;
+        let lessonPlaying = false;
+        let lessonVoiceEnabled = true;
+        let isLessonAudioLoading = false;
+        let activeLessonAudio = null;
+        let lessonTimer = null;
+        let lessonAnimFrame = null;
+        const SLIDE_DURATION = 9;
+
+        let activeStyleAudio = null;
+        let styleVideoPlaying = false;
+        let styleVideoMuted = false;
+        let styleVideoTimer = null;
+        let styleVideoElapsed = 0;
+
+        function buildAllCards() {
+            const list = [];
+            wineData.forEach(item => {
+                item.france.forEach(f => {
+                    list.push({
+                        country: 'france',
+                        aoc: f.aoc,
+                        region: f.region,
+                        grapes: f.grapes,
+                        style: item.style,
+                        color: item.color
+                    });
+                });
+                item.spain.forEach(s => {
+                    list.push({
+                        country: 'spain',
+                        aoc: s.aoc,
+                        region: s.region,
+                        grapes: s.grapes,
+                        style: item.style,
+                        color: item.color
+                    });
+                });
+            });
+            return list;
+        }
+
+        function pcmToWavBlobUrl(base64Pcm, sampleRate = 24000) {
+            const binary = atob(base64Pcm);
+            const pcmLength = binary.length;
+            const buffer = new ArrayBuffer(44 + pcmLength);
+            const view = new DataView(buffer);
+
+            const writeStr = (offset, str) => {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+            };
+
+            writeStr(0, 'RIFF');
+            view.setUint32(4, 36 + pcmLength, true);
+            writeStr(8, 'WAVE');
+            writeStr(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(36, 'data');
+            view.setUint32(40, pcmLength, true);
+
+            const bytes = new Uint8Array(buffer, 44);
+            for (let i = 0; i < pcmLength; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            const blob = new Blob([buffer], { type: 'audio/wav' });
+            return URL.createObjectURL(blob);
+        }
+
+        async function fetchNaturalTtsUrl(text, retries = 3) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Lee con voz masculina natural, cálida y didáctica de profesor de sommellerie en español, a un ritmo claro y fluido: ${text}`
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: {
+                                voiceName: "Orus"
+                            }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let delay = 1000;
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        if (attempt < retries) {
+                            await new Promise(r => setTimeout(r, delay));
+                            delay *= 2;
+                            continue;
+                        }
+                        return null;
+                    }
+
+                    const data = await response.json();
+                    const part = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                    if (part && part.data) {
+                        const rateMatch = part.mimeType ? part.mimeType.match(/rate=(\d+)/) : null;
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                        return pcmToWavBlobUrl(part.data, sampleRate);
+                    }
+                    return null;
+                } catch (e) {
+                    if (attempt < retries) {
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                    } else {
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function speakWithBrowserFallback(text, muted = false, onEndCallback = null) {
+            if (!('speechSynthesis' in window) || muted) {
+                if (onEndCallback) setTimeout(onEndCallback, 5000);
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'es-ES';
+            utter.rate = 1.04;
+            utter.pitch = 0.95;
+
+            const voices = window.speechSynthesis.getVoices();
+            const spanishMale = voices.find(v =>
+                v.lang.toLowerCase().startsWith('es') &&
+                /pablo|jorge|diego|carlos|alvaro|álvaro|raul|raúl|tomas|tomás|enrique|male|hombre/i.test(v.name)
+            );
+            const anySpanish = voices.find(v => v.lang.toLowerCase().startsWith('es'));
+            if (spanishMale) utter.voice = spanishMale;
+            else if (anySpanish) utter.voice = anySpanish;
+
+            if (onEndCallback) utter.onend = onEndCallback;
+            window.speechSynthesis.speak(utter);
+        }
+
+        // =========================================================================
+        // NAVEGACIÓN ENTRE PESTAÑAS
+        // =========================================================================
+        function switchTab(tabId) {
+            stopLessonVideo();
+            closeStyleModal();
+
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-wine-100 hover:text-white flex items-center gap-1.5';
+            });
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = 'tab-btn active px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-wine-950 shadow-xs flex items-center gap-1.5';
+            }
+            lucide.createIcons();
+        }
+
+        // =========================================================================
+        // VISTA 1: EXPLORADOR & MODAL COMPARATIVO CON AUDIO
+        // =========================================================================
+        function setColorFilter(color) {
+            currentColorFilter = color;
+            ['all', 'blanco', 'tinto'].forEach(c => {
+                const btn = document.getElementById(`color-${c}`);
+                if (!btn) return;
+                if (c === color) {
+                    btn.className = 'color-filter-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-wine-900 text-white transition flex items-center gap-1.5';
+                } else {
+                    btn.className = 'color-filter-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition flex items-center gap-1.5';
+                }
+            });
+            filterExplorer();
+        }
+
+        function filterExplorer() {
+            const grid = document.getElementById('explorerGrid');
+            if (!grid) return;
+            const query = (document.getElementById('explorerSearch')?.value || '').trim().toLowerCase();
+
+            const filtered = wineData.filter(item => {
+                if (currentColorFilter !== 'all' && item.color !== currentColorFilter) return false;
+                if (!query) return true;
+                const haystack = [
+                    item.style,
+                    ...item.france.map(f => `${f.aoc} ${f.region} ${f.grapes}`),
+                    ...item.spain.map(s => `${s.aoc} ${s.region} ${s.grapes}`)
+                ].join(' ').toLowerCase();
+                return haystack.includes(query);
+            });
+
+            grid.innerHTML = '';
+            filtered.forEach(item => {
+                const isWhite = item.color === 'blanco';
+                const card = document.createElement('button');
+                card.onclick = () => openStyleModal(item.id);
+                card.className = 'text-left bg-white hover:bg-stone-50 rounded-2xl border border-stone-200 hover:border-wine-400 p-3 shadow-xs transition flex flex-col justify-between gap-2 group overflow-hidden';
+
+                const frPreview = item.france.slice(0, 2).map(f => f.aoc.replace(/^AOC\s+/i, '')).join(' · ');
+                const esPreview = item.spain.slice(0, 2).map(s => s.aoc.replace(/^DO(Ca)?\s+/i, '').split('—')[0].trim()).join(' · ');
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 w-full">
+                        <h3 class="text-base sm:text-[17px] font-extrabold text-stone-950 group-hover:text-wine-900 leading-snug break-words">
+                            ${item.style}
+                        </h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold uppercase shrink-0 ${isWhite ? 'bg-amber-100 text-amber-900' : 'bg-wine-100 text-wine-900'}">
+                            ${isWhite ? 'Blanco' : 'Tinto'}
+                        </span>
+                    </div>
+                    <div class="space-y-1 text-xs text-stone-600 w-full my-auto">
+                        <p class="leading-tight break-words"><strong class="text-stone-800">🇫🇷</strong> ${frPreview}</p>
+                        <p class="leading-tight break-words"><strong class="text-stone-800">🇪🇸</strong> ${esPreview}</p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-stone-500 pt-1.5 border-t border-stone-100 w-full">
+                        <span class="font-semibold">${item.france.length} AOC · ${item.spain.length} DO</span>
+                        <span class="text-wine-800 font-bold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 shrink-0">
+                            <span>Comparar</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        async function openStyleModal(styleId) {
+            const item = wineData.find(w => w.id === styleId);
+            if (!item) return;
+
+            stopStyleVideo();
+
+            const isWhite = item.color === 'blanco';
+            const badge = document.getElementById('modalColorBadge');
+            badge.textContent = isWhite ? 'Vino Blanco' : 'Vino Tinto';
+            badge.className = isWhite
+                ? 'px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-400 text-stone-950 shrink-0'
+                : 'px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-wine-600 text-white shrink-0';
+
+            document.getElementById('modalStyleTitle').textContent = item.style;
+            document.getElementById('styleVideoCaption').textContent = item.reflection;
+
+            document.getElementById('modalFranceCount').textContent = `${item.france.length} AOC`;
+            document.getElementById('modalSpainCount').textContent = `${item.spain.length} DO/DOCa`;
+
+            const frList = document.getElementById('modalFranceList');
+            frList.innerHTML = item.france.map(f => `
+                <li class="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                    <p class="font-bold text-base text-stone-900 leading-snug break-words">${f.aoc}</p>
+                    <p class="text-xs sm:text-sm font-semibold text-blue-800 mt-0.5">${f.region}</p>
+                    <p class="text-xs sm:text-sm text-stone-700 mt-1"><strong class="text-stone-900">Cepas:</strong> ${f.grapes}</p>
+                </li>
+            `).join('');
+
+            const esList = document.getElementById('modalSpainList');
+            esList.innerHTML = item.spain.map(s => `
+                <li class="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
+                    <p class="font-bold text-base text-stone-900 leading-snug break-words">${s.aoc}</p>
+                    <p class="text-xs sm:text-sm font-semibold text-amber-800 mt-0.5">${s.region}</p>
+                    <p class="text-xs sm:text-sm text-stone-700 mt-1"><strong class="text-stone-900">Cepas:</strong> ${s.grapes}</p>
+                </li>
+            `).join('');
+
+            document.getElementById('styleDetailModal').classList.remove('hidden');
+            lucide.createIcons();
+
+            startStyleVideoNarration(item.reflection);
+        }
+
+        async function startStyleVideoNarration(text) {
+            const loadingBadge = document.getElementById('styleLoadingBadge');
+            const playBtn = document.getElementById('styleVideoPlayBtn');
+            const progressEl = document.getElementById('styleVideoProgress');
+
+            loadingBadge.classList.remove('hidden');
+            playBtn.disabled = true;
+            progressEl.style.width = '0%';
+            styleVideoElapsed = 0;
+            styleVideoPlaying = true;
+            updateStyleVideoPlayBtn();
+
+            const audioUrl = await fetchNaturalTtsUrl(text);
+            loadingBadge.classList.add('hidden');
+            playBtn.disabled = false;
+
+            if (document.getElementById('styleDetailModal').classList.contains('hidden')) return;
+
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.playbackRate = 1.06;
+                audio.muted = styleVideoMuted;
+                activeStyleAudio = audio;
+                audio.onended = () => {
+                    styleVideoPlaying = false;
+                    progressEl.style.width = '100%';
+                    updateStyleVideoPlayBtn();
+                };
+                audio.play().catch(() => {
+                    styleVideoPlaying = false;
+                    updateStyleVideoPlayBtn();
+                });
+
+                styleVideoTimer = setInterval(() => {
+                    if (activeStyleAudio && activeStyleAudio.duration && !activeStyleAudio.paused) {
+                        const pct = Math.min(100, (activeStyleAudio.currentTime / activeStyleAudio.duration) * 100);
+                        progressEl.style.width = `${pct}%`;
+                    }
+                }, 120);
+            } else {
+                const estSec = Math.max(8, text.length / 15);
+                speakWithBrowserFallback(text, styleVideoMuted, () => {
+                    styleVideoPlaying = false;
+                    progressEl.style.width = '100%';
+                    updateStyleVideoPlayBtn();
+                });
+                styleVideoTimer = setInterval(() => {
+                    if (!styleVideoPlaying) return;
+                    styleVideoElapsed += 0.15;
+                    const pct = Math.min(100, (styleVideoElapsed / estSec) * 100);
+                    progressEl.style.width = `${pct}%`;
+                    if (pct >= 100) {
+                        clearInterval(styleVideoTimer);
+                        styleVideoPlaying = false;
+                        updateStyleVideoPlayBtn();
+                    }
+                }, 150);
+            }
+        }
+
+        function stopStyleVideo() {
+            styleVideoPlaying = false;
+            if (styleVideoTimer) clearInterval(styleVideoTimer);
+            if (activeStyleAudio) {
+                activeStyleAudio.pause();
+                activeStyleAudio = null;
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function toggleStyleVideoPlay() {
+            styleVideoPlaying = !styleVideoPlaying;
+            if (activeStyleAudio) {
+                if (styleVideoPlaying) activeStyleAudio.play().catch(() => {});
+                else activeStyleAudio.pause();
+            } else if ('speechSynthesis' in window) {
+                if (styleVideoPlaying) window.speechSynthesis.resume();
+                else window.speechSynthesis.pause();
+            }
+            updateStyleVideoPlayBtn();
+        }
+
+        function restartStyleVideo() {
+            const text = document.getElementById('styleVideoCaption').textContent;
+            stopStyleVideo();
+            startStyleVideoNarration(text);
+        }
+
+        function toggleStyleVideoMute() {
+            styleVideoMuted = !styleVideoMuted;
+            if (activeStyleAudio) activeStyleAudio.muted = styleVideoMuted;
+            if (styleVideoMuted && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+            const icon = document.getElementById('styleVideoMuteIcon');
+            icon.setAttribute('data-lucide', styleVideoMuted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+        }
+
+        function updateStyleVideoPlayBtn() {
+            const icon = document.getElementById('styleVideoPlayIcon');
+            const text = document.getElementById('styleVideoPlayText');
+            const wave = document.getElementById('styleAudioWave');
+            if (icon) icon.setAttribute('data-lucide', styleVideoPlaying ? 'pause' : 'play');
+            if (text) text.textContent = styleVideoPlaying ? 'Pausar' : 'Reproducir';
+            if (wave) wave.style.opacity = styleVideoPlaying ? '1' : '0.3';
+            lucide.createIcons();
+        }
+
+        function closeStyleModal() {
+            stopStyleVideo();
+            const modal = document.getElementById('styleDetailModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // =========================================================================
+        // VISTA 2: FLASHCARDS INTERACTIVAS
+        // =========================================================================
+        function setFlashcardDeck(deckType) {
+            ['all', 'france', 'spain'].forEach(d => {
+                const btn = document.getElementById(`deck-${d}`);
+                if (!btn) return;
+                btn.className = d === deckType
+                    ? 'deck-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-wine-900 text-white transition'
+                    : 'deck-btn px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold text-stone-700 hover:bg-white transition';
+            });
+
+            const all = buildAllCards();
+            flashcardDeck = deckType === 'all' ? all : all.filter(c => c.country === deckType);
+            currentFlashcardIdx = 0;
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            if (!flashcardDeck.length) return;
+            const card = flashcardDeck[currentFlashcardIdx];
+            const inner = document.getElementById('flashcardInner');
+            if (inner) inner.classList.remove('rotate-y-180');
+
+            document.getElementById('flashcardCounter').textContent = `Tarjeta ${currentFlashcardIdx + 1} de ${flashcardDeck.length}`;
+            document.getElementById('fcCountryBadge').textContent = card.country === 'france' ? '🇫🇷 Francia (AOC)' : '🇪🇸 España (DO / DOCa)';
+            document.getElementById('fcRegionBadge').textContent = card.region;
+            document.getElementById('fcAocTitle').textContent = card.aoc;
+            document.getElementById('fcColorTag').textContent = card.color === 'blanco' ? 'Vino Blanco' : 'Vino Tinto';
+            document.getElementById('fcStyleText').textContent = card.style;
+            document.getElementById('fcGrapesText').textContent = card.grapes;
+        }
+
+        function flipFlashcard() {
+            const inner = document.getElementById('flashcardInner');
+            if (inner) inner.classList.toggle('rotate-y-180');
+        }
+
+        function nextFlashcard() {
+            if (!flashcardDeck.length) return;
+            currentFlashcardIdx = (currentFlashcardIdx + 1) % flashcardDeck.length;
+            renderFlashcard();
+        }
+
+        function prevFlashcard() {
+            if (!flashcardDeck.length) return;
+            currentFlashcardIdx = (currentFlashcardIdx - 1 + flashcardDeck.length) % flashcardDeck.length;
+            renderFlashcard();
+        }
+
+        function shuffleFlashcards() {
+            flashcardDeck.sort(() => 0.5 - Math.random());
+            currentFlashcardIdx = 0;
+            renderFlashcard();
+        }
+
+        // =========================================================================
+        // VISTA 3: DESAFÍO SOMMELIER (2 COLUMNAS + VIDEO-CÁPSULA)
+        // =========================================================================
+        function getBaseDenominationName(aocString) {
+            return aocString.split('—')[0].trim().toLowerCase();
+        }
+
+        function startNewQuiz() {
+            stopLessonVideo();
+            lessonAudioCache = {};
+            lessonAudioPromises = {};
+            const all = buildAllCards();
+            currentQuizCard = all[Math.floor(Math.random() * all.length)];
+
+            grapeStepAnswered = false;
+            styleStepAnswered = false;
+            grapeStepCorrect = false;
+            styleStepCorrect = false;
+
+            document.getElementById('quizRegionTag').textContent = `${currentQuizCard.country === 'france' ? '🇫🇷' : '🇪🇸'} ${currentQuizCard.region}`;
+            document.getElementById('quizAocTitle').textContent = currentQuizCard.aoc;
+
+            document.getElementById('grapeStepBadge').textContent = '1 punto';
+            document.getElementById('grapeStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 shrink-0';
+            document.getElementById('styleStepBadge').textContent = '1 punto';
+            document.getElementById('styleStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 shrink-0';
+
+            document.getElementById('grapeFeedbackBanner').classList.add('hidden');
+            document.getElementById('styleFeedbackBanner').classList.add('hidden');
+            document.getElementById('watchVideoBtn').classList.add('hidden');
+            document.getElementById('nextQuestionBtn').classList.add('hidden');
+
+            renderQuizColumns(all);
+            buildLessonSlides(currentQuizCard);
+            preloadLessonAudioInBackground();
+            lucide.createIcons();
+        }
+
+        function renderQuizColumns(allCards) {
+            const currentBaseDenom = getBaseDenominationName(currentQuizCard.aoc);
+            const sameDenomCards = allCards.filter(c => getBaseDenominationName(c.aoc) === currentBaseDenom);
+
+            const validGrapesForDenom = new Set(sameDenomCards.map(c => c.grapes.trim().toLowerCase()));
+            const validStylesForDenom = new Set(sameDenomCards.map(c => c.style.trim().toLowerCase()));
+
+            // Columna 1: Cepas
+            const grapeDistractors = [...new Set(
+                allCards
+                    .filter(c => c.color === currentQuizCard.color && !validGrapesForDenom.has(c.grapes.trim().toLowerCase()))
+                    .map(c => c.grapes)
+            )]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+            const grapeOptions = [currentQuizCard.grapes, ...grapeDistractors].sort(() => 0.5 - Math.random());
+
+            const grapeContainer = document.getElementById('quizGrapeOptions');
+            grapeContainer.innerHTML = '';
+            grapeOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'grape-opt-btn text-left px-4 py-2.5 rounded-xl border border-stone-200 hover:border-wine-500 hover:bg-wine-50/40 text-sm sm:text-[15px] font-semibold text-stone-800 transition flex items-center justify-between gap-2';
+                btn.innerHTML = `<span class="leading-snug break-words">${opt}</span><i data-lucide="circle" class="w-4 h-4 text-stone-300 shrink-0"></i>`;
+                btn.onclick = () => checkGrapeAnswer(opt, btn);
+                grapeContainer.appendChild(btn);
+            });
+
+            // Columna 2: Estilo
+            const styleDistractors = [...new Set(
+                wineData
+                    .map(w => w.style)
+                    .filter(s => !validStylesForDenom.has(s.trim().toLowerCase()))
+            )]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+            const styleOptions = [currentQuizCard.style, ...styleDistractors].sort(() => 0.5 - Math.random());
+
+            const styleContainer = document.getElementById('quizStyleOptions');
+            styleContainer.innerHTML = '';
+            styleOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'style-opt-btn text-left px-4 py-2.5 rounded-xl border border-stone-200 hover:border-wine-500 hover:bg-wine-50/40 text-sm sm:text-[15px] font-semibold text-stone-800 transition flex items-center justify-between gap-2';
+                btn.innerHTML = `<span class="leading-snug break-words">${opt}</span><i data-lucide="circle" class="w-4 h-4 text-stone-300 shrink-0"></i>`;
+                btn.onclick = () => checkStyleAnswer(opt, btn);
+                styleContainer.appendChild(btn);
+            });
+        }
+
+        function checkGrapeAnswer(selected, btnEl) {
+            if (grapeStepAnswered) return;
+            grapeStepAnswered = true;
+            quizTotal++;
+
+            const isCorrect = selected === currentQuizCard.grapes;
+            grapeStepCorrect = isCorrect;
+
+            if (isCorrect) {
+                quizScore++;
+                quizStreak++;
+                document.getElementById('grapeStepBadge').textContent = '+1 pt';
+                document.getElementById('grapeStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0';
+            } else {
+                quizStreak = 0;
+                document.getElementById('grapeStepBadge').textContent = '0 pts';
+                document.getElementById('grapeStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 shrink-0';
+            }
+
+            document.querySelectorAll('.grape-opt-btn').forEach(b => {
+                b.disabled = true;
+                const txt = b.querySelector('span').textContent;
+                const oldIcon = b.querySelector('svg, i');
+                const newIcon = document.createElement('i');
+
+                if (txt === currentQuizCard.grapes) {
+                    b.className = 'grape-opt-btn text-left px-4 py-2.5 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-sm sm:text-[15px] font-bold text-emerald-950 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'check-circle-2');
+                    newIcon.className = 'w-4 h-4 text-emerald-600 shrink-0';
+                } else if (b === btnEl && !isCorrect) {
+                    b.className = 'grape-opt-btn text-left px-4 py-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-sm sm:text-[15px] font-bold text-rose-950 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'x-circle');
+                    newIcon.className = 'w-4 h-4 text-rose-600 shrink-0';
+                } else {
+                    b.className = 'grape-opt-btn text-left px-4 py-2.5 rounded-xl border border-stone-200 opacity-50 text-sm sm:text-[15px] text-stone-600 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'circle');
+                    newIcon.className = 'w-4 h-4 text-stone-300 shrink-0';
+                }
+                if (oldIcon) oldIcon.replaceWith(newIcon);
+            });
+
+            const fb = document.getElementById('grapeFeedbackBanner');
+            fb.classList.remove('hidden');
+            fb.className = isCorrect
+                ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 text-emerald-900 border border-emerald-200 shrink-0'
+                : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 text-rose-900 border border-rose-200 shrink-0';
+            fb.innerHTML = isCorrect
+                ? `<strong>¡Exacto!</strong> Cepas autorizadas: ${currentQuizCard.grapes}.`
+                : `<strong>Correcto:</strong> ${currentQuizCard.grapes}.`;
+
+            updateQuizHeaderStatus();
+            lucide.createIcons();
+        }
+
+        function checkStyleAnswer(selected, btnEl) {
+            if (styleStepAnswered) return;
+            styleStepAnswered = true;
+            quizTotal++;
+
+            const isCorrect = selected === currentQuizCard.style;
+            styleStepCorrect = isCorrect;
+
+            if (isCorrect) {
+                quizScore++;
+                quizStreak++;
+                document.getElementById('styleStepBadge').textContent = '+1 pt';
+                document.getElementById('styleStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0';
+            } else {
+                quizStreak = 0;
+                document.getElementById('styleStepBadge').textContent = '0 pts';
+                document.getElementById('styleStepBadge').className = 'text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 shrink-0';
+            }
+
+            document.querySelectorAll('.style-opt-btn').forEach(b => {
+                b.disabled = true;
+                const txt = b.querySelector('span').textContent;
+                const oldIcon = b.querySelector('svg, i');
+                const newIcon = document.createElement('i');
+
+                if (txt === currentQuizCard.style) {
+                    b.className = 'style-opt-btn text-left px-4 py-2.5 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-sm sm:text-[15px] font-bold text-emerald-950 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'check-circle-2');
+                    newIcon.className = 'w-4 h-4 text-emerald-600 shrink-0';
+                } else if (b === btnEl && !isCorrect) {
+                    b.className = 'style-opt-btn text-left px-4 py-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-sm sm:text-[15px] font-bold text-rose-950 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'x-circle');
+                    newIcon.className = 'w-4 h-4 text-rose-600 shrink-0';
+                } else {
+                    b.className = 'style-opt-btn text-left px-4 py-2.5 rounded-xl border border-stone-200 opacity-50 text-sm sm:text-[15px] text-stone-600 flex items-center justify-between gap-2';
+                    newIcon.setAttribute('data-lucide', 'circle');
+                    newIcon.className = 'w-4 h-4 text-stone-300 shrink-0';
+                }
+                if (oldIcon) oldIcon.replaceWith(newIcon);
+            });
+
+            const fb = document.getElementById('styleFeedbackBanner');
+            fb.classList.remove('hidden');
+            fb.className = isCorrect
+                ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 text-emerald-900 border border-emerald-200 shrink-0'
+                : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 text-rose-900 border border-rose-200 shrink-0';
+            fb.innerHTML = isCorrect
+                ? `<strong>¡Muy bien!</strong> Estilo: ${currentQuizCard.style}.`
+                : `<strong>Correcto:</strong> ${currentQuizCard.style}.`;
+
+            updateQuizHeaderStatus();
+            lucide.createIcons();
+        }
+
+        function updateQuizHeaderStatus() {
+            document.getElementById('quizScore').textContent = quizScore;
+            document.getElementById('quizTotal').textContent = quizTotal;
+            document.getElementById('quizStreak').textContent = quizStreak;
+
+            if (grapeStepAnswered || styleStepAnswered) {
+                document.getElementById('watchVideoBtn').classList.remove('hidden');
+            }
+            if (grapeStepAnswered && styleStepAnswered) {
+                document.getElementById('nextQuestionBtn').classList.remove('hidden');
+            }
+        }
+
+        // =========================================================================
+        // VIDEO-CÁPSULA EDUCATIVA (CLIMA/SUELO, CEPAS Y ESTILO)
+        // =========================================================================
+        function getTerroirProfile(card) {
+            const aoc = card.aoc.toLowerCase();
+            const reg = card.region.toLowerCase();
+            const sty = card.style.toLowerCase();
+
+            // FRANCIA
+            if (aoc.includes('chablis')) {
+                const isGrandCru = aoc.includes('grand cru') || sty.includes('guarda');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es continental frío con fuertes heladas primaverales y lluvias cercanas a 600 mm anuales. Sus viñedos crecen sobre suelos calcáreos marinos de la era geológica Kimmeridge, ricos en greda y fósiles.`,
+                    grapeTrait: `Aquí la Chardonnay conserva una acidez punzante, gran pureza cítrica y una marcada impronta mineral salina.`,
+                    styleDetail: isGrandCru
+                        ? `En los Grands Crus de Chablis se elaboran blancos de guarda de alta acidez y estructura concentrada, fermentados o afinados sin aporte invasivo de madera nueva para evolucionar con notas de avellana y pedernal.`
+                        : `En la apelación regional AOC Chablis se vinifican blancos secos puros en acero inoxidable, sin madera nueva, privilegiando la tensión ácida y la frescura mineral.`
+                };
+            }
+            if (aoc.includes('aligoté')) {
+                return {
+                    climateSoil: `En ${card.aoc}, el clima es continental de inviernos fríos y veranos cálidos, sobre laderas sedimentarias de piedra caliza, margas y arcilla de origen marino.`,
+                    grapeTrait: `La cepa Aligoté es una blanca vigorosa y de maduración temprana que destaca por su elevada acidez natural y notas herbáceas y cítricas.`,
+                    styleDetail: `En esta denominación regional borgoñona se vinifica en seco sin crianza invasiva en madera para obtener blancos ligeros, nerviosos y refrescantes.`
+                };
+            }
+            if (aoc.includes('irancy')) {
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es continental fresco con riesgo de heladas primaverales, sobre colinas de suelos calcáreos y margas kimmeridgienses.`,
+                    grapeTrait: `La Pinot Noir aporta frutos rojos ácidos y sutileza aromática, complementada localmente por las uvas César y Tressot que suman color y nervio.`,
+                    styleDetail: `En Irancy se elaboran tintos ligeros, vibrantes y de capa media, con taninos finos y marcada frescura septentrional.`
+                };
+            }
+            if (aoc.includes('muscadet')) {
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es fresco y húmedo con fuerte influencia del océano Atlántico. Sus viñedos se asientan sobre suelos bien drenados de esquistos, gneis, rocas ígneas y arenas graníticas.`,
+                    grapeTrait: `La variedad Melon de Bourgogne resiste bien el clima frío atlántico y ofrece un perfil neutro, delicado, cítrico y de acidez viva.`,
+                    styleDetail: `En Muscadet el vino se cría sobre sus lías finas (sur lie) en depósitos inertes para ganar untuosidad, notas de panadería y una sutil aguja carbónica refrescante.`
+                };
+            }
+            if (aoc.includes('sancerre') || aoc.includes('pouilly-fumé') || aoc.includes('menetou') || aoc.includes('reuilly')) {
+                const isRed = sty.includes('tintos');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es semicontinental fresco con heladas primaverales. Predominan tres suelos: margas calcáreas con fósiles (terres blanches), piedra caliza (caillottes) y arcilla con sílex.`,
+                    grapeTrait: isRed
+                        ? `En estos terroirs calcáreos del Loira central, la Pinot Noir madura con gran delicadeza, entregando aromas de cereza ácida, frambuesa y taninos muy finos.`
+                        : `La Sauvignon Blanc alcanza aquí su máxima expresión aromática y mineral, desarrollando notas cítricas, florales y un característico matiz ahumado de pedernal en los suelos de sílex.`,
+                    styleDetail: isRed
+                        ? `En Sancerre, Menetou-Salon y Reuilly se producen tintos ligeros y perfumados, fermentados con mínima extracción para preservar su frescura natural.`
+                        : `En Sancerre y Pouilly-Fumé se elaboran blancos aromáticos secos en tanques inertes, evitando la fermentación maloláctica para resaltar su tensión mineral.`
+                };
+            }
+            if (aoc.includes('savennières') || aoc.includes('jasnières')) {
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es templado fresco con influencia atlántica en Anjou y más continental en Touraine. Savennières destaca por sus laderas de esquistos y rocas volcánicas, mientras Jasnières reposa sobre caliza tuffeau y sílex.`,
+                    grapeTrait: `La Chenin Blanc posee una acidez natural extraordinariamente alta y gran concentración de extracto seco en viñedos de bajos rendimientos.`,
+                    styleDetail: `En estas apelaciones se elaboran blancos secos de enorme longevidad y tensión ácida, fermentados sin aporte dominante de madera nueva para evolucionar durante décadas en botella.`
+                };
+            }
+            if (aoc.includes('coteaux du layon') || aoc.includes('quarts de chaume') || aoc.includes('bonnezeaux')) {
+                const isBotrytis = sty.includes('botritizados');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), las laderas protegidas a orillas del río Layon presentan un clima templado sobre suelos de esquistos y areniscas, con nieblas matinales otoñales seguidas de tardes soleadas.`,
+                    grapeTrait: `La Chenin Blanc conserva una acidez vibrante incluso con altísima concentración de azúcares, equilibrando el dulzor en boca.`,
+                    styleDetail: isBotrytis
+                        ? `En Quarts de Chaume Grand Cru y Bonnezeaux se realizan vendimias manuales sucesivas seleccionando bayas afectadas por podredumbre noble (Botrytis cinerea), logrando blancos botritizados complejos de larga guarda.`
+                        : `En Coteaux du Layon se elaboran blancos dulces de cosecha tardía mediante vendimia manual selectiva de uvas sobremaduras, logrando un equilibrio ejemplar entre miel, fruta confitada y acidez.`
+                };
+            }
+            if (aoc.includes('chinon') || aoc.includes('bourgueil') || aoc.includes('saumur-champigny')) {
+                const isLight = sty.includes('ligeros');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es fresco de transición atlántico-continental, con viñedos sobre terrazas de grava aluvial y laderas de piedra caliza porosa llamada tuffeau jaune.`,
+                    grapeTrait: `La Cabernet Franc (llamada localmente Breton) expresa notas de frutos rojos frescos, violetas, grafito y un toque herbáceo elegante.`,
+                    styleDetail: isLight
+                        ? `En Saint-Nicolas-de-Bourgueil, sobre suelos más arenosos y cálidos, se elaboran tintos ligeros y de maduración temprana pensados para disfrutarse jóvenes.`
+                        : `En Chinon, Bourgueil y Saumur-Champigny se elaboran tintos frutados de cuerpo medio con maceraciones controladas y crianza sutil en barrica usada o fudres.`
+                };
+            }
+            if (aoc.includes('alsace')) {
+                const isSGN = aoc.includes('sgn') || sty.includes('botritizados');
+                const isVT = aoc.includes('vt') || sty.includes('tardía');
+                return {
+                    climateSoil: `En ${card.aoc}, protegida de las lluvias por los montes Vosgos, el clima es continental seco (400-500 mm anuales) y soleado, sobre un mosaico geológico de granito, pizarra, caliza, arenisca y suelos volcánicos.`,
+                    grapeTrait: `Las cuatro variedades nobles —Riesling, Gewürztraminer, Pinot Gris y Muscat— despliegan una intensidad aromática terpénica y especiada única respaldada por acidez firme.`,
+                    styleDetail: isSGN
+                        ? `Bajo la mención Sélection de Grains Nobles (SGN), las uvas se vendimian grano a grano tras el desarrollo de podredumbre noble (Botrytis cinerea), originando blancos botritizados densos y longevos.`
+                        : isVT
+                        ? `Bajo la mención Vendanges Tardives (VT), las cuatro cepas nobles se cosechan tardíamente en sobremaduración en la cepa, dando blancos dulces de cosecha tardía intensos y equilibrados.`
+                        : `En AOC Alsace Grand Cru se elaboran blancos aromáticos varietales secos de gran pureza varietal, fermentados sin madera nueva en fudres neutros.`
+                };
+            }
+            if (aoc.includes('jura') || aoc.includes('château-chalon') || aoc.includes('arbois') || aoc.includes('étoile') || aoc.includes('macvin')) {
+                const isJaune = sty.includes('oxidativa') || aoc.includes('château-chalon');
+                const isPaille = sty.includes('paille') || sty.includes('tardía');
+                return {
+                    climateSoil: `En ${card.aoc} (Jura), al pie del macizo montañoso entre Borgoña y Suiza, el clima es continental extremo con altas precipitaciones (1000-1500 mm) y subsuelos de margas azules, negras y rojas mezcladas con caliza.`,
+                    grapeTrait: `La Savagnin es una cepa autóctona de maduración lenta y acidez muy elevada, mientras la Chardonnay aporta fineza estructural.`,
+                    styleDetail: isJaune
+                        ? `Para el Vin Jaune en Château-Chalon, Arbois y Côtes du Jura, el vino seco de Savagnin envejece más de 6 años en barricas sin rellenar bajo un velo de levaduras, embotellándose en el tradicional clavelin de 62 cl.`
+                        : isPaille
+                        ? `Para el Vin de Paille, los racimos sanos de Savagnin y Chardonnay se deshidratan entre 2 y 4 meses en galpones ventilados antes de prensarse y fermentar lentamente, dando un blanco dulce concentrado.`
+                        : `El Macvin du Jura es un vino de licor (VDL) elaborado mezclando mosto sin fermentar con aguardiente de orujo (marc) envejecido en roble.`
+                };
+            }
+            if (aoc.includes('savoie')) {
+                const isRed = sty.includes('tintos');
+                return {
+                    climateSoil: `En ${card.aoc} (Saboya), a los pies de los Alpes, el clima es continental-montañoso con regulación térmica de los lagos y alta pluviosidad (1200 mm), sobre laderas orientadas al sur de morrenas glaciares, guijarros y roca caliza.`,
+                    grapeTrait: isRed
+                        ? `La Mondeuse aporta aromas de frutos negros silvestres, pimienta negra y una acidez alpina vibrante con tanino ligero.`
+                        : `La Jacquère y la Altesse (Roussette) conservan una acidez cristalina y notas florales y de manzana verde.`,
+                    styleDetail: isRed
+                        ? `En AOC Savoie se elaboran tintos ligeros y especiados de Mondeuse y Gamay, pensados para beberse frescos.`
+                        : `En AOC Savoie se vinifican blancos secos ligeros, frescos y de marcado acento ácido en tanques inertes.`
+                };
+            }
+            if (aoc.includes('volnay') || aoc.includes('pommard') || aoc.includes('beaune') || aoc.includes('mercurey') || aoc.includes('givry') || aoc.includes('gevrey') || aoc.includes('vosne') || aoc.includes('chambolle')) {
+                const isCoteDeNuits = reg.includes('nuits');
+                const isChalonnaise = reg.includes('chalonnaise');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es continental con viñedos orientados al este y sudeste sobre colinas sedimentarias de piedra caliza, margas y arcilla de origen marino.`,
+                    grapeTrait: `La Pinot Noir alcanza aquí su máxima expresión de terroir, combinando aromas de frutos rojos y negros, notas florales y terrosas con acidez sedosa.`,
+                    styleDetail: isCoteDeNuits
+                        ? `En Gevrey-Chambertin, Vosne-Romanée y Chambolle-Musigny se elaboran tintos de máxima complejidad aromática, estructura tánica refinada y enorme potencial de guarda en botella.`
+                        : isChalonnaise
+                        ? `En Mercurey y Givry (Côte Chalonnaise) se producen tintos frutados de cuerpo medio, accesibles y equilibrados.`
+                        : `En Volnay, Pommard y Beaune (Côte de Beaune) se elaboran tintos elegantes que equilibran delicadeza floral (Volnay) y firmeza estructural (Pommard).`
+                };
+            }
+            if (aoc.includes('beaujolais') || aoc.includes('brouilly') || aoc.includes('chiroubles') || aoc.includes('fleurie') || aoc.includes('morgon') || aoc.includes('moulin-à-vent') || aoc.includes('juliénas') || aoc.includes('roannaise')) {
+                const isCarbonic = sty.includes('carbónica');
+                const isCruMedium = sty.includes('cuerpo medio');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es semicontinental con veranos cálidos. Los mejores crus del norte crecen en colinas de granito y esquisto, mientras el sur presenta suelos más llanos y arcillosos.`,
+                    grapeTrait: `La Gamay Noir à Jus Blanc ofrece explosión de frutos rojos frescos, notas florales de violeta y peonía, acidez viva y bajos taninos.`,
+                    styleDetail: isCarbonic
+                        ? `Mediante maceración carbónica o semicarbónica de racimos enteros vendimiados a mano, se obtienen tintos jóvenes extremadamente frutados y jugosos.`
+                        : isCruMedium
+                        ? `En Morgon, Moulin-à-Vent y Juliénas se emplean vinificaciones tradicionales con mayor extracción y crianza en fudres, logrando tintos frutados de cuerpo medio capaces de evolucionar varios años.`
+                        : `En Brouilly, Chiroubles y Fleurie el suelo granítico produce tintos ligeros, muy florales, sedosos y delicados.`
+                };
+            }
+            if (aoc.includes('pauillac') || aoc.includes('saint-estèphe') || aoc.includes('saint-julien') || aoc.includes('margaux') || aoc.includes('pessac-léognan') || aoc.includes('saint-émilion') || aoc.includes('pomerol')) {
+                const isRightBank = reg.includes('libournais');
+                return {
+                    climateSoil: isRightBank
+                        ? `En ${card.aoc} (${card.region}), el clima es templado atlántico sobre la margen derecha de Burdeos, donde dominan suelos de arcilla fría y piedra caliza (côtes).`
+                        : `En ${card.aoc} (${card.region}), el clima es templado marítimo atemperado por el estuario del Gironde y los bosques de las Landas, sobre colinas de grava bien drenada que retienen el calor.`,
+                    grapeTrait: isRightBank
+                        ? `La Merlot lidera el corte aportando voluptuosidad, fruta negra madura y textura aterciopelada, acompañada por Cabernet Franc que suma frescura y perfume.`
+                        : `La Cabernet Sauvignon reina sobre las gravas, aportando estructura tánica firme, notas de cassis, cedro y gran longevidad, suavizada con Merlot y Cabernet Franc.`,
+                    styleDetail: `Se vinifican tintos de corte con extracción controlada y crianza prolongada en barricas de roble francés, logrando gran complejidad aromática y décadas de guarda.`
+                };
+            }
+            if (aoc.includes('sauternes') || aoc.includes('barsac') || aoc.includes('cérons') || aoc.includes('sainte-croix') || aoc.includes('loupiac') || aoc.includes('cadillac') || aoc.includes('monbazillac')) {
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), la cercanía a los ríos Garona, Ciron o Dordoña genera mañanas otoñales húmedas con niebla seguidas de tardes cálidas y secas sobre suelos de grava y caliza.`,
+                    grapeTrait: `La Sémillon, de piel fina y sensible a la botrytis, aporta untuosidad y notas de miel y albaricoque, equilibrada por la acidez de la Sauvignon Blanc y el aroma de la Muscadelle.`,
+                    styleDetail: `Las bayas atacadas por podredumbre noble (Botrytis cinerea) se vendimian manualmente en varias pasadas y se crían en barricas de roble, creando blancos botritizados opulentos y longevos.`
+                };
+            }
+            if (aoc.includes('condrieu') || aoc.includes('château-grillet') || aoc.includes('côte-rôtie') || aoc.includes('hermitage') || aoc.includes('cornas') || aoc.includes('crozes-hermitage')) {
+                const isWhite = card.color === 'blanco';
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es continental con veranos cálidos y el viento seco del norte (bise), con viñedos plantados en terrazas escarpadas de granito y pizarra sobre el río Ródano.`,
+                    grapeTrait: isWhite
+                        ? `La Viognier, originaria de esta zona, ofrece exuberantes aromas de durazno, damasco y flores blancas con gran untuosidad en boca.`
+                        : `La Syrah desarrolla aquí aromas profundos de mora, violeta, aceituna negra y pimienta, con taninos nobles y gran concentración.`,
+                    styleDetail: isWhite
+                        ? (aoc.includes('château-grillet')
+                            ? `En el anfiteatro granítico de Château-Grillet se elaboran blancos secos de Viognier más austeros, minerales y con gran potencial de guarda en botella.`
+                            : `En Condrieu se elaboran blancos aromáticos secos de Viognier, perfumados, envolventes y sedosos.`)
+                        : (aoc.includes('crozes')
+                            ? `En Crozes-Hermitage, sobre suelos algo más llanos y ricos, se obtienen tintos frutados de cuerpo medio más suaves y accesibles.`
+                            : aoc.includes('côte-rôtie')
+                            ? `En Côte-Rôtie la Syrah puede cofermentarse con hasta un 20% de Viognier, logrando tintos elegantes de gran complejidad aromática.`
+                            : `En Hermitage y Cornas se elaboran tintos de Syrah con mucho cuerpo, crianza en roble y enorme potencial de guarda.`)
+                };
+            }
+            if (aoc.includes('châteauneuf') || aoc.includes('gigondas') || aoc.includes('vacqueyras') || aoc.includes('côtes du rhône') || aoc.includes('beaumes-de-venise') || aoc.includes('rasteau')) {
+                const isFortified = sty.includes('fortificados');
+                const isPrimeur = aoc.includes('primeur');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es mediterráneo soleado y seco, barrido por el viento frío Mistral, sobre suelos variados de cantos rodados (galets), caliza, arcilla y arena.`,
+                    grapeTrait: isFortified
+                        ? (card.color === 'blanco'
+                            ? `La Moscatel de grano pequeño conserva aquí frescos aromas florales, de azahar y fruta cítrica.`
+                            : `La Grenache Noir alcanza una madurez azucarada muy alta con notas de fruta negra confitada, higos secos y cacao.`)
+                        : `La Grenache lidera los cortes aportando calidez, fruta roja madura y volumen, respaldada por la estructura tánica de Syrah y Mourvèdre.`,
+                    styleDetail: isFortified
+                        ? (card.color === 'blanco'
+                            ? `En Muscat de Beaumes-de-Venise se interrumpe la fermentación mediante encabezado con alcohol vínico (Vin Doux Naturel), obteniendo un blanco dulce dorado de 15% de alcohol pensado para beberse joven y fresco.`
+                            : `En AOC Rasteau se elaboran Vins Doux Naturels tintos encabezando el mosto en fermentación de Grenache Noir y criándolos en toneles viejos (o en versión oxidativa Rasteau Rancio).`)
+                        : isPrimeur
+                        ? `En Côtes du Rhône Primeur se aplica maceración carbónica sobre Grenache para lanzar tintos jóvenes, ligeros y explosivamente frutados.`
+                        : `Se elaboran tintos de corte mediterráneos ricos en extracto, alcohol y complejidad especiada con crianza en fudres o barricas.`
+                };
+            }
+            if (aoc.includes('bellet') || aoc.includes('bandol')) {
+                const isWhite = card.color === 'blanco';
+                return {
+                    climateSoil: `En ${card.aoc} (Provenza), el clima es mediterráneo muy soleado (3.000 horas de sol) moderado por brisas marinas y el viento Mistral, sobre terrazas costeras de piedra caliza, esquistos y areniscas.`,
+                    grapeTrait: isWhite
+                        ? `La Rolle (Vermentino) combinada con Chardonnay aporta intenso perfume floral, notas cítricas y buen volumen en boca.`
+                        : `La Mourvèdre requiere mucho sol para madurar plenamente y entrega tintos oscuros, estructurados, tánicos y especiados.`,
+                    styleDetail: isWhite
+                        ? `En las colinas de Niza (AOC Bellet), se elaboran blancos aromáticos secos con cuerpo y frescura mediterránea.`
+                        : `En AOC Bandol se prohíbe la cosecha mecánica y los tintos de Mourvèdre exigen al menos 18 meses de crianza en madera, logrando vinos potentes y muy longevos.`
+                };
+            }
+            if (aoc.includes('jurançon') || aoc.includes('pacherenc') || aoc.includes('madiran') || aoc.includes('cahors') || aoc.includes('pécharmant')) {
+                const isWhite = card.color === 'blanco';
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima combina la influencia húmeda del Atlántico con la continentalidad del interior y las estribaciones de los Pirineos o el Macizo Central, sobre suelos de arcilla, grava y piedra caliza.`,
+                    grapeTrait: isWhite
+                        ? `La Petit Manseng concentra altos niveles de azúcar manteniendo una acidez natural cortante, acompañada por Gros Manseng, Courbu y Arrufiac.`
+                        : aoc.includes('madiran')
+                        ? `La Tannat es una cepa autóctona de piel gruesa con altísima carga polifenólica y tánica.`
+                        : aoc.includes('cahors')
+                        ? `La Malbec o Côt (llamada localmente Auxerrois) produce vinos de color tinta profundo y gran estructura.`
+                        : `Las variedades bordelesas (Cabernet Sauvignon, Cabernet Franc, Merlot y Malbec) alcanzan gran concentración.`,
+                    styleDetail: isWhite
+                        ? `En Jurançon y Pacherenc du Vic-Bilh se elaboran blancos dulces de cosecha tardía mediante pasificación natural en la cepa (passerillage), sin botrytis ni encabezado.`
+                        : `Se vinifican tintos de gran cuerpo y concentración, sometidos a crianza en madera y microoxigenación para pulir sus taninos y asegurar larga guarda.`
+                };
+            }
+            if (aoc.includes('picpoul') || aoc.includes('minervois') || aoc.includes('saint-chinian') || aoc.includes('clairette') || aoc.includes('frontignan') || aoc.includes('lunel') || aoc.includes('mireval') || aoc.includes('banyuls') || aoc.includes('maury') || aoc.includes('rivesaltes') || aoc.includes('cap corse')) {
+                const isFortified = sty.includes('fortificados');
+                const isRancio = sty.includes('oxidativa');
+                const isCarbonic = sty.includes('carbónica');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), el clima es mediterráneo cálido y soleado con bajas precipitaciones y vientos secos, sobre suelos que van desde depósitos aluviales y calizas costeras hasta pizarras negras y rojas en los Pirineos.`,
+                    grapeTrait: isFortified
+                        ? (card.color === 'blanco'
+                            ? `La Moscatel de grano pequeño (y Moscatel de Alejandría en Rivesaltes) concentra intensos aromas de flor de naranjo, miel y fruta cítrica.`
+                            : `La Grenache Noir alcanza una sobremaduración rica en azúcares con notas de higos, cacao y ciruela pasa.`)
+                        : aoc.includes('picpoul')
+                        ? `La Picpoul Blanc conserva una acidez chispeante incluso bajo el sol mediterráneo.`
+                        : aoc.includes('clairette')
+                        ? `La Clairette es una variedad blanca mediterránea apta para largas crianzas oxidativas.`
+                        : `La Carignan aporta color intenso, acidez y rusticidad tánica, suavizada con Grenache y Syrah.`,
+                    styleDetail: isFortified
+                        ? (card.color === 'blanco'
+                            ? `Mediante encabezado con alcohol vínico al 96% (Vins Doux Naturels), se detiene la fermentación para conservar el dulzor aromático del moscatel y alcanzar entre 15% y 18% de alcohol.`
+                            : `En ${card.aoc}, los Vins Doux Naturels tintos se elaboran encabezando el mosto de Grenache Noir en fermentación y envejeciéndolos en madera, damajuanas (bombonnes) o soleras.`)
+                        : isRancio
+                        ? `En Clairette d'Adissan y Rivesaltes Rancio, los blancos secos se exponen al oxígeno y al calor durante años en barricas o damajuanas (bombonnes), desarrollando complejidad oxidativa.`
+                        : isCarbonic
+                        ? `En Minervois y Saint-Chinian se emplea la maceración carbónica para domar la astringencia natural de la Carignan y obtener tintos frutados y suaves.`
+                        : `En Picpoul de Pinet se elaboran blancos secos, ligeros, salinos y de marcado acento ácido.`
+                };
+            }
+
+            // ESPAÑA
+            if (aoc.includes('rías baixas')) {
+                const isRed = card.color === 'tinto';
+                const isAromatic = sty.includes('aromáticos');
+                return {
+                    climateSoil: `En ${card.aoc} (Galicia), el clima es fresco, húmedo y marítimo (1.300 mm de lluvia anuales compensados por buena insolación), con viñedos bajos sobre suelos arenosos y graníticos ligeramente ácidos.`,
+                    grapeTrait: isRed
+                        ? `Las tintas atlánticas Mencía, Espadeiro y Caíño Tinto entregan fruta roja fresca, notas herbáceas, acidez viva y tanino ligero.`
+                        : isAromatic
+                        ? `La Albariño combinada con Treixadura y Loureira despliega intensos aromas florales, de fruta de hueso y cítricos.`
+                        : `La Albariño en pureza concentra una acidez vibrante y un distintivo toque salino heredado de los suelos graníticos cercanos al mar.`,
+                    styleDetail: isRed
+                        ? `En Rías Baixas se elabora una pequeña producción de tintos ligeros, frescos y de marcado carácter atlántico.`
+                        : `Se vinifican blancos secos en acero inoxidable (a menudo con trabajo sobre lías) que preservan toda la pureza aromática y frescura ácida.`
+                };
+            }
+            if (aoc.includes('ribeiro')) {
+                return {
+                    climateSoil: `En ${card.aoc} (Galicia), los valles interiores protegidos suavizan la humedad atlántica con abundante insolación sobre suelos graníticos y aluviales.`,
+                    grapeTrait: `Las variedades autóctonas Treixadura, Torrontés y Lado concentran aromas florales, de miel y fruta madura sin perder frescura ácida.`,
+                    styleDetail: `Para el tradicional Tostado de Ribeiro, los racimos seleccionados se pasifican a cubierto durante meses antes de prensarse y fermentar lentamente, dando un blanco dulce sin encabezar.`
+                };
+            }
+            if (aoc.includes('ribeira sacra')) {
+                return {
+                    climateSoil: `En ${card.aoc} (Galicia), los viñedos se cultivan en heroicas terrazas de pendientes pronunciadas sobre los cañones de los ríos Miño y Sil, en suelos de pizarra y granito con microclima atlántico-continental.`,
+                    grapeTrait: `La Mencía, acompañada por Brancellao y Merenzao, ofrece aromas florales, de frambuesa y mineralidad pizarrosa con acidez fresca.`,
+                    styleDetail: `Es la única DO gallega especializada en vinos tintos, produciendo ejemplares ligeros, aromáticos y de gran pureza varietal.`
+                };
+            }
+            if (aoc.includes('chacolí')) {
+                return {
+                    climateSoil: `En ${card.aoc} (País Vasco), sobre la Bahía de Vizcaya, el clima es atlántico fresco y muy lluvioso (1.500 mm anuales), con viñedos conducidos en emparrado para evitar enfermedades fúngicas.`,
+                    grapeTrait: `La Hondarribi Zuri (acompañada de Folle Blanche en Bizkaia) produce mostos de graduación moderada, acidez eléctrica y notas cítricas y herbáceas.`,
+                    styleDetail: `Se elaboran blancos jóvenes, secos y muy refrescantes (a menudo con una sutil aguja carbónica natural retenida en bodega) de marcado acento ácido.`
+                };
+            }
+            if (aoc.includes('rioja')) {
+                const isWhite = card.color === 'blanco';
+                const isCarbonic = sty.includes('carbónica');
+                const isMedium = sty.includes('cuerpo medio');
+                const isComplex = sty.includes('cierta complejidad');
+                return {
+                    climateSoil: `En ${card.aoc}, protegida de los vientos húmedos del Cantábrico por la Sierra de Cantabria, Rioja Alta y Alavesa gozan de clima atlántico-continental fresco sobre suelos arcillo-calcáreos, mientras Rioja Oriental es más mediterránea.`,
+                    grapeTrait: isWhite
+                        ? `La Viura (Macabeo) desarrollada en las laderas frescas de Rioja Alavesa conserva una acidez firme y estructura ideal para evolucionar en botella.`
+                        : `La Tempranillo aporta fruta roja, equilibrio y capacidad de crianza, complementada por Garnacha (cuerpo), Graciano (acidez y aroma) y Mazuelo (tanino).`,
+                    styleDetail: isWhite
+                        ? `En Rioja Alavesa se elaboran blancos secos de Viura con alta acidez y estructura capaces de ganar complejidad terciaria sin depender de madera nueva.`
+                        : isCarbonic
+                        ? `En Rioja Alavesa y Rioja Alta los tintos jóvenes de maceración carbónica fermentan con racimos enteros, logrando vinos muy aromáticos y jugosos.`
+                        : isMedium
+                        ? `Los tintos jóvenes y semicrianzas de Tempranillo y Garnacha priorizan la expresión frutal directa con cuerpo medio.`
+                        : isComplex
+                        ? `Los Crianza y Reserva cumplen plazos mínimos de envejecimiento en barrica (roble americano y francés) y botella, integrando especias y fruta madura.`
+                        : `Los Gran Reserva y Viñedo Singular (cepas de más de 35 años y rendimientos limitados) pasan largas crianzas en madera y botella para alcanzar máxima longevidad.`
+                };
+            }
+            if (aoc.includes('rueda')) {
+                const isOxidative = sty.includes('oxidativa');
+                const isGuard = sty.includes('guarda');
+                return {
+                    climateSoil: `En ${card.aoc} (Castilla y León), a 600-780 msnm, el clima es continental extremo con inviernos fríos, heladas y veranos calurosos, sobre suelos cascajosos de canto rodado.`,
+                    grapeTrait: isOxidative
+                        ? `La Palomino Fino y la Verdejo resisten prolongadas crianzas oxidativas desarrollando aromas a frutos secos y tostados.`
+                        : `La Verdejo autóctona aporta notas herbáceas de hinojo, fruta blanca, acidez vibrante y un característico final ligeramente amargo.`,
+                    styleDetail: isOxidative
+                        ? `El Rueda Dorado es un vino de licor seco sometido a crianza oxidativa durante al menos 2 años en barrica de roble.`
+                        : isGuard
+                        ? `La mención Gran Vino de Rueda exige viñedos de más de 30 años y bajos rendimientos, logrando blancos de guarda de gran tensión ácida sin madera.`
+                        : `Los blancos jóvenes de Verdejo y Sauvignon Blanc se elaboran en acero inoxidable a temperatura controlada para preservar su perfil aromático y fresco.`
+                };
+            }
+            if (aoc.includes('ribera del duero') || aoc.includes('toro') || aoc.includes('bierzo') || aoc.includes('cigales')) {
+                const isToro = aoc.includes('toro');
+                const isBierzo = aoc.includes('bierzo');
+                const isCigales = aoc.includes('cigales');
+                const isGuard = sty.includes('guarda');
+                return {
+                    climateSoil: isBierzo
+                        ? `En DO Bierzo, protegida por montañas en un microclima suave entre Galicia y la meseta (450-1.000 msnm), los viñedos crecen sobre laderas de pizarra y suelos aluviales.`
+                        : `En ${card.aoc} (Castilla y León), a 650-850 msnm, el clima es continental extremo con gran amplitud térmica entre días muy calurosos y noches frías, sobre suelos de piedra caliza, tiza, arena y arcilla.`,
+                    grapeTrait: isBierzo
+                        ? `La Mencía (70% del viñedo) aporta fruta roja y negra fresca, notas florales y mineralidad.`
+                        : isToro
+                        ? `La Tinta de Toro (clon adaptado de Tempranillo) desarrolla bayas de hollejo grueso con altísima concentración fenólica, color y grado alcohólico.`
+                        : `La Tinta del País o Tempranillo (complementada con Cabernet Sauvignon en Cigales) combina piel gruesa, buena acidez y taninos firmes.`,
+                    styleDetail: isBierzo
+                        ? `En Bierzo se elaboran tintos frutados de cuerpo medio que equilibran frescura atlántica y madurez continental.`
+                        : isToro
+                        ? `En DO Toro se elaboran tintos con mucho cuerpo, potente estructura tánica, paso por roble y gran potencial de guarda.`
+                        : isCigales
+                        ? `En DO Cigales los cortes de Tempranillo y Cabernet Sauvignon ofrecen tintos elegantes de buena estructura y complejidad.`
+                        : isGuard
+                        ? `Los Reserva y Gran Reserva de Ribera del Duero cumplen largas crianzas en barrica de roble (hasta 24 meses en Gran Reserva) y botella para desarrollar gran complejidad y guarda.`
+                        : `Los Joven y Roble de Ribera del Duero priorizan la fruta negra intensa de la Tinta del País con cuerpo medio y crianza breve.`
+                };
+            }
+            if (aoc.includes('priorat') || aoc.includes('montsant') || aoc.includes('penedès') || aoc.includes('alella') || aoc.includes('plà de bagés') || aoc.includes('costers del segre') || aoc.includes('tarragona') || aoc.includes('terra alta') || aoc.includes('empordà')) {
+                const isWhite = card.color === 'blanco';
+                const isFortified = sty.includes('fortificados');
+                const isRancio = sty.includes('oxidativa');
+                return {
+                    climateSoil: aoc.includes('priorat')
+                        ? `En DOCa Priorat (Cataluña), los viñedos se escalonan en terrazas empinadas (100-700 msnm) con clima mediterráneo-continental seco sobre suelos volcánicos de pizarra roja y negra llamados llicorella.`
+                        : aoc.includes('terra alta')
+                        ? `En DO Terra Alta, el clima mediterráneo-continental recibe el viento seco cierzo del Valle del Ebro sobre suelos calizos.`
+                        : aoc.includes('costers del segre')
+                        ? `En DO Costers del Segre (Lleida), el clima es continental extremo con inviernos bajo cero y veranos calurosos.`
+                        : `En ${card.aoc} (Cataluña), el clima es mediterráneo moderado por la brisa marina y la altitud (hasta 800 msnm en Penedès Superior y pendientes costeras en Alella).`,
+                    grapeTrait: isWhite
+                        ? `Las variedades blancas catalanas —Xarel-lo (Pansá Blanca), Macabeo, Parellada, Picapoll, Garnacha Blanca y Moscatel— mantienen buena acidez y estructura en altitud o cerca del mar.`
+                        : `Las cepas mediterráneas Garnacha y Cariñena (Mazuelo) alcanzan alta concentración de azúcares, color y taninos maduros.`,
+                    styleDetail: isFortified
+                        ? `En DO Tarragona (Tarragona Clásico) y DO Empordà (Garnatxa d'Empordà) se elaboran tintos dulces encabezados de Garnacha Tinta sobremadura, envejecidos en toneles, barricas o sistemas de soleras.`
+                        : isRancio
+                        ? `En DO Terra Alta, el Vino Rancio Seco de Garnacha Blanca envejece durante al menos 5 años en barrica en contacto con el oxígeno.`
+                        : isWhite
+                        ? (sty.includes('botritizados')
+                            ? `En España no existe tradición ni regulación de podredumbre noble debido a su clima seco; en Penedès y Tarragona los blancos dulces se obtienen por sobremaduración o pasificación, nunca por botrytis.`
+                            : sty.includes('guarda')
+                            ? `En DO Alella (Pansá Blanca) y DO Costers del Segre se elaboran blancos secos de alta acidez y estructura con notable potencial de guarda sin madera.`
+                            : `Se elaboran blancos jóvenes frescos y aromáticos en acero inoxidable con control de temperatura.`)
+                        : `En DOCa Priorat y DO Montsant las viñas viejas de Garnacha y Cariñena producen tintos concentrados, minerales y de gran potencial de guarda.`
+                };
+            }
+            if (aoc.includes('jerez') || aoc.includes('manzanilla') || aoc.includes('montilla') || aoc.includes('málaga') || aoc.includes('condado de huelva')) {
+                const isRed = card.color === 'tinto';
+                const isUnfortifiedSweet = sty.includes('cosecha tardía');
+                const isFortifiedSweet = sty.includes('fortificados dulces');
+                const isFreshWhite = sty.includes('acento ácido');
+                return {
+                    climateSoil: `En ${card.aoc} (Andalucía), el clima es cálido con fuerte influencia atlántica o mediterránea y casi 300 días de sol al año. Destacan los suelos blancos de albariza ricos en carbonato cálcico, que retienen las lluvias invernales.`,
+                    grapeTrait: isRed
+                        ? `La Romé es una variedad tinta autóctona de Málaga de hollejo fino y buena acidez, que bajo el sol malagueño alcanza alta concentración azucarina para vinos dulces.`
+                        : isFreshWhite
+                        ? `La Zalema del Condado de Huelva produce blancos jóvenes ligeros y refrescantes.`
+                        : (aoc.includes('montilla')
+                            ? `La Pedro Ximénez es la cepa reina, alcanzando naturalmente altos niveles de azúcar y alcohol potencial bajo el calor cordobés.`
+                            : `La Palomino Fino en suelos de albariza da mostos neutros ideales para crianza bajo velo o oxidativa, mientras Pedro Ximénez y Moscatel son perfectas para el asoleo.`),
+                    styleDetail: isRed
+                        ? `En DO Málaga, a partir de uvas sobremaduras o asoleadas de la tinta Romé, se elaboran tintos fortificados dulces (VDL o VDN) encabezados con alcohol vínico hasta alcanzar entre 15% y 22% de alcohol y criados en madera de roble.`
+                        : isFreshWhite
+                        ? `En Condado de Huelva los blancos jóvenes de Zalema fermentan en acero inoxidable evitando la maloláctica para preservar su acidez.`
+                        : isUnfortifiedSweet
+                        ? `En DO Málaga (Vino Naturalmente Dulce) y DO Montilla-Moriles (Dulces sin encabezado), uvas sobremaduras o asoleadas de PX y Moscatel fermentan naturalmente sin adición de alcohol.`
+                        : isFortifiedSweet
+                        ? `Mediante asoleo previo de las uvas PX y Moscatel y encabezado con alcohol vínico (o cabeceo en el caso del Jerez Cream), se elaboran blancos fortificados dulces criados en soleras.`
+                        : `Mediante el sistema dinámico de criaderas y soleras en botas de roble, se obtienen blancos secos de crianza oxidativa (Amontillado, Oloroso, Palo Cortado, Manzanilla Pasada y Condado Viejo).`
+                };
+            }
+            if (aoc.includes('jumilla') || aoc.includes('yecla') || aoc.includes('bullas') || aoc.includes('alicante') || aoc.includes('valencia')) {
+                const isWhite = card.color === 'blanco';
+                const isFortified = sty.includes('fortificados');
+                const isMedium = sty.includes('cuerpo medio');
+                return {
+                    climateSoil: `En ${card.aoc} (Levante / Murcia), el clima es mediterráneo árido con influencia continental en el interior (400-800 msnm), veranos muy calurosos, escasas lluvias y suelos calizos y pedregosos.`,
+                    grapeTrait: isWhite
+                        ? `La Moscatel de Alejandría (llamada Moscatel Romano en Valencia) desarrolla intensos aromas florales y de uva fresca bajo el sol mediterráneo.`
+                        : `La Monastrell autóctona resiste la sequía y alcanza maduraciones elevadas con color intenso, fruta negra madura y taninos potentes.`,
+                    styleDetail: isWhite
+                        ? `En DO Valencia se elabora el tradicional VDL Moscatel Romano encabezando el mosto con alcohol vínico para conservar su dulzor natural.`
+                        : isFortified
+                        ? `En DO Yecla y DO Alicante se elaboran tintos dulces encabezados (VDL) a partir de Monastrell sobremadurada (a diferencia del Fondillón de Alicante, que fermenta naturalmente hasta alta graduación sin encabezar).`
+                        : isMedium
+                        ? `En DO Bullas, gracias a la mayor altitud y frescor relativo de Murcia, la Monastrell da tintos jóvenes frutados y equilibrados de cuerpo medio.`
+                        : `En DO Jumilla, DO Alicante y los Reserva/Gran Reserva de DO Yecla, la Monastrell criada en roble ofrece tintos con mucho cuerpo y potencial de guarda.`
+                };
+            }
+            if (aoc.includes('navarra') || aoc.includes('somontano') || aoc.includes('campo de borja') || aoc.includes('calatayud')) {
+                const isWhite = card.color === 'blanco';
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), la influencia de los Pirineos al norte contrasta con el clima continental semiseco del Valle del Ebro, con marcada amplitud térmica y suelos calizos y cascajosos.`,
+                    grapeTrait: isWhite
+                        ? (aoc.includes('somontano')
+                            ? `La Gewürztraminer junto a Chardonnay y Macabeo conserva gran frescura e intensidad floral gracias a la influencia pirenaica.`
+                            : `La Moscatel concentra aromas intensos de azahar y miel en las zonas cálidas de Navarra.`)
+                        : `La Garnacha (complementada con Tempranillo en Navarra) produce vinos expresivos, frutados, especiados y de cuerpo medio.`,
+                    styleDetail: isWhite
+                        ? (aoc.includes('navarra')
+                            ? `En DO Navarra los VDN de Moscatel se encabezan y envejecen al menos 24 meses, incluyendo 18 meses en barricas de roble.`
+                            : `En DO Somontano se elaboran blancos aromáticos secos y frescos en depósitos con control de temperatura.`)
+                        : `En Navarra, Campo de Borja y Calatayud se elaboran tintos frutados de cuerpo medio donde brilla la expresión varietal de la Garnacha.`
+                };
+            }
+            if (aoc.includes('valdepeñas') || aoc.includes('la mancha') || aoc.includes('almansa') || aoc.includes('valdepusa') || aoc.includes('madrid')) {
+                const isWhite = card.color === 'blanco';
+                const isLight = sty.includes('ligeros');
+                const isGuard = sty.includes('guarda');
+                return {
+                    climateSoil: `En ${card.aoc} (${card.region}), sobre la meseta central (500-1.000 msnm), el clima es continental extremo con inviernos bajo cero, veranos muy secos hasta 40 °C y más de 3.000 horas de sol, sobre suelos calizos y arcillosos.`,
+                    grapeTrait: isWhite
+                        ? `La Airén, resistente a la sequía, aporta frescura neutra que gana expresión aromática al combinarse con Macabeo.`
+                        : isLight
+                        ? `La Garnacha Tinta y el Tinto Fino en Navalcarnero dan vinos jugosos de capa media y tanino amable.`
+                        : aoc.includes('valdepusa')
+                        ? `Variedades internacionales como Syrah, Cabernet Sauvignon y Petit Verdot junto a Graciano alcanzan gran intensidad fenólica con riego por goteo controlado.`
+                        : `La Cencibel (Tempranillo), la Monastrell y la Garnacha Tintorera concentran color profundo y estructura.`,
+                    styleDetail: isWhite
+                        ? `En DO Valdepeñas los blancos jóvenes de Airén y Macabeo se vinifican en acero inoxidable a baja temperatura para lograr un perfil frutado y aromático.`
+                        : isLight
+                        ? `En la subzona Navalcarnero de DO Vinos de Madrid se elaboran tintos ligeros y jóvenes pensados para consumo fresco.`
+                        : isGuard
+                        ? `En el Vino de Pago Dominio de Valdepusa se elaboran tintos complejos criados de 8 a 24 meses en barricas de roble francés con gran potencial de guarda.`
+                        : `En DO La Mancha y DO Almansa se producen tintos con mucho cuerpo, concentración y paso por barrica de roble.`
+                };
+            }
+            if (aoc.includes('binissalem')) {
+                return {
+                    climateSoil: `En ${card.aoc} (Islas Baleares), en el centro de Mallorca a 75-200 msnm, el clima es mediterráneo marítimo con veranos cálidos y secos e inviernos suaves.`,
+                    grapeTrait: `La cepa tinta autóctona Manto Negro (mínimo 50% del corte) aporta calidez mediterránea, fruta madura y elegancia, equilibrada con Cabernet Sauvignon y Syrah.`,
+                    styleDetail: `En DO Binissalem Mallorca se elaboran tintos elegantes con crianza en madera que armonizan tipicidad insular y complejidad aromática.`
+                };
+            }
+            if (aoc.includes('tacoronte') || aoc.includes('güímar') || aoc.includes('ycoden') || aoc.includes('la palma')) {
+                const isWhite = card.color === 'blanco';
+                const isCarbonic = sty.includes('carbónica');
+                return {
+                    climateSoil: `En ${card.aoc} (Islas Canarias), el clima es templado marítimo bajo la influencia de los vientos alisios húmedos del Atlántico, con viñedos en pie franco (libres de filoxera) sobre suelos volcánicos ricos en ceniza y lava.`,
+                    grapeTrait: isWhite
+                        ? `Las viñas centenarias de Malvasía en las terrazas empinadas de La Palma concentran acidez natural y notas de albaricoque y miel.`
+                        : `La Listán Negro y la Negramoll en pie franco expresan fruta roja fresca, pimienta blanca y un inconfundible carácter mineral volcánico.`,
+                    styleDetail: isWhite
+                        ? `En DO La Palma los blancos dulces se elaboran con uvas de Malvasía parcialmente pasificadas en la propia viña sin encabezado.`
+                        : isCarbonic
+                        ? `En DO Tacoronte-Acentejo y DO Valle de Güímar la maceración carbónica de Listán Negro produce tintos jóvenes muy aromáticos, frescos y suaves.`
+                        : `En DO Tacoronte-Acentejo y DO Ycoden-Daute-Isora se elaboran tintos ligeros, vibrantes y de marcada mineralidad volcánica.`
+                };
+            }
+
+            // Respaldo general
+            return {
+                climateSoil: `En ${card.aoc} (${card.region}), las condiciones de clima y suelo determinan el ciclo de maduración y la acidez natural de la uva.`,
+                grapeTrait: `Las variedades ${card.grapes} definen la identidad aromática y la estructura de los vinos de esta denominación.`,
+                styleDetail: `En ${card.aoc} se elaboran ${card.style.toLowerCase()}, reflejando las prácticas tradicionales de vinificación de la zona.`
+            };
+        }
+
+        function buildLessonSlides(card) {
+            const profile = getTerroirProfile(card);
+            lessonSlides = [
+                {
+                    type: 'region',
+                    title: `${card.aoc} · Clima y Suelo`,
+                    subtitle: profile.climateSoil,
+                    accent: '#f59e0b'
+                },
+                {
+                    type: 'grapes',
+                    title: `Cepas: ${card.grapes}`,
+                    subtitle: profile.grapeTrait,
+                    accent: '#10b981'
+                },
+                {
+                    type: 'style',
+                    title: `Estilo: ${card.style}`,
+                    subtitle: profile.styleDetail,
+                    accent: '#ec4899'
+                }
+            ];
+        }
+
+        function getOrFetchSlideAudio(idx) {
+            if (lessonAudioCache[idx]) {
+                return Promise.resolve(lessonAudioCache[idx]);
+            }
+            if (!lessonAudioPromises[idx]) {
+                const slide = lessonSlides[idx];
+                if (!slide) return Promise.resolve(null);
+                lessonAudioPromises[idx] = fetchNaturalTtsUrl(slide.subtitle).then(url => {
+                    if (url) lessonAudioCache[idx] = url;
+                    return url;
+                });
+            }
+            return lessonAudioPromises[idx];
+        }
+
+        function preloadLessonAudioInBackground() {
+            lessonSlides.forEach((_, idx) => {
+                getOrFetchSlideAudio(idx);
+            });
+        }
+
+        function setLessonLoadingState(loading) {
+            isLessonAudioLoading = loading;
+            const overlay = document.getElementById('lessonLoadingOverlay');
+            const btn = document.getElementById('lessonPlayPauseBtn');
+            if (loading) {
+                overlay.classList.remove('hidden');
+                btn.disabled = true;
+            } else {
+                overlay.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function openVideoLessonModal() {
+            if (!currentQuizCard) return;
+            document.getElementById('videoModalTitle').textContent = `${currentQuizCard.aoc} — Cápsula de Repaso`;
+            document.getElementById('videoLessonModal').classList.remove('hidden');
+            currentSlideIndex = 0;
+            lessonElapsed = 0;
+            lessonPlaying = true;
+            updatePlayPauseButton();
+            startLessonLoop();
+            playLessonSlide(0);
+            lucide.createIcons();
+        }
+
+        function closeVideoLessonModal() {
+            stopLessonVideo();
+            document.getElementById('videoLessonModal').classList.add('hidden');
+        }
+
+        function closeVideoLessonAndNext() {
+            closeVideoLessonModal();
+            startNewQuiz();
+        }
+
+        function stopLessonVideo() {
+            lessonPlaying = false;
+            if (lessonTimer) clearInterval(lessonTimer);
+            if (lessonAnimFrame) cancelAnimationFrame(lessonAnimFrame);
+            if (activeLessonAudio) {
+                activeLessonAudio.pause();
+                activeLessonAudio = null;
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function toggleLessonPlayPause() {
+            if (isLessonAudioLoading) return;
+            lessonPlaying = !lessonPlaying;
+            if (activeLessonAudio) {
+                if (lessonPlaying) activeLessonAudio.play().catch(() => {});
+                else activeLessonAudio.pause();
+            } else if ('speechSynthesis' in window) {
+                if (lessonPlaying) window.speechSynthesis.resume();
+                else window.speechSynthesis.pause();
+            }
+            updatePlayPauseButton();
+        }
+
+        function restartLessonVideo() {
+            currentSlideIndex = 0;
+            lessonElapsed = 0;
+            lessonPlaying = true;
+            updatePlayPauseButton();
+            playLessonSlide(0);
+        }
+
+        function jumpToLessonSlide(idx) {
+            currentSlideIndex = idx;
+            lessonElapsed = idx * SLIDE_DURATION;
+            lessonPlaying = true;
+            updatePlayPauseButton();
+            playLessonSlide(idx);
+        }
+
+        function toggleLessonVoice() {
+            lessonVoiceEnabled = !lessonVoiceEnabled;
+            if (activeLessonAudio) activeLessonAudio.muted = !lessonVoiceEnabled;
+            if (!lessonVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+            const icon = document.getElementById('lessonVoiceIcon');
+            icon.setAttribute('data-lucide', lessonVoiceEnabled ? 'volume-2' : 'volume-x');
+            lucide.createIcons();
+        }
+
+        function updatePlayPauseButton() {
+            const icon = document.getElementById('lessonPlayIcon');
+            const text = document.getElementById('lessonPlayText');
+            icon.setAttribute('data-lucide', lessonPlaying ? 'pause' : 'play');
+            text.textContent = lessonPlaying ? 'Pausar' : 'Reproducir';
+            lucide.createIcons();
+        }
+
+        async function playLessonSlide(idx) {
+            const slide = lessonSlides[idx];
+            if (!slide) return;
+
+            document.getElementById('lessonSubtitleText').textContent = slide.subtitle;
+
+            for (let i = 0; i < 3; i++) {
+                const pill = document.getElementById(`slidePill-${i}`);
+                if (i === idx) {
+                    pill.className = 'flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-amber-500 text-stone-950 transition text-center shadow-xs';
+                } else if (i < idx) {
+                    pill.className = 'flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-700/80 text-white transition text-center';
+                } else {
+                    pill.className = 'flex-1 py-1.5 px-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-stone-800/90 text-stone-300 transition text-center';
+                }
+            }
+
+            if (activeLessonAudio) {
+                activeLessonAudio.pause();
+                activeLessonAudio = null;
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+            let audioUrl = lessonAudioCache[idx];
+            if (!audioUrl) {
+                setLessonLoadingState(true);
+                audioUrl = await getOrFetchSlideAudio(idx);
+                setLessonLoadingState(false);
+            }
+
+            if (document.getElementById('videoLessonModal').classList.contains('hidden')) return;
+
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.playbackRate = 1.06;
+                activeLessonAudio = audio;
+                audio.muted = !lessonVoiceEnabled;
+                audio.onended = () => {
+                    if (lessonPlaying && currentSlideIndex === idx) {
+                        if (idx < lessonSlides.length - 1) {
+                            currentSlideIndex = idx + 1;
+                            lessonElapsed = currentSlideIndex * SLIDE_DURATION;
+                            playLessonSlide(currentSlideIndex);
+                        } else {
+                            lessonPlaying = false;
+                            document.getElementById('lessonProgressBar').style.width = '100%';
+                            updatePlayPauseButton();
+                        }
+                    }
+                };
+                if (lessonPlaying) {
+                    audio.play().catch(() => {
+                        lessonPlaying = false;
+                        updatePlayPauseButton();
+                    });
+                }
+            } else if (lessonVoiceEnabled && lessonPlaying) {
+                speakWithBrowserFallback(slide.subtitle, false, () => {
+                    if (lessonPlaying && currentSlideIndex === idx) {
+                        if (idx < lessonSlides.length - 1) {
+                            currentSlideIndex = idx + 1;
+                            lessonElapsed = currentSlideIndex * SLIDE_DURATION;
+                            playLessonSlide(currentSlideIndex);
+                        } else {
+                            lessonPlaying = false;
+                            document.getElementById('lessonProgressBar').style.width = '100%';
+                            updatePlayPauseButton();
+                        }
+                    }
+                });
+            }
+        }
+
+        function startLessonLoop() {
+            if (lessonTimer) clearInterval(lessonTimer);
+            const totalDuration = SLIDE_DURATION * lessonSlides.length;
+            const tickMs = 100;
+
+            lessonTimer = setInterval(() => {
+                if (!lessonPlaying || isLessonAudioLoading) return;
+
+                if (activeLessonAudio && !activeLessonAudio.paused) {
+                    const slideProg = activeLessonAudio.duration
+                        ? (activeLessonAudio.currentTime / activeLessonAudio.duration) * SLIDE_DURATION
+                        : 0;
+                    lessonElapsed = currentSlideIndex * SLIDE_DURATION + slideProg;
+                    const pct = Math.min(100, (lessonElapsed / totalDuration) * 100);
+                    document.getElementById('lessonProgressBar').style.width = `${pct}%`;
+                } else if (!activeLessonAudio && (!('speechSynthesis' in window) || !window.speechSynthesis.speaking)) {
+                    lessonElapsed += tickMs / 1000;
+                    const newSlideIdx = Math.min(lessonSlides.length - 1, Math.floor(lessonElapsed / SLIDE_DURATION));
+                    if (newSlideIdx !== currentSlideIndex) {
+                        currentSlideIndex = newSlideIdx;
+                        playLessonSlide(currentSlideIndex);
+                    }
+                    if (lessonElapsed >= totalDuration) {
+                        lessonElapsed = totalDuration;
+                        lessonPlaying = false;
+                        updatePlayPauseButton();
+                    }
+                    const pct = Math.min(100, (lessonElapsed / totalDuration) * 100);
+                    document.getElementById('lessonProgressBar').style.width = `${pct}%`;
+                }
+            }, tickMs);
+
+            const renderCanvas = () => {
+                drawLessonScene();
+                lessonAnimFrame = requestAnimationFrame(renderCanvas);
+            };
+            renderCanvas();
+        }
+
+        function drawLessonScene() {
+            const canvas = document.getElementById('lessonCanvas');
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+                canvas.width = Math.floor(rect.width * dpr);
+                canvas.height = Math.floor(rect.height * dpr);
+            }
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const w = rect.width;
+            const h = rect.height;
+            const slide = lessonSlides[currentSlideIndex];
+            if (!slide) return;
+
+            const grad = ctx.createLinearGradient(0, 0, w, h);
+            grad.addColorStop(0, '#1c1917');
+            grad.addColorStop(0.5, currentQuizCard.color === 'blanco' ? '#451a03' : '#450a1d');
+            grad.addColorStop(1, '#0c0a09');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+
+            const pulse = Math.sin(Date.now() / 420) * 6;
+            const centerX = w / 2;
+            const centerY = h * 0.45;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 44 + pulse, 0, Math.PI * 2);
+            ctx.fillStyle = `${slide.accent}22`;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 32, 0, Math.PI * 2);
+            ctx.fillStyle = `${slide.accent}33`;
+            ctx.strokeStyle = slide.accent;
+            ctx.lineWidth = 2;
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '26px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const badgeIcon = currentSlideIndex === 0 ? '🌍' : currentSlideIndex === 1 ? '🍇' : '🍷';
+            ctx.fillText(badgeIcon, centerX, centerY + 1);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px "Playfair Display", Georgia, serif';
+            ctx.textAlign = 'center';
+            const maxTitleWidth = w - 64;
+            const titleWords = slide.title.split(' ');
+            const titleLines = [];
+            let currentLine = '';
+            titleWords.forEach(word => {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                if (ctx.measureText(testLine).width > maxTitleWidth && currentLine) {
+                    titleLines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            });
+            if (currentLine) titleLines.push(currentLine);
+
+            titleLines.slice(0, 2).forEach((line, idx) => {
+                ctx.fillText(line, centerX, centerY + 56 + (idx * 22));
+            });
+
+            const subY = centerY + 56 + (Math.min(titleLines.length, 2) * 22) + 4;
+            ctx.fillStyle = '#fcd34d';
+            ctx.font = '600 12px Inter, sans-serif';
+            const subText = `${currentQuizCard.aoc} • ${currentQuizCard.style}`;
+            ctx.fillText(subText, centerX, subY, maxTitleWidth);
+        }
+
+        // Atajo con tecla Esc para cerrar ventanas emergentes
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeStyleModal();
+                closeVideoLessonModal();
+            }
+        });
+
+        // Inicialización segura al cargar el DOM
+        function initSommelierPanel() {
+            try {
+                filterExplorer();
+                setFlashcardDeck('all');
+                startNewQuiz();
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error('Error inicializando el panel:', err);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSommelierPanel);
+        } else {
+            initSommelierPanel();
+        }
+    </script>
+</body>
+</html>
