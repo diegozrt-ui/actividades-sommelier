@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sommelier Lab: Vinos de España</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap&subset=latin,latin-ext" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        burgundy: {
+                            50: '#fdf2f4',
+                            100: '#fbe8ec',
+                            500: '#9b1b30',
+                            600: '#811425',
+                            700: '#680f1e',
+                            800: '#520c18',
+                            900: '#3d0912',
+                        },
+                        terracotta: {
+                            600: '#9a3412',
+                        },
+                        champagne: {
+                            100: '#fbf8f1',
+                            200: '#f4ebd8',
+                            300: '#eddcbf',
+                            400: '#e2c774',
+                            500: '#d4af37',
+                            600: '#b8972b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                        cinzel: ['"Cormorant Garamond"', '"Playfair Display"', 'Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .wine-label-paper {
+            background: #fbf8f1;
+            background-image: radial-gradient(#f4ebd8 15%, transparent 16%), radial-gradient(#eddccf 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: #2b1d1a;
+            border: 2px solid #b8972b;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 0 15px rgba(184, 151, 43, 0.15);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen bg-slate-900 text-slate-100 font-sans antialiased selection:bg-burgundy-500 selection:text-white flex flex-col overflow-hidden text-[14px]">
+
+    <header class="bg-slate-950 border-b border-slate-800 px-4 py-2 flex items-center justify-between shadow-lg shrink-0 h-14">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-burgundy-600 to-terracotta-600 flex items-center justify-center border border-champagne-500/30 shadow-inner">
+                <span class="font-serif text-base font-bold text-champagne-200">🍷</span>
+            </div>
+            <div>
+                <h1 class="font-serif text-base sm:text-lg font-bold tracking-tight text-white flex items-center">
+                    Sommelier Lab 
+                    <span class="text-[14px] uppercase font-sans tracking-widest px-2.5 py-0.5 ml-2.5 bg-burgundy-900/60 text-champagne-300 rounded-full border border-champagne-500/40 hidden sm:inline-block">Vinos de España</span>
+                </h1>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openRiojaModal()" class="px-3.5 py-1.5 bg-champagne-600 hover:bg-champagne-500 text-slate-950 font-bold text-[14px] rounded-lg transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                <span>📜</span>
+                <span>Rioja</span>
+            </button>
+            <button onclick="openJerezModal()" class="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-600 text-champagne-200 font-bold text-[14px] rounded-lg transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                <span>🥃</span>
+                <span>Jerez</span>
+            </button>
+            <button onclick="openCavaPrioratModal()" class="px-3.5 py-1.5 bg-burgundy-700 hover:bg-burgundy-600 text-champagne-200 font-bold text-[14px] rounded-lg transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                <span>🥂</span>
+                <span>Cava & Priorat</span>
+            </button>
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-800 text-[14px] ml-2">
+                <span class="text-slate-400">Precisión Acumulada:</span>
+                <span id="global-accuracy-header" class="font-semibold text-champagne-500">0%</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 grid grid-cols-1 lg:grid-cols-4 gap-3 overflow-hidden items-stretch">
+        
+        <!-- Left Sidebar: Navigation & Modules -->
+        <aside class="lg:col-span-1 bg-slate-950/85 backdrop-blur border border-slate-800/80 rounded-xl p-3 flex flex-col justify-between shadow-lg h-full overflow-hidden">
+            <div class="space-y-3">
+                <div>
+                    <h3 class="text-[14px] font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">Módulos de Práctica</h3>
+                    <nav class="space-y-2">
+                        <button onclick="switchTab('quiz')" id="nav-quiz" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] font-medium transition bg-burgundy-600 text-white shadow-md shadow-burgundy-900/30 cursor-pointer">
+                            <span class="text-base">🏷️</span>
+                            <span>Identificador de Etiquetas</span>
+                        </button>
+                        <button onclick="switchTab('regions')" id="nav-regions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] font-medium transition text-slate-300 hover:bg-slate-900 hover:text-white cursor-pointer">
+                            <span class="text-base">🗺️</span>
+                            <span>Atlas de Regiones & DOs</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                    <h4 class="text-[14px] font-semibold text-champagne-400 mb-2 flex items-center justify-between">
+                        <span>Estadísticas</span>
+                        <span class="text-[14px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">En vivo</span>
+                    </h4>
+                    <div class="space-y-2 text-[14px] text-slate-300">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Analizadas:</span>
+                            <span id="stat-total" class="font-bold text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Puntos Totales:</span>
+                            <span id="stat-correct" class="font-bold text-emerald-400">0 / 0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Precisión Acumulada:</span>
+                            <span id="stat-accuracy" class="font-bold text-champagne-500">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800/80">
+                <div class="bg-gradient-to-r from-burgundy-950/40 to-slate-900 rounded-xl p-3 border border-burgundy-500/20 flex items-center space-x-3">
+                    <span class="text-xl">🎯</span>
+                    <div class="overflow-hidden">
+                        <h5 class="text-[14px] font-semibold text-slate-200 truncate">Rendimiento Acumulado</h5>
+                        <p class="text-[14px] text-champagne-400 font-bold truncate" id="cumulative-accuracy-legend">0% de respuestas correctas</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Content Area -->
+        <section class="lg:col-span-3 bg-slate-950/65 backdrop-blur border border-slate-800/80 rounded-xl p-4 flex flex-col h-full overflow-hidden shadow-xl relative">
+            
+            <!-- Quiz Tab -->
+            <div id="tab-quiz" class="flex-1 flex flex-col space-y-3 h-full overflow-hidden">
+                <div class="flex flex-row justify-between items-center bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800 shrink-0">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-serif font-bold text-white flex items-center space-x-2">
+                            <span>🏷️ Desafío: Etiquetas de España (50 Selecciones)</span>
+                        </h2>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openRiojaModal()" class="px-3 py-1 bg-burgundy-900/80 hover:bg-burgundy-800 text-champagne-300 font-medium text-[14px] rounded-lg border border-burgundy-500/40 transition flex items-center space-x-1 cursor-pointer">
+                            <span>📜</span>
+                            <span>Rioja</span>
+                        </button>
+                        <button onclick="openJerezModal()" class="px-3 py-1 bg-amber-900/80 hover:bg-amber-800 text-champagne-300 font-medium text-[14px] rounded-lg border border-amber-500/40 transition flex items-center space-x-1 cursor-pointer">
+                            <span>🥃</span>
+                            <span>Jerez</span>
+                        </button>
+                        <button onclick="openCavaPrioratModal()" class="px-3 py-1 bg-burgundy-900/80 hover:bg-burgundy-800 text-champagne-300 font-medium text-[14px] rounded-lg border border-burgundy-500/40 transition flex items-center space-x-1 cursor-pointer">
+                            <span>🥂</span>
+                            <span>Cava & Priorat</span>
+                        </button>
+                        <span id="quiz-progress-badge" class="text-[14px] font-medium px-3 py-1 bg-burgundy-900/60 text-champagne-300 rounded-lg border border-burgundy-500/30">1 / 50</span>
+                    </div>
+                </div>
+
+                <!-- Bottle & Simulated Wine Label Container -->
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch overflow-hidden">
+                    <div class="bg-slate-900 rounded-xl p-3 flex flex-col items-center justify-center border border-slate-800 shadow-xl relative overflow-hidden h-full">
+                        <div class="w-full h-full relative rounded-lg overflow-hidden bg-slate-950 flex flex-col items-center justify-center border border-slate-800 p-4">
+                            <div id="simulated-label" class="wine-label-paper w-full max-w-[320px] h-full max-h-[380px] rounded-md p-5 flex flex-col justify-between text-center relative transition-all duration-300 select-none">
+                                <div class="absolute inset-1.5 border border-dashed border-[#b8972b]/60 pointer-events-none rounded-sm"></div>
+                                <div class="space-y-1 mt-1">
+                                    <p id="label-subheading" class="text-[12px] font-cinzel tracking-widest uppercase text-[#811425] font-semibold">Gran Reserva</p>
+                                    <h3 id="label-estate" class="font-cinzel text-xl sm:text-2xl font-bold tracking-tight text-[#2b1d1a]">VIÑA TONDONIA</h3>
+                                    <div class="w-16 h-0.5 bg-[#b8972b] mx-auto my-1"></div>
+                                    <p id="label-appellation" class="text-[14px] font-serif italic text-slate-700">Denominación de Origen Calificada Rioja</p>
+                                </div>
+                                <div class="my-auto py-2">
+                                    <div class="inline-block border-2 border-[#b8972b] px-4 py-1.5 rounded-sm bg-[#fbf8f1]/80">
+                                        <span id="label-vintage" class="font-cinzel font-bold text-base text-[#811425]">2010</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-1 mb-1">
+                                    <p id="label-bottling" class="text-[12px] font-sans uppercase tracking-wider text-slate-600">Embotellado en la Propiedad</p>
+                                    <p id="label-origin-footer" class="text-[12px] font-sans tracking-wide text-slate-500">Product of Spain - 750ml</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progressive Form Inputs -->
+                    <div class="bg-slate-700 rounded-xl p-4 border border-slate-600 flex flex-col justify-between space-y-2 h-full overflow-hidden shadow-inner">
+                        <div class="space-y-2.5 overflow-y-auto custom-scrollbar pr-1">
+                            <!-- Step 1: Region -->
+                            <div id="group-region">
+                                <label class="block text-[14px] font-medium text-champagne-300 mb-1">1. Región / Comunidad Vitivinícola</label>
+                                <select id="select-region" onchange="onRegionSelected(this.value)" class="w-full bg-slate-900 border border-slate-500 rounded-lg px-4 py-2.5 text-[14px] text-slate-100 focus:outline-none focus:border-champagne-500 cursor-pointer">
+                                    <option value="">Seleccione región...</option>
+                                </select>
+                            </div>
+
+                            <!-- Step 2: DO / DOCa (Hidden until Region is answered) -->
+                            <div id="group-aoc" class="hidden">
+                                <label class="block text-[14px] font-medium text-champagne-300 mb-1">2. Denominación (DO / DOCa / VP)</label>
+                                <select id="select-aoc" onchange="onAocSelected(this.value)" class="w-full bg-slate-900 border border-slate-500 rounded-lg px-4 py-2.5 text-[14px] text-slate-100 focus:outline-none focus:border-champagne-500 cursor-pointer">
+                                    <option value="">Seleccione Denominación...</option>
+                                </select>
+                            </div>
+
+                            <!-- Step 3: Classification (Hidden until DO is answered) -->
+                            <div id="group-classification" class="hidden">
+                                <label class="block text-[14px] font-medium text-champagne-300 mb-1">3. Clasificación / Envejecimiento / Estilo</label>
+                                <select id="select-classification" onchange="onClassificationSelected(this.value)" class="w-full bg-slate-900 border border-slate-500 rounded-lg px-4 py-2.5 text-[14px] text-slate-100 focus:outline-none focus:border-champagne-500 cursor-pointer">
+                                    <option value="">Seleccione clasificación...</option>
+                                </select>
+                            </div>
+
+                            <!-- Step 4: Grapes (Hidden until Classification is answered) -->
+                            <div id="group-grapes" class="hidden">
+                                <label class="block text-[14px] font-medium text-champagne-300 mb-1">4. Cepa/s Principales</label>
+                                <select id="select-grapes" onchange="onGrapesSelected(this.value)" class="w-full bg-slate-900 border border-slate-500 rounded-lg px-4 py-2.5 text-[14px] text-slate-100 focus:outline-none focus:border-champagne-500 cursor-pointer">
+                                    <option value="">Seleccione cepa...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button id="btn-verify" onclick="checkWineAnswer()" class="w-full py-3 bg-gradient-to-r from-burgundy-600 to-burgundy-700 hover:from-burgundy-500 hover:to-burgundy-600 text-white font-semibold text-[14px] rounded-lg shadow-md transition shrink-0 cursor-pointer hidden">
+                            Verificar Identificación ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regions Atlas Tab -->
+            <div id="tab-regions" class="hidden flex-1 flex flex-col space-y-3 h-full overflow-hidden">
+                <div class="flex flex-row justify-between items-center bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800 shrink-0">
+                    <h2 class="text-base sm:text-lg font-serif font-bold text-white">🗺️ Atlas Vitivinícola de España (DOs y DOCas Oficiales)</h2>
+                    <input type="text" id="region-search" oninput="filterRegions()" placeholder="Buscar región, cepa o DO..." class="w-48 sm:w-72 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-[14px] text-slate-200 focus:outline-none focus:border-burgundy-500">
+                </div>
+
+                <div id="regions-grid" class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 overflow-y-auto custom-scrollbar pr-1"></div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Feedback Modal with Side-by-Side Comparison -->
+    <div id="feedback-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div id="modal-feedback-header" class="font-serif text-base sm:text-lg font-bold text-white flex items-center space-x-2"></div>
+                <span id="modal-feedback-pts" class="text-[14px] px-3 py-1 bg-champagne-500/20 text-champagne-300 rounded-lg font-bold">+0 pts</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-center">
+                    <div id="modal-simulated-label" class="wine-label-paper w-full max-w-[240px] h-[260px] rounded-md p-3 flex flex-col justify-between text-center relative transition-all duration-300 select-none scale-95 shadow-lg">
+                        <div class="absolute inset-1 border border-dashed border-[#b8972b]/60 pointer-events-none rounded-sm"></div>
+                        <div class="space-y-0.5 mt-1">
+                            <p id="modal-label-subheading" class="text-[10px] font-cinzel tracking-widest uppercase text-[#811425] font-semibold"></p>
+                            <h3 id="modal-label-estate" class="font-cinzel text-sm sm:text-base font-bold tracking-tight text-[#2b1d1a]"></h3>
+                            <div class="w-12 h-0.5 bg-[#b8972b] mx-auto my-0.5"></div>
+                            <p id="modal-label-appellation" class="text-[11px] font-serif italic text-slate-700"></p>
+                        </div>
+                        <div class="my-auto py-1">
+                            <div class="inline-block border border-[#b8972b] px-3 py-1 rounded-sm bg-[#fbf8f1]/80">
+                                <span id="modal-label-vintage" class="font-cinzel font-bold text-xs text-[#811425]"></span>
+                            </div>
+                        </div>
+                        <div class="space-y-0.5 mb-0.5">
+                            <p id="modal-label-bottling" class="text-[9px] font-sans uppercase tracking-wider text-slate-600">Embotellado en Propiedad</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modal-feedback-details" class="text-[14px] text-slate-300 leading-relaxed space-y-1.5"></div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+                <span class="text-[14px] text-slate-500">Presiona <kbd class="px-2.5 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700">ESC</kbd> o Enter para continuar</span>
+                <button onclick="closeFeedbackModal()" class="px-5 py-2.5 bg-burgundy-600 hover:bg-burgundy-500 text-white font-semibold text-[14px] rounded-lg transition cursor-pointer">Continuar ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rioja Classification Modal -->
+    <div id="rioja-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 shrink-0">
+                <div class="font-serif text-lg sm:text-xl font-bold text-champagne-300 flex items-center space-x-2">
+                    <span>📜</span>
+                    <span>DOCa Rioja: Subzonas, Crianza y Bodegas Históricas</span>
+                </div>
+                <button onclick="closeRiojaModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2.5 py-1 bg-slate-800 rounded-lg cursor-pointer">✕</button>
+            </div>
+            
+            <div class="shrink-0 pb-2">
+                <input type="text" id="rioja-search" oninput="filterRioja()" placeholder="Buscar subzona, categoría o bodega de Rioja..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-[14px] text-slate-200 focus:outline-none focus:border-champagne-500">
+            </div>
+
+            <div id="rioja-content" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 text-[14px] text-slate-300 leading-relaxed">
+                <p class="text-slate-400 italic">Primera Denominación de Origen Calificada (DOCa) de España (1991). Organizada por subzonas y categorías oficiales.</p>
+                
+                <div class="space-y-4">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 rioja-section">
+                        <h4 class="font-serif font-bold text-champagne-400 text-base mb-2">Subzonas de la DOCa Rioja</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-3 gap-2 list-disc list-inside text-slate-200">
+                            <li><strong>Rioja Alta:</strong> Clima atlántico, suelos arcillo-calcáreos y ferrosos (Haro, Briones, Cenicero).</li>
+                            <li><strong>Rioja Alavesa:</strong> Influencia atlántica y mediterránea, suelos arcillo-calcáreos (Laguardia, Elciego, Labastida).</li>
+                            <li><strong>Rioja Oriental:</strong> Clima mediterráneo cálido, suelos aluviales y arcillosos (Alfaro, Calahorra).</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 rioja-section">
+                        <h4 class="font-serif font-bold text-champagne-400 text-base mb-2">Tiempos Mínimos de Envejecimiento (Tintos)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>Crianza:</strong> 2 años naturales (mínimo 12 meses en barrica de roble de 225L).</li>
+                            <li><strong>Gran Reserva:</strong> 5 años naturales (mínimo 24 meses en barrica y 24 meses en botella).</li>
+                            <li><strong>Reserva:</strong> 3 años naturales (mínimo 12 meses en barrica y 6 meses en botella).</li>
+                            <li><strong>Viñedo Singular:</strong> Viñas de más de 35 años, vendimia manual y rendimiento limitado.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 rioja-section">
+                        <h4 class="font-serif font-bold text-champagne-400 text-base mb-2">Bodegas y Vinos Emblemáticos (Orden Alfabético)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li>Artadi: Viña El Pisón (Laguardia - Fuera de DO desde 2015)</li>
+                            <li>Bodegas Muga: Prado Enea / Torre Muga (Haro)</li>
+                            <li>Bodegas Roda: Roda I / Cirsion (Haro)</li>
+                            <li>C.V.N.E.: Imperial / Viña Real (Haro)</li>
+                            <li>La Rioja Alta, S.A.: Gran Reserva 890 / 904 (Haro)</li>
+                            <li>Marqués de Murrieta: Castillo Ygay (Logroño)</li>
+                            <li>Marqués de Riscal: Reserva / Barón de Chirel (Elciego)</li>
+                            <li>R. López de Heredia: Viña Tondonia / Viña Bosconia (Haro)</li>
+                            <li>Remelluri: Granja Remelluri (Labastida)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-end shrink-0">
+                <button onclick="closeRiojaModal()" class="px-5 py-2 bg-burgundy-600 hover:bg-burgundy-500 text-white font-semibold text-[14px] rounded-lg transition cursor-pointer">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jerez Classification Modal -->
+    <div id="jerez-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 shrink-0">
+                <div class="font-serif text-lg sm:text-xl font-bold text-amber-300 flex items-center space-x-2">
+                    <span>🥃</span>
+                    <span>Marco de Jerez y Manzanilla: Estilos y Vejez Calificada</span>
+                </div>
+                <button onclick="closeJerezModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2.5 py-1 bg-slate-800 rounded-lg cursor-pointer">✕</button>
+            </div>
+            
+            <div class="shrink-0 pb-2">
+                <input type="text" id="jerez-search" oninput="filterJerez()" placeholder="Buscar estilo, crianza o término de Jerez..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-[14px] text-slate-200 focus:outline-none focus:border-amber-500">
+            </div>
+
+            <div id="jerez-content" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 text-[14px] text-slate-300 leading-relaxed">
+                <p class="text-slate-400 italic">Sistema dinámico de Criaderas y Soleras sobre suelos blancos de albariza con uva Palomino Fino, Pedro Ximénez y Moscatel.</p>
+                
+                <div class="space-y-4">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 jerez-section">
+                        <h4 class="font-serif font-bold text-amber-400 text-base mb-2">Vinos Generosos (Secos - Palomino Fino)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>Amontillado:</strong> Crianza biológica inicial seguida de crianza oxidativa (17% - 22% vol.).</li>
+                            <li><strong>Fino:</strong> 100% crianza biológica bajo velo de flor (15% - 15.5% vol.).</li>
+                            <li><strong>Manzanilla:</strong> Crianza biológica exclusiva en Sanlúcar de Barrameda (DO propia).</li>
+                            <li><strong>Oloroso:</strong> 100% crianza oxidativa tras encabezado a 17% - 18% vol.</li>
+                            <li><strong>Palo Cortado:</strong> Nariz punzante de Amontillado y boca estructurada de Oloroso.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 jerez-section">
+                        <h4 class="font-serif font-bold text-amber-400 text-base mb-2">Vinos Dulces Naturales y Generosos de Licor</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>Cream:</strong> Cabeceo (mezcla) de Oloroso con Pedro Ximénez.</li>
+                            <li><strong>Medium:</strong> Cabeceo de Amontillado con vino dulce.</li>
+                            <li><strong>Moscatel:</strong> Uva Moscatel de Alejandría pasificada al sol (soleo).</li>
+                            <li><strong>Pedro Ximénez (PX):</strong> Uva PX pasificada al sol, denso y aterciopelado.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 jerez-section">
+                        <h4 class="font-serif font-bold text-amber-400 text-base mb-2">Categorías Especiales de Vejez (Con Indicación de Edad)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>En Rama:</strong> Embotellado directamente de la bota sin filtración ni clarificación agresiva.</li>
+                            <li><strong>V.O.S. (Vinum Optimum Signatum):</strong> Vejez media superior a 20 años.</li>
+                            <li><strong>V.O.R.S. (Vinum Optimum Rare Signatum):</strong> Vejez media superior a 30 años.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-end shrink-0">
+                <button onclick="closeJerezModal()" class="px-5 py-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold text-[14px] rounded-lg transition cursor-pointer">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cava & Priorat Classification Modal -->
+    <div id="cavapriorat-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 shrink-0">
+                <div class="font-serif text-lg sm:text-xl font-bold text-champagne-300 flex items-center space-x-2">
+                    <span>🥂</span>
+                    <span>DO Cava / Corpinnat y DOQ Priorat (Zonificación Oficial)</span>
+                </div>
+                <button onclick="closeCavaPrioratModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2.5 py-1 bg-slate-800 rounded-lg cursor-pointer">✕</button>
+            </div>
+            
+            <div class="shrink-0 pb-2">
+                <input type="text" id="cavapriorat-search" oninput="filterCavaPriorat()" placeholder="Buscar categoría de Cava, Corpinnat o Vila de Priorat..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-[14px] text-slate-200 focus:outline-none focus:border-champagne-500">
+            </div>
+
+            <div id="cavapriorat-content" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 text-[14px] text-slate-300 leading-relaxed">
+                <p class="text-slate-400 italic">Clasificaciones oficiales de crianza en rima para espumosos y la pirámide de terruño "Els Noms de la Terra" de la DOQ Priorat.</p>
+                
+                <div class="space-y-4">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 cp-section">
+                        <h4 class="font-serif font-bold text-champagne-400 text-base mb-2">DO Cava y Corpinnat (Tiempos Mínimos en Rima sobre Lías)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>Cava de Guarda:</strong> Mínimo 9 meses de crianza en botella.</li>
+                            <li><strong>Cava de Guarda Superior Reserva:</strong> Mínimo 18 meses en botella.</li>
+                            <li><strong>Cava de Guarda Superior Gran Reserva:</strong> Mínimo 30 meses en botella (solo Brut, Extra Brut o Brut Nature).</li>
+                            <li><strong>Cava de Paraje Calificado:</strong> Mínimo 36 meses en botella, viñedo singular de rendimientos bajos.</li>
+                            <li><strong>Corpinnat:</strong> Marca colectiva de la UE (Sant Sadurní d'Anoia), 100% ecológico, vendimia manual y mínimo 18 meses en rima.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 cp-section">
+                        <h4 class="font-serif font-bold text-champagne-400 text-base mb-2">DOQ Priorat: Els Noms de la Terra (Pirámide de Calidad)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-1 list-disc list-inside text-slate-200">
+                            <li><strong>Gran Vinya Classificada:</strong> Máxima distinción de parcela histórica (ej. L'Ermita, Clos Mogador).</li>
+                            <li><strong>Vinya Classificada:</strong> Parcela singular reconocida por su tipicidad en suelos de llicorella.</li>
+                            <li><strong>Vi de Paratge:</strong> Paraje vitícola delimitado dentro de una vila.</li>
+                            <li><strong>Vi de Vila (12 Villas):</strong> Bellmunt, El Lloar, El Molar, Gratallops, La Morera de Montsant, La Vilella Alta, La Vilella Baixa, Poboleda, Porrera, Scaladei, Torroja y Les Solanes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-end shrink-0">
+                <button onclick="closeCavaPrioratModal()" class="px-5 py-2 bg-burgundy-600 hover:bg-burgundy-500 text-white font-semibold text-[14px] rounded-lg transition cursor-pointer">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive Regional Database for Spain with Official DOs, DOCas, VPs & Alphabetical Ordering
+        const regionalData = {
+            "Andalucía": {
+                color: "bg-amber-950/70 border-amber-500/40 text-amber-300",
+                badgeColor: "bg-amber-600 text-white",
+                aocs: [
+                    "DO Condado de Huelva", "DO Granada", "DO Jerez-Xérès-Sherry", "DO Málaga", "DO Manzanilla-Sanlúcar de Barrameda", "DO Montilla-Moriles", "DO Sierras de Málaga"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Amontillado", "Cream / Medium", "Fino / Manzanilla", "Oloroso", "Palo Cortado", "Pedro Ximénez (PX)", "VOS / VORS"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Moscatel de Alejandría", "Palomino Fino", "Pedro Ximénez", "Romé", "Syrah", "Tintilla de Rota"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Aragón": {
+                color: "bg-orange-950/70 border-orange-500/40 text-orange-300",
+                badgeColor: "bg-orange-600 text-white",
+                aocs: [
+                    "DO Calatayud", "DO Campo de Borja", "DO Cariñena", "DO Somontano", "VP Aylés"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Gran Reserva", "Joven / Roble", "Reserva", "Vino de Pago"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Cabernet Sauvignon", "Cariñena (Mazuelo)", "Chardonnay", "Garnacha Tinta", "Gewürztraminer", "Macabeo", "Moristel", "Parraleta", "Syrah"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Castilla y León": {
+                color: "bg-rose-950/70 border-rose-500/40 text-rose-300",
+                badgeColor: "bg-rose-600 text-white",
+                aocs: [
+                    "DO Arlanza", "DO Arribes", "DO Bierzo", "DO Cebreros", "DO Cigales", "DO León", "DO Ribera del Duero", "DO Rueda", "DO Sierra de Salamanca", "DO Tierra del Vino de Zamora", "DO Toro", "VP Abadía Retuerta", "VP Dehesa Peñalba", "VP Urueña", "VT Castilla y León"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Gran Reserva", "Joven / Roble", "Reserva", "Vino de Pago", "Vino de Paraje / Viña Clasificada", "Vino de Villa"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Albillo Mayor", "Bastardo", "Cabernet Sauvignon", "Garnacha Tintorera", "Godello", "Juan García", "Malbec", "Mencía", "Merlot", "Prieto Picudo", "Rufete", "Sauvignon Blanc", "Syrah", "Tempranillo (Tinta del País / Tinta de Toro)", "Verdejo"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Castilla-La Mancha": {
+                color: "bg-yellow-950/70 border-yellow-500/40 text-yellow-300",
+                badgeColor: "bg-yellow-600 text-white",
+                aocs: [
+                    "DO Almansa", "DO La Mancha", "DO Manchuela", "DO Méntrida", "DO Mondéjar", "DO Ribera del Júcar", "DO Uclés", "DO Valdepeñas", "VP Campo de la Guardia", "VP Casa del Blanco", "VP Dehesa del Carrizal", "VP Dominio de Valdepusa", "VP El Vicario", "VP Finca Élez", "VP Guijoso", "VP La Jaraba", "VP Los Cerrillos", "VP Pago Calzadilla", "VP Pago Florentino", "VP Vallegarcía"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Gran Reserva", "Joven / Tradicional", "Reserva", "Vino de Pago"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Airén", "Bobal", "Cabernet Sauvignon", "Cencibel (Tempranillo)", "Garnacha Tintorera", "Macabeo", "Merlot", "Monastrell", "Petit Verdot", "Syrah"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Cataluña": {
+                color: "bg-violet-950/70 border-violet-500/40 text-violet-300",
+                badgeColor: "bg-violet-600 text-white",
+                aocs: [
+                    "DO Alella", "DO Catalunya", "DO Cava", "DO Conca de Barberà", "DO Costers del Segre", "DO Empordà", "DO Montsant", "DO Penedès", "DO Pla de Bages", "DO Tarragona", "DO Terra Alta", "DOCa Priorat"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Cava de Paraje Calificado", "Crianza", "Gran Reserva", "Gran Vinya Classificada", "Reserva", "Vi de Vila (Vino de Villa)", "Vinya Classificada"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Cabernet Sauvignon", "Cariñena (Samsó)", "Chardonnay", "Garnacha Blanca", "Garnacha Tinta", "Macabeo", "Merlot", "Pansa Blanca (Xarel·lo)", "Parellada", "Picapoll", "Pinot Noir", "Sumoll", "Syrah", "Trepat"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Comunidad Valenciana y Murcia": {
+                color: "bg-pink-950/70 border-pink-500/40 text-pink-300",
+                badgeColor: "bg-pink-600 text-white",
+                aocs: [
+                    "DO Alicante", "DO Bullas", "DO Jumilla", "DO Utiel-Requena", "DO Valencia", "DO Yecla", "VP Chozas Carrascal", "VP El Terrerazo", "VP Los Balagueses", "VP Vera de Estenas"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Fondillón", "Gran Reserva", "Joven", "Reserva", "Vino de Pago"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Bobal", "Cabernet Sauvignon", "Garnacha Tintorera", "Malvasía", "Merseguera", "Monastrell", "Moscatel", "Syrah", "Tempranillo"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Galicia": {
+                color: "bg-emerald-950/70 border-emerald-500/40 text-emerald-300",
+                badgeColor: "bg-emerald-600 text-white",
+                aocs: [
+                    "DO Monterrei", "DO Rías Baixas", "DO Ribeira Sacra", "DO Ribeiro", "DO Valdeorras"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza sobre Lías", "Joven / Del Año", "Ribeira Sacra Súmmum", "Vino de Guarda / Barrica"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Albariño", "Brancellao", "Caíño Tinto", "Doña Blanca", "Espadeiro", "Godello", "Loureira", "Mencía", "Merenzao", "Sousón", "Torrontés", "Treixadura"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Islas Baleares y Canarias": {
+                color: "bg-cyan-950/70 border-cyan-500/40 text-cyan-300",
+                badgeColor: "bg-cyan-600 text-white",
+                aocs: [
+                    "DO Abona", "DO Binissalem", "DO El Hierro", "DO Gran Canaria", "DO La Gomera", "DO La Palma", "DO Lanzarote", "DO Pla i Llevant", "DO Tacoronte-Acentejo", "DO Valle de Güímar", "DO Valle de la Orotava", "DO Ycoden-Daute-Isora", "VC Islas Canarias", "VT Mallorca"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Dulce Natural / Malvasía", "Joven", "Reserva", "Vino de Parcela / Volcánico"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Baboso Negro", "Callet", "Fogoneu", "Gual", "Listán Blanco (Palomino)", "Listán Negro", "Malvasía Volcánica", "Manto Negro", "Marmajuelo", "Moll (Prensal Blanc)", "Negramoll", "Vijariego Negro"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Navarra y País Vasco": {
+                color: "bg-teal-950/70 border-teal-500/40 text-teal-300",
+                badgeColor: "bg-teal-600 text-white",
+                aocs: [
+                    "DO Arabako Txakolina", "DO Bizkaiko Txakolina", "DO Getariako Txakolina", "DO Navarra", "VP Pago de Arínzano", "VP Pago de Otazu", "VP Prado de Irache"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Gran Reserva", "Joven / Txakoli", "Reserva", "Vino de Pago"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Cabernet Sauvignon", "Chardonnay", "Garnacha Tinta", "Graciano", "Hondarrabi Beltza", "Hondarrabi Zuri", "Merlot", "Tempranillo", "Viura"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            },
+            "Rioja (DOCa)": {
+                color: "bg-red-950/70 border-red-500/40 text-red-300",
+                badgeColor: "bg-red-600 text-white",
+                aocs: [
+                    "DOCa Rioja (Rioja Alavesa)", "DOCa Rioja (Rioja Alta)", "DOCa Rioja (Rioja Oriental)"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                classifications: [
+                    "Crianza", "Genérico / Joven", "Gran Reserva", "Reserva", "Vino de Municipio", "Vino de Zona", "Viñedo Singular"
+                ].sort((a, b) => a.localeCompare(b, 'es')),
+                grapes: [
+                    "Garnacha Blanca", "Garnacha Tinta", "Graciano", "Malvasía Riojana", "Maturana Blanca", "Maturana Tinta", "Mazuelo", "Tempranillo", "Tempranillo Blanco", "Viura (Macabeo)"
+                ].sort((a, b) => a.localeCompare(b, 'es'))
+            }
+        };
+
+        // 50 Curated Spanish Wine Labels reflecting authentic front-label typography & legal text
+        const wineLabels = [
+            { estate: "VIÑA TONDONIA", subheading: "Gran Reserva · R. López de Heredia", appellation: "Denominación de Origen Calificada Rioja", vintage: "2010", bottling: "Haro · Rioja Alta · España", classification: "Gran Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Garnacha Tinta, Graciano, Mazuelo", explanation: "Clásico absoluto de Haro (Rioja Alta) con larga crianza en barricas viejas de roble americano." },
+            { estate: "GRAN RESERVA 890", subheading: "La Rioja Alta, S.A.", appellation: "Denominación de Origen Calificada Rioja", vintage: "2010", bottling: "Haro · Rioja Alta · España", classification: "Gran Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Graciano, Mazuelo", explanation: "Elaborado únicamente en cosechas excepcionales por La Rioja Alta, S.A. en Haro." },
+            { estate: "CASTILLO YGAY", subheading: "Gran Reserva Especial · Marqués de Murrieta", appellation: "Denominación de Origen Calificada Rioja", vintage: "2011", bottling: "Logroño · Rioja Alta · España", classification: "Gran Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Mazuelo", explanation: "Procedente del pago La Plana en la Finca Ygay, icono histórico de Rioja desde 1852." },
+            { estate: "VIÑA EL PISÓN", subheading: "Artadi", appellation: "Laguardia · Álava", vintage: "2018", bottling: "Embotellado en la Propiedad · España", classification: "Vino de Municipio", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alavesa)", grapes: "Tempranillo", explanation: "Parcela única en Laguardia (Rioja Alavesa). Desde 2015 no lleva la contraetiqueta DOCa Rioja en el frontal." },
+            { estate: "QUIÑÓN DE VALMIRA", subheading: "Álvaro Palacios", appellation: "Denominación de Origen Calificada Rioja", vintage: "2019", bottling: "Alfaro · Rioja Oriental · España", classification: "Viñedo Singular", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Oriental)", grapes: "Garnacha Tinta", explanation: "Garnacha de altura en las laderas del Monte Yerga (Alfaro), clasificada como Viñedo Singular." },
+            { estate: "PRADO ENEA", subheading: "Gran Reserva · Bodegas Muga", appellation: "Denominación de Origen Calificada Rioja", vintage: "2015", bottling: "Haro · Rioja Alta · España", classification: "Gran Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Garnacha Tinta, Mazuelo, Graciano", explanation: "Procedente de las parcelas más altas y frescas de Sajazarra y Cellorigo." },
+            { estate: "IMPERIAL", subheading: "Gran Reserva · C.V.N.E.", appellation: "Denominación de Origen Calificada Rioja", vintage: "2016", bottling: "Haro · Rioja Alta · España", classification: "Gran Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Graciano, Mazuelo", explanation: "Emblema de la Compañía Vinícola del Norte de España en el Barrio de la Estación de Haro." },
+            { estate: "MARQUÉS DE RISCAL", subheading: "Reserva · Herederos del Marqués de Riscal", appellation: "Denominación de Origen Calificada Rioja", vintage: "2018", bottling: "Elciego · Rioja Alavesa · España", classification: "Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alavesa)", grapes: "Tempranillo, Graciano", explanation: "Bodega pionera de Rioja Alavesa fundada en Elciego en 1858." },
+            { estate: "GRANJA REMELLURI", subheading: "Reserva", appellation: "Denominación de Origen Calificada Rioja", vintage: "2015", bottling: "Labastida · Rioja Alavesa · España", classification: "Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alavesa)", grapes: "Tempranillo, Garnacha Tinta, Graciano", explanation: "Primera bodega de Rioja concebida bajo el modelo de château de viñedo propio en Labastida." },
+            { estate: "RODA I", subheading: "Reserva · Bodegas Roda", appellation: "Denominación de Origen Calificada Rioja", vintage: "2017", bottling: "Haro · Rioja Alta · España", classification: "Reserva", region: "Rioja (DOCa)", aoc: "DOCa Rioja (Rioja Alta)", grapes: "Tempranillo, Graciano", explanation: "Perfil moderno y profundo de fruta negra en Haro." },
+            { estate: "ÚNICO", subheading: "Bodegas Vega Sicilia", appellation: "Denominación de Origen Ribera del Duero", vintage: "2012", bottling: "Valbuena de Duero · Valladolid", classification: "Gran Reserva", region: "Castilla y León", aoc: "DO Ribera del Duero", grapes: "Tempranillo (Tinta del País / Tinta de Toro), Cabernet Sauvignon", explanation: "Referencia absoluta de Ribera del Duero con al menos 10 años de crianza entre madera y botella." },
+            { estate: "PINGUS", subheading: "Dominio de Pingus", appellation: "Denominación de Origen Ribera del Duero", vintage: "2018", bottling: "Quintanilla de Onésimo · Valladolid", classification: "Crianza", region: "Castilla y León", aoc: "DO Ribera del Duero", grapes: "Tempranillo (Tinta del País / Tinta de Toro)", explanation: "Elaborado por Peter Sisseck a partir de viñas viejas de Tinto Fino en La Horra y Roa." },
+            { estate: "PESQUERA", subheading: "Crianza · Alejandro Fernández", appellation: "Denominación de Origen Ribera del Duero", vintage: "2019", bottling: "Pesquera de Duero · Valladolid", classification: "Crianza", region: "Castilla y León", aoc: "DO Ribera del Duero", grapes: "Tempranillo (Tinta del País / Tinta de Toro)", explanation: "Vino histórico que impulsó la creación de la DO Ribera del Duero en 1982." },
+            { estate: "ALIÓN", subheading: "Bodegas y Viñedos Alión", appellation: "Denominación de Origen Ribera del Duero", vintage: "2018", bottling: "Padilla de Duero · Peñafiel", classification: "Crianza", region: "Castilla y León", aoc: "DO Ribera del Duero", grapes: "Tempranillo (Tinta del País / Tinta de Toro)", explanation: "Proyecto de la familia Álvarez (Vega Sicilia) con crianza exclusiva en roble francés nuevo." },
+            { estate: "NUMANTHIA", subheading: "Bodega Numanthia", appellation: "Denominación de Origen Toro", vintage: "2017", bottling: "Valdefinjas · Zamora · España", classification: "Crianza", region: "Castilla y León", aoc: "DO Toro", grapes: "Tempranillo (Tinta del País / Tinta de Toro)", explanation: "Viñedos prefiloxéricos de pie franco de Tinta de Toro en suelos arenosos y pedregosos." },
+            { estate: "PINTIA", subheading: "Bodegas y Viñedos Pintia", appellation: "Denominación de Origen Toro", vintage: "2017", bottling: "San Román de Hornija · Valladolid", classification: "Crianza", region: "Castilla y León", aoc: "DO Toro", grapes: "Tempranillo (Tinta del País / Tinta de Toro)", explanation: "Elegante interpretación de la Tinta de Toro por el grupo Tempos Vega Sicilia." },
+            { estate: "BELONDRADE Y LURTON", subheading: "Fermentado en Barrica", appellation: "Denominación de Origen Rueda", vintage: "2020", bottling: "La Seca · Valladolid · España", classification: "Crianza", region: "Castilla y León", aoc: "DO Rueda", grapes: "Verdejo", explanation: "Pionero de los blancos de guarda de Verdejo fermentados y criados sobre lías en roble francés." },
+            { estate: "OSSIAN", subheading: "Vides Prefiloxéricas", appellation: "Vino de la Tierra de Castilla y León", vintage: "2019", bottling: "Nieva · Segovia · España", classification: "Joven / Roble", region: "Castilla y León", aoc: "VT Castilla y León", grapes: "Verdejo", explanation: "Verdejo centenario en pie franco sobre arenas segovianas a más de 850 metros de altitud." },
+            { estate: "CORULLÓN", subheading: "Descendientes de J. Palacios", appellation: "Denominación de Origen Bierzo", vintage: "2019", bottling: "Villafranca del Bierzo · León", classification: "Vino de Villa", region: "Castilla y León", aoc: "DO Bierzo", grapes: "Mencía", explanation: "Vino de villa de suelos de pizarra en laderas escarpadas del Bierzo." },
+            { estate: "LA FARAONA", subheading: "Descendientes de J. Palacios", appellation: "Denominación de Origen Bierzo", vintage: "2018", bottling: "Corullón · El Bierzo · España", classification: "Vino de Paraje / Viña Clasificada", region: "Castilla y León", aoc: "DO Bierzo", grapes: "Mencía", explanation: "Microparcela situada en falla tectónica en lo alto de Corullón." },
+            { estate: "ABADÍA RETUERTA SELECCIÓN ESPECIAL", subheading: "Vino de Pago", appellation: "Denominación de Origen Protegida Abadía Retuerta", vintage: "2018", bottling: "Sardón de Duero · Valladolid", classification: "Vino de Pago", region: "Castilla y León", aoc: "VP Abadía Retuerta", grapes: "Tempranillo (Tinta del País / Tinta de Toro), Cabernet Sauvignon, Syrah", explanation: "Vino de Pago propio en el valle del Duero, fuera de los límites administrativos de la DO Ribera." },
+            { estate: "L'ERMITA", subheading: "Álvaro Palacios · Velles Vinyes", appellation: "Denominació d'Origen Qualificada Priorat", vintage: "2019", bottling: "Gratallops · Priorat · Catalunya", classification: "Gran Vinya Classificada", region: "Cataluña", aoc: "DOCa Priorat", grapes: "Garnacha Tinta, Cariñena (Samsó)", explanation: "Viña vieja de Garnacha sobre suelos de pizarra llicorella en Gratallops, máxima distinción del Priorat." },
+            { estate: "CLOS MOGADOR", subheading: "René Barbier", appellation: "Denominació d'Origen Qualificada Priorat", vintage: "2018", bottling: "Gratallops · Priorat · Catalunya", classification: "Gran Vinya Classificada", region: "Cataluña", aoc: "DOCa Priorat", grapes: "Garnacha Tinta, Cariñena (Samsó), Syrah, Cabernet Sauvignon", explanation: "Uno de los vinos fundacionales del renacimiento moderno del Priorat en 1989." },
+            { estate: "CLOS ERASMUS", subheading: "Daphne Glorian", appellation: "Denominació d'Origen Qualificada Priorat", vintage: "2018", bottling: "Gratallops · Priorat · Catalunya", classification: "Vi de Vila (Vino de Villa)", region: "Cataluña", aoc: "DOCa Priorat", grapes: "Garnacha Tinta, Syrah", explanation: "Elaborado biodinámicamente en terrazas de llicorella de Gratallops." },
+            { estate: "MAS LA PLANA", subheading: "Familia Torres", appellation: "Denominació d'Origen Penedès", vintage: "2017", bottling: "Pacs del Penedès · Barcelona", classification: "Reserva", region: "Cataluña", aoc: "DO Penedès", grapes: "Cabernet Sauvignon", explanation: "Famoso por vencer en las Olimpiadas del Vino de París en 1979 frente a los grandes Burdeos." },
+            { estate: "TURÓ D'EN MOTA", subheading: "Recaredo · Corpinnat", appellation: "Sant Sadurní d'Anoia · Alt Penedès", vintage: "2008", bottling: "Embotellat a la Propietat · Brut Nature", classification: "Cava de Paraje Calificado", region: "Cataluña", aoc: "DO Cava", grapes: "Pansa Blanca (Xarel·lo)", explanation: "Espumoso monovarietal de Xarel·lo con más de 100 meses de crianza en rima, acogido a la marca colectiva Corpinnat." },
+            { estate: "III LUSTROS", subheading: "Gramona · Corpinnat", appellation: "Sant Sadurní d'Anoia · Alt Penedès", vintage: "2014", bottling: "Criado con Tapón de Corcho Natural", classification: "Gran Reserva", region: "Cataluña", aoc: "DO Cava", grapes: "Pansa Blanca (Xarel·lo), Macabeo", explanation: "Larga crianza en rima con tapón de corcho en Sant Sadurní d'Anoia." },
+            { estate: "ESPECTACLE", subheading: "Espectacle del Montsant", appellation: "Denominació d'Origen Montsant", vintage: "2018", bottling: "La Figuera · Tarragona", classification: "Crianza", region: "Cataluña", aoc: "DO Montsant", grapes: "Garnacha Tinta", explanation: "Anfiteatro natural de viñas centenarias de Garnacha en La Figuera, rodeando el Priorat." },
+            { estate: "TÍO PEPE EN RAMA", subheading: "González Byass · Fino Muy Seco", appellation: "Denominación de Origen Jerez-Xérès-Sherry", vintage: "S/A", bottling: "Jerez de la Frontera · Cádiz", classification: "Fino / Manzanilla", region: "Andalucía", aoc: "DO Jerez-Xérès-Sherry", grapes: "Palomino Fino", explanation: "Fino de Palomino Fino embotellado directamente de la bota en primavera sin filtrar." },
+            { estate: "LA GUITA", subheading: "Hijos de Rainera Pérez Marín · Manzanilla", appellation: "Denominación de Origen Manzanilla-Sanlúcar de Barrameda", vintage: "S/A", bottling: "Sanlúcar de Barrameda · Cádiz", classification: "Fino / Manzanilla", region: "Andalucía", aoc: "DO Manzanilla-Sanlúcar de Barrameda", grapes: "Palomino Fino", explanation: "Crianza biológica bajo velo de flor influenciada por las brisas atlánticas de Sanlúcar." },
+            { estate: "APÓSTOLES", subheading: "Palo Cortado Muy Viejo · V.O.R.S.", appellation: "Denominación de Origen Jerez-Xérès-Sherry", vintage: "S/A", bottling: "González Byass · Jerez · Cádiz", classification: "VOS / VORS", region: "Andalucía", aoc: "DO Jerez-Xérès-Sherry", grapes: "Palomino Fino, Pedro Ximénez", explanation: "Palo Cortado certificado con más de 30 años de vejez media (V.O.R.S.)." },
+            { estate: "NOÉ", subheading: "Pedro Ximénez Muy Viejo · V.O.R.S.", appellation: "Denominación de Origen Jerez-Xérès-Sherry", vintage: "S/A", bottling: "González Byass · Jerez · Cádiz", classification: "Pedro Ximénez (PX)", region: "Andalucía", aoc: "DO Jerez-Xérès-Sherry", grapes: "Pedro Ximénez", explanation: "Vino dulce natural pasificado al sol con más de 30 años de crianza oxidativa en soleras." },
+            { estate: "DON PX GRAN RESERVA", subheading: "Bodegas Toro Albalá", appellation: "Denominación de Origen Montilla-Moriles", vintage: "1994", bottling: "Aguilar de la Frontera · Córdoba", classification: "Pedro Ximénez (PX)", region: "Andalucía", aoc: "DO Montilla-Moriles", grapes: "Pedro Ximénez", explanation: "Icónico Pedro Ximénez de añada procedente de Córdoba." },
+            { estate: "PAZO DE SEÑORANS SELECCIÓN DE AÑADA", subheading: "Albariño", appellation: "Denominación de Origen Rías Baixas", vintage: "2014", bottling: "Meis · Val do Salnés · Pontevedra", classification: "Crianza sobre Lías", region: "Galicia", aoc: "DO Rías Baixas", grapes: "Albariño", explanation: "Crianza prolongada de más de 30 meses sobre sus lías en depósitos de acero inoxidable en el Val do Salnés." },
+            { estate: "DO FERREIRO CEPAS VELLAS", subheading: "Bodegas Gerardo Méndez", appellation: "Denominación de Origen Rías Baixas", vintage: "2020", bottling: "Meaño · Val do Salnés · Pontevedra", classification: "Crianza sobre Lías", region: "Galicia", aoc: "DO Rías Baixas", grapes: "Albariño", explanation: "Procedente de cepas de más de 200 años sobre suelos graníticos en el Salnés." },
+            { estate: "AS SORTES", subheading: "Rafael Palacios · Val do Bibei", appellation: "Denominación de Origen Valdeorras", vintage: "2020", bottling: "O Bolo · Ourense · Galicia", classification: "Vino de Guarda / Barrica", region: "Galicia", aoc: "DO Valdeorras", grapes: "Godello", explanation: "Referencia mundial de la variedad Godello en bancales graníticos de O Bolo." },
+            { estate: "GUÍMARO FINCA MEIXEMÁN", subheading: "Adega Guímaro · Amandi", appellation: "Denominación de Origen Ribeira Sacra", vintage: "2019", bottling: "Sober · Lugo · Galicia", classification: "Ribeira Sacra Súmmum", region: "Galicia", aoc: "DO Ribeira Sacra", grapes: "Mencía, Brancellao, Merenzao, Sousón", explanation: "Viticultura heroica en las laderas vertiginosas del río Sil en la subzona de Amandi." },
+            { estate: "VIÑA MEÍN", subheading: "Emilio Rojo / Viña Meín", appellation: "Denominación de Origen Ribeiro", vintage: "2020", bottling: "Leiro · Ourense · Galicia", classification: "Vino de Guarda / Barrica", region: "Galicia", aoc: "DO Ribeiro", grapes: "Treixadura, Godello, Albariño, Loureira", explanation: "Ensamblaje histórico de variedades autóctonas blancas del valle del Avia en Ribeiro." },
+            { estate: "ALTO MONCAYO", subheading: "Bodegas Alto Moncayo", appellation: "Denominación de Origen Campo de Borja", vintage: "2018", bottling: "Borja · Zaragoza · Aragón", classification: "Crianza", region: "Aragón", aoc: "DO Campo de Borja", grapes: "Garnacha Tinta", explanation: "Garnacha vieja de laderas pedregosas a los pies del Moncayo." },
+            { estate: "ENATE UNO", subheading: "Viñedos y Crianzas del Alto Aragón", appellation: "Denominación de Origen Somontano", vintage: "2016", bottling: "Salas Bajas · Huesca · Aragón", classification: "Reserva", region: "Aragón", aoc: "DO Somontano", grapes: "Cabernet Sauvignon", explanation: "Vino de parcela del prepirineo oscense en el Somontano." },
+            { estate: "DOMINIO DE VALDEPUSA EMERITUS", subheading: "Marqués de Griñón · Vino de Pago", appellation: "Denominación de Origen Protegida Dominio de Valdepusa", vintage: "2016", bottling: "Malpica de Tajo · Toledo", classification: "Vino de Pago", region: "Castilla-La Mancha", aoc: "VP Dominio de Valdepusa", grapes: "Cabernet Sauvignon, Petit Verdot, Syrah", explanation: "Primer Vino de Pago reconocido oficialmente en España en 2002." },
+            { estate: "FINCA TERRERAZO", subheading: "Bodegas Mustiguillo · Vino de Pago", appellation: "Denominación de Origen Protegida El Terrerazo", vintage: "2018", bottling: "Utiel · Valencia · España", classification: "Vino de Pago", region: "Comunidad Valenciana y Murcia", aoc: "VP El Terrerazo", grapes: "Bobal", explanation: "Máximo exponente de la uva Bobal en altitud dentro de su propia DOP El Terrerazo." },
+            { estate: "EL NIDO", subheading: "Bodegas El Nido", appellation: "Denominación de Origen Jumilla", vintage: "2018", bottling: "Jumilla · Murcia · España", classification: "Crianza", region: "Comunidad Valenciana y Murcia", aoc: "DO Jumilla", grapes: "Cabernet Sauvignon, Monastrell", explanation: "Viñas viejas de Monastrell de muy bajo rendimiento en el Valle de la Aragona." },
+            { estate: "FONDILLÓN GRAN RESERVA", subheading: "Brotons / Salvador Poveda", appellation: "Denominación de Origen Alicante", vintage: "1964", bottling: "Monóvar · Alicante · España", classification: "Fondillón", region: "Comunidad Valenciana y Murcia", aoc: "DO Alicante", grapes: "Monastrell", explanation: "Vino histórico naturalmente dulce (sin fortificar) elaborado con Monastrell sobremadurada y crianza en toneles centenarios." },
+            { estate: "CHIVITE COLECCIÓN 125", subheading: "Bodegas Julián Chivite", appellation: "Denominación de Origen Navarra", vintage: "2017", bottling: "Cintruénigo · Navarra · España", classification: "Reserva", region: "Navarra y País Vasco", aoc: "DO Navarra", grapes: "Tempranillo", explanation: "Bodega centenaria fundada en 1647 en Navarra." },
+            { estate: "TXOMIN ETXANIZ", subheading: "Txakoli de Getaria", appellation: "Getariako Txakolina · Jatorrizko Deitura", vintage: "2021", bottling: "Getaria · Gipuzkoa · País Vasco", classification: "Joven / Txakoli", region: "Navarra y País Vasco", aoc: "DO Getariako Txakolina", grapes: "Hondarrabi Zuri, Hondarrabi Beltza", explanation: "Blanco atlántico vibrante de viñedos en emparrado frente al mar Cantábrico." },
+            { estate: "AN/2", subheading: "Ànima Negra Viticultors", appellation: "Vi de la Terra Mallorca", vintage: "2019", bottling: "Felanitx · Mallorca · Illes Balears", classification: "Crianza", region: "Islas Baleares y Canarias", aoc: "VT Mallorca", grapes: "Callet, Manto Negro, Fogoneu, Syrah", explanation: "Recuperación de variedades autóctonas mallorquinas como la Callet sobre suelos calcáreos rojos (call vermell)." },
+            { estate: "TÁGANAN", subheading: "Envínate · Parcelas Atlánticas", appellation: "Vino de España · Taganana - Tenerife", vintage: "2020", bottling: "Macizo de Anaga · Islas Canarias", classification: "Vino de Parcela / Volcánico", region: "Islas Baleares y Canarias", aoc: "VC Islas Canarias", grapes: "Listán Negro, Negramoll, Vijariego Negro, Baboso Negro", explanation: "Viñedos centenarios sin injertar en acantilados volcánicos de Anaga, al noreste de Tenerife." },
+            { estate: "SUERTES DEL MARQUÉS 7 FUENTES", subheading: "Valle de la Orotava", appellation: "Denominación de Origen Valle de la Orotava", vintage: "2019", bottling: "La Orotava · Tenerife · Canarias", classification: "Vino de Parcela / Volcánico", region: "Islas Baleares y Canarias", aoc: "DO Valle de la Orotava", grapes: "Listán Negro, Castellana Negra", explanation: "Cultivado en el tradicional sistema de cordón trenzado sobre laderas volcánicas del Teide." },
+            { estate: "BERMEJO MALVASÍA SECO", subheading: "Bodegas Los Bermejos", appellation: "Denominación de Origen Lanzarote", vintage: "2021", bottling: "La Geria · Lanzarote · Canarias", classification: "Joven", region: "Islas Baleares y Canarias", aoc: "DO Lanzarote", grapes: "Malvasía Volcánica", explanation: "Cultivado en hoyos excavados en ceniza volcánica (picón) protegidos del viento alisio por muros de piedra." }
+        ];
+
+        let currentQuizIndex = 0;
+        let totalAnswered = 0;
+        let totalCorrectItems = 0;
+        let totalPossibleItems = 0;
+        let randomizedLabels = [];
+
+        window.onload = function() {
+            randomizedLabels = [...wineLabels].sort(() => Math.random() - 0.5);
+            populateRegionDropdown();
+            loadNewWineLabel();
+            renderRegionsAtlas();
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    const modal = document.getElementById('feedback-modal');
+                    const riojaModal = document.getElementById('rioja-modal');
+                    const jerezModal = document.getElementById('jerez-modal');
+                    const cpModal = document.getElementById('cavapriorat-modal');
+                    if (!modal.classList.contains('hidden')) {
+                        closeFeedbackModal();
+                    } else if (!riojaModal.classList.contains('hidden')) {
+                        closeRiojaModal();
+                    } else if (!jerezModal.classList.contains('hidden')) {
+                        closeJerezModal();
+                    } else if (!cpModal.classList.contains('hidden')) {
+                        closeCavaPrioratModal();
+                    }
+                }
+            });
+        };
+
+        function populateRegionDropdown() {
+            const regionSelect = document.getElementById('select-region');
+            regionSelect.innerHTML = '<option value="">Seleccione región...</option>';
+            const sortedRegions = Object.keys(regionalData).sort((a, b) => a.localeCompare(b, 'es'));
+            sortedRegions.forEach(reg => {
+                const opt = document.createElement('option');
+                opt.value = reg;
+                opt.textContent = reg;
+                regionSelect.appendChild(opt);
+            });
+        }
+
+        function onRegionSelected(region) {
+            const aocGroup = document.getElementById('group-aoc');
+            const classGroup = document.getElementById('group-classification');
+            const grapesGroup = document.getElementById('group-grapes');
+            const btnVerify = document.getElementById('btn-verify');
+
+            aocGroup.classList.add('hidden');
+            classGroup.classList.add('hidden');
+            grapesGroup.classList.add('hidden');
+            btnVerify.classList.add('hidden');
+
+            document.getElementById('select-aoc').value = "";
+            document.getElementById('select-classification').value = "";
+            document.getElementById('select-grapes').value = "";
+
+            if (!region) return;
+
+            const aocSelect = document.getElementById('select-aoc');
+            aocSelect.innerHTML = '<option value="">Seleccione Denominación correspondiente...</option>';
+            [...regionalData[region].aocs].forEach(aoc => {
+                const opt = document.createElement('option');
+                opt.value = aoc;
+                opt.textContent = aoc;
+                aocSelect.appendChild(opt);
+            });
+
+            aocGroup.classList.remove('hidden');
+        }
+
+        function onAocSelected(aoc) {
+            const classGroup = document.getElementById('group-classification');
+            const grapesGroup = document.getElementById('group-grapes');
+            const btnVerify = document.getElementById('btn-verify');
+
+            classGroup.classList.add('hidden');
+            grapesGroup.classList.add('hidden');
+            btnVerify.classList.add('hidden');
+
+            document.getElementById('select-classification').value = "";
+            document.getElementById('select-grapes').value = "";
+
+            if (!aoc) return;
+
+            const region = document.getElementById('select-region').value;
+            const classSelect = document.getElementById('select-classification');
+            classSelect.innerHTML = '<option value="">Seleccione clasificación...</option>';
+            [...regionalData[region].classifications].forEach(cls => {
+                const opt = document.createElement('option');
+                opt.value = cls;
+                opt.textContent = cls;
+                classSelect.appendChild(opt);
+            });
+
+            classGroup.classList.remove('hidden');
+        }
+
+        function onClassificationSelected(cls) {
+            const grapesGroup = document.getElementById('group-grapes');
+            const btnVerify = document.getElementById('btn-verify');
+
+            grapesGroup.classList.add('hidden');
+            btnVerify.classList.add('hidden');
+
+            document.getElementById('select-grapes').value = "";
+
+            if (!cls) return;
+
+            const region = document.getElementById('select-region').value;
+            const grapesSelect = document.getElementById('select-grapes');
+            grapesSelect.innerHTML = '<option value="">Seleccione cepa...</option>';
+            [...regionalData[region].grapes].forEach(grp => {
+                const opt = document.createElement('option');
+                opt.value = grp;
+                opt.textContent = grp;
+                grapesSelect.appendChild(opt);
+            });
+
+            grapesGroup.classList.remove('hidden');
+        }
+
+        function onGrapesSelected(grp) {
+            const btnVerify = document.getElementById('btn-verify');
+            if (grp) {
+                btnVerify.classList.remove('hidden');
+            } else {
+                btnVerify.classList.add('hidden');
+            }
+        }
+
+        function switchTab(tabId) {
+            ['quiz', 'regions'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).className = "w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] font-medium transition text-slate-300 hover:bg-slate-900 hover:text-white cursor-pointer";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).className = "w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[14px] font-medium transition bg-burgundy-600 text-white shadow-md shadow-burgundy-900/30 cursor-pointer";
+        }
+
+        function loadNewWineLabel() {
+            if (currentQuizIndex >= randomizedLabels.length) {
+                randomizedLabels = [...wineLabels].sort(() => Math.random() - 0.5);
+                currentQuizIndex = 0;
+            }
+
+            const wine = randomizedLabels[currentQuizIndex];
+            
+            document.getElementById('label-subheading').textContent = wine.subheading;
+            document.getElementById('label-estate').textContent = wine.estate;
+            document.getElementById('label-appellation').textContent = wine.appellation;
+            document.getElementById('label-vintage').textContent = wine.vintage;
+            document.getElementById('label-bottling').textContent = wine.bottling || "Embotellado en la Propiedad";
+
+            document.getElementById('quiz-progress-badge').textContent = `${currentQuizIndex + 1} / ${randomizedLabels.length}`;
+            
+            document.getElementById('select-region').value = "";
+            document.getElementById('group-aoc').classList.add('hidden');
+            document.getElementById('group-classification').classList.add('hidden');
+            document.getElementById('group-grapes').classList.add('hidden');
+            document.getElementById('btn-verify').classList.add('hidden');
+        }
+
+        function checkWineAnswer() {
+            const wine = randomizedLabels[currentQuizIndex];
+            const selRegion = document.getElementById('select-region').value;
+            const selAoc = document.getElementById('select-aoc').value;
+            const selClass = document.getElementById('select-classification').value;
+            const selGrapes = document.getElementById('select-grapes').value;
+
+            if (!selRegion || !selAoc || !selClass || !selGrapes) {
+                openFeedbackModal("⚠️ Campos Incompletos", 0, "Por favor completa todos los pasos del formulario antes de verificar tu respuesta.", wine);
+                return;
+            }
+
+            totalAnswered++;
+            totalPossibleItems += 4;
+            let earnedPoints = 0;
+
+            const regionMatch = selRegion === wine.region;
+            if (regionMatch) earnedPoints++;
+
+            const aocMatch = selAoc === wine.aoc;
+            if (aocMatch) earnedPoints++;
+
+            const classMatch = selClass.includes(wine.classification) || wine.classification.includes(selClass);
+            if (classMatch) earnedPoints++;
+
+            const correctGrapesArray = wine.grapes.split(',').map(g => g.trim().toLowerCase());
+            const userSelectedGrape = selGrapes.trim().toLowerCase();
+            const grapeMatch = correctGrapesArray.includes(userSelectedGrape) || correctGrapesArray.some(g => g.includes(userSelectedGrape) || userSelectedGrape.includes(g));
+            if (grapeMatch) earnedPoints++;
+
+            totalCorrectItems += earnedPoints;
+
+            updateStats();
+
+            const title = earnedPoints === 4 ? "✅ ¡Identificación Perfecta!" : (earnedPoints > 0 ? "⚠️ Análisis Parcial" : "❌ Incorrecto");
+            const details = `• Región: <strong>${wine.region}</strong> ${regionMatch ? '✓' : '(Elegiste: ' + selRegion + ')'}<br>` +
+                `• Denominación: <strong>${wine.aoc}</strong> ${aocMatch ? '✓' : '(Elegiste: ' + selAoc + ')'}<br>` +
+                `• Clasificación: <strong>${wine.classification}</strong> ${classMatch ? '✓' : '(Elegiste: ' + selClass + ')'}<br>` +
+                `• Cepas: <strong>${wine.grapes}</strong> ${grapeMatch ? '✓' : '(Elegiste: ' + selGrapes + ')'}<br><br>` +
+                `<span class="text-slate-400 italic">📚 Nota técnica: ${wine.explanation}</span>`;
+
+            openFeedbackModal(title, earnedPoints, details, wine);
+            currentQuizIndex++;
+        }
+
+        function openFeedbackModal(title, pts, details, wine) {
+            document.getElementById('modal-feedback-header').textContent = title;
+            document.getElementById('modal-feedback-pts').textContent = `+${pts} pts`;
+            document.getElementById('modal-feedback-details').innerHTML = details;
+            
+            document.getElementById('modal-label-subheading').textContent = wine.subheading;
+            document.getElementById('modal-label-estate').textContent = wine.estate;
+            document.getElementById('modal-label-appellation').textContent = wine.appellation;
+            document.getElementById('modal-label-vintage').textContent = wine.vintage;
+            document.getElementById('modal-label-bottling').textContent = wine.bottling || "Embotellado en Propiedad";
+
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            loadNewWineLabel();
+        }
+
+        function openRiojaModal() {
+            document.getElementById('rioja-modal').classList.remove('hidden');
+        }
+
+        function closeRiojaModal() {
+            document.getElementById('rioja-modal').classList.add('hidden');
+        }
+
+        function openJerezModal() {
+            document.getElementById('jerez-modal').classList.remove('hidden');
+        }
+
+        function closeJerezModal() {
+            document.getElementById('jerez-modal').classList.add('hidden');
+        }
+
+        function openCavaPrioratModal() {
+            document.getElementById('cavapriorat-modal').classList.remove('hidden');
+        }
+
+        function closeCavaPrioratModal() {
+            document.getElementById('cavapriorat-modal').classList.add('hidden');
+        }
+
+        function filterRioja() {
+            const query = document.getElementById('rioja-search').value.toLowerCase();
+            const sections = document.querySelectorAll('.rioja-section');
+            sections.forEach(section => {
+                const listItems = section.querySelectorAll('li');
+                let hasMatch = false;
+                listItems.forEach(li => {
+                    if (li.textContent.toLowerCase().includes(query)) {
+                        li.style.display = '';
+                        hasMatch = true;
+                    } else {
+                        li.style.display = 'none';
+                    }
+                });
+                section.style.display = hasMatch ? '' : 'none';
+            });
+        }
+
+        function filterJerez() {
+            const query = document.getElementById('jerez-search').value.toLowerCase();
+            const sections = document.querySelectorAll('.jerez-section');
+            sections.forEach(section => {
+                const listItems = section.querySelectorAll('li');
+                let hasMatch = false;
+                listItems.forEach(li => {
+                    if (li.textContent.toLowerCase().includes(query)) {
+                        li.style.display = '';
+                        hasMatch = true;
+                    } else {
+                        li.style.display = 'none';
+                    }
+                });
+                section.style.display = hasMatch ? '' : 'none';
+            });
+        }
+
+        function filterCavaPriorat() {
+            const query = document.getElementById('cavapriorat-search').value.toLowerCase();
+            const sections = document.querySelectorAll('.cp-section');
+            sections.forEach(section => {
+                const listItems = section.querySelectorAll('li');
+                let hasMatch = false;
+                listItems.forEach(li => {
+                    if (li.textContent.toLowerCase().includes(query)) {
+                        li.style.display = '';
+                        hasMatch = true;
+                    } else {
+                        li.style.display = 'none';
+                    }
+                });
+                section.style.display = hasMatch ? '' : 'none';
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total').textContent = totalAnswered;
+            document.getElementById('stat-correct').textContent = `${totalCorrectItems} / ${totalPossibleItems}`;
+            const accuracy = totalPossibleItems > 0 ? Math.round((totalCorrectItems / totalPossibleItems) * 100) : 0;
+            document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('global-accuracy-header').textContent = `${accuracy}%`;
+            document.getElementById('cumulative-accuracy-legend').textContent = `${accuracy}% de respuestas correctas`;
+        }
+
+        function renderRegionsAtlas(filter = "") {
+            const grid = document.getElementById('regions-grid');
+            grid.innerHTML = "";
+            const sortedKeys = Object.keys(regionalData).sort((a, b) => a.localeCompare(b, 'es'));
+            
+            sortedKeys.forEach(regName => {
+                const reg = regionalData[regName];
+                if (filter && !regName.toLowerCase().includes(filter.toLowerCase()) && !reg.aocs.some(a => a.toLowerCase().includes(filter.toLowerCase())) && !reg.grapes.some(g => g.toLowerCase().includes(filter.toLowerCase()))) {
+                    return;
+                }
+                const card = document.createElement('div');
+                card.className = `border rounded-xl p-4 flex flex-col justify-between space-y-3 transition ${reg.color}`;
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <h3 class="font-serif text-[15px] font-bold text-white flex items-center justify-between">
+                            <span>${regName}</span>
+                            <span class="text-[12px] font-sans px-2.5 py-0.5 rounded-full ${reg.badgeColor} font-semibold">${reg.aocs.length} DOs</span>
+                        </h3>
+                    </div>
+                    <div class="space-y-1.5 text-[14px] text-slate-300 border-t border-slate-700/50 pt-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+                        <p class="font-semibold text-champagne-400">Denominaciones (DO / DOCa / VP):</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${[...reg.aocs].map(aoc => `<span class="text-[12px] bg-slate-900/90 text-slate-200 px-2 py-0.5 rounded border border-slate-800">${aoc}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="pt-1 border-t border-slate-700/50">
+                        <p class="text-[12px] text-slate-400"><strong>Cepas principales:</strong> ${[...reg.grapes].join(', ')}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterRegions() {
+            const query = document.getElementById('region-search').value;
+            renderRegionsAtlas(query);
+        }
+    </script>
+</body>
+</html>
